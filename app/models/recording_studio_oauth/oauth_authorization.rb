@@ -50,8 +50,7 @@ module RecordingStudioOauth
     end
 
     def workspace_recording
-      access_recording&.parent_recording || access_recording&.root_recording ||
-        manager_access_recording&.parent_recording || manager_access_recording&.root_recording
+      parent_or_root(access_recording) || parent_or_root(manager_access_recording)
     end
 
     def accessible_authorized?
@@ -78,6 +77,12 @@ module RecordingStudioOauth
       requested_rank = role_rank(requested)
       current_rank = role_rank(current)
       requested_rank.present? && current_rank.present? && requested_rank <= current_rank
+    end
+
+    private
+
+    def parent_or_root(recording)
+      recording&.parent_recording || recording&.root_recording
     end
   end
 end

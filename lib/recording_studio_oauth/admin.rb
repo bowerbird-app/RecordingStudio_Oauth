@@ -4,6 +4,11 @@ module RecordingStudioOauth
   module Admin
     module_function
 
+    def revoke_oauth_client_path(client)
+      mount = RecordingStudioOauth.configuration.engine_mount_path.to_s.presence || "/recording_studio_oauth"
+      Engine.routes.url_helpers.admin_revoke_oauth_client_path(client, script_name: mount)
+    end
+
     ActiveAppsWidget = RecordingStudioAdmin::Widget.new("oauth.active_apps") do
       type :number
       title "Registered apps"
@@ -49,7 +54,7 @@ module RecordingStudioOauth
         column :revoked_at, title: "Status", value: ->(row, _context) { row.revoked? ? "Revoked" : "Active" }
         action :revoke,
                text: "Revoke",
-               url: ->(row, context) { context.controller.main_app.recording_studio_oauth.admin_revoke_oauth_client_path(row) },
+               url: ->(row, _context) { RecordingStudioOauth::Admin.revoke_oauth_client_path(row) },
                method: :post,
                confirm: ->(row, _context) { "Revoke #{row.name}?" },
                destructive: true,

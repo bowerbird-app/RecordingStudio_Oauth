@@ -26,9 +26,9 @@ module RecordingStudioOauth
       def authorize_admin_actor!
         actor = current_oauth_actor
         recording = admin_access_recording
-        unless recording && RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
-          head :forbidden
-        end
+        return if recording && RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
+
+        head :forbidden
       end
 
       def admin_access_recording

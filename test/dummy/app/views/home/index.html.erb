@@ -24,20 +24,18 @@
             type: "submit"
           ) %>
         <% end %>
-        <a href="<%= recording_studio_oauth.connected_apps_path %>" class="inline-flex">
-          <%= render FlatPack::Button::Component.new(
-            text: "Connected apps",
-            style: :secondary,
-            size: :md
-          ) %>
-        </a>
-        <a href="/admin" class="inline-flex">
-          <%= render FlatPack::Button::Component.new(
-            text: "Staff admin",
-            style: :ghost,
-            size: :md
-          ) %>
-        </a>
+        <%= render FlatPack::Button::Component.new(
+          text: "Connected apps",
+          style: :secondary,
+          size: :md,
+          href: recording_studio_oauth.connected_apps_path
+        ) %>
+        <%= render FlatPack::Button::Component.new(
+          text: "Staff admin",
+          style: :ghost,
+          size: :md,
+          href: "/admin"
+        ) %>
       </div>
     <% end %>
   <% end %>

@@ -35,11 +35,13 @@ module OauthDummyHelpers
         recording: recording,
         actor: actor
       )
-      raise bootstrap.error if bootstrap.failure?
-
-      return bootstrap.value
+      return bootstrap.value if bootstrap.success?
     end
 
+    create_access_without_manager!(recording: recording, actor: actor, role: role)
+  end
+
+  def create_access_without_manager!(recording:, actor:, role:)
     RecordingStudioAccessible::AccessCreationContext.allow do
       access = RecordingStudio::Access.create!(actor: actor, role: role)
       RecordingStudio.record!(
@@ -133,5 +135,15 @@ module OauthDummyHelpers
 
   def authorize_path
     "/recording_studio_oauth/oauth/authorize"
+  end
+
+  def switch_to_root!(root_recording)
+    patch recording_studio_root_switchable.root_switch_path(scope: "all_workspaces"), params: {
+      root_switch: {
+        root_recording_id: root_recording.id,
+        return_to: "/"
+      }
+    }
+    follow_redirect! if response.redirect?
   end
 end

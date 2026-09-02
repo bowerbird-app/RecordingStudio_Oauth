@@ -4,14 +4,12 @@ RecordingStudioAdmin.configure do |config|
   config.default_mount_path = "/admin"
   config.authentication_method = :authenticate_user!
   config.current_actor_method = :current_user
-  config.access_recording_resolver = lambda do |context|
-    current_root = context.controller.send(:current_root_recording) if context.controller.respond_to?(:current_root_recording, true)
-    next current_root if current_root.present?
-
+  config.async_widgets.enabled = false
+  config.access_recording_resolver = lambda do |_context|
     admin_root = AdminRoot.find_by(name: "Admin")
     next unless admin_root
 
-    RecordingStudio::Recording.find_by(recordable: admin_root, trashed_at: nil)
+    RecordingStudio::Recording.find_by(recordable: admin_root, parent_recording_id: nil, trashed_at: nil)
   end
   config.site_admin_recording_resolver = config.access_recording_resolver
   config.engine_layout = "recording_studio/default_layout"

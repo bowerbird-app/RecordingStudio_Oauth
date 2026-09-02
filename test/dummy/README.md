@@ -22,13 +22,15 @@ bin/rails db:setup
 bin/dev
 ```
 
-Open port 3000.
+Open port 3000. Sign in with `admin@admin.com` / `Password`. Switch to the Admin root before opening staff admin.
+
+Page-only review shots live in `doc/review/`.
 
 ## Routes
 
 - `/` dummy home
 - `/recording_studio_oauth/oauth/authorize` Connect
 - `/recording_studio_oauth/connected_apps` connected apps
-- `/admin` staff admin
+- `/admin` staff admin (switch the dummy to the Admin root first)
 - `/recording_studio_api/oauth/token` API token URL
 - `/users/sign_in` Devise

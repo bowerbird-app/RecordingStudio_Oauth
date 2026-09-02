@@ -12,6 +12,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal :current_user, @configuration.current_actor_method
     assert_equal ["AdminRoot"], @configuration.admin_root_recordable_type_names
     assert_equal "/recording_studio_api", @configuration.api_mount_path
+    assert_equal "/recording_studio_oauth", @configuration.engine_mount_path
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
   end
 
