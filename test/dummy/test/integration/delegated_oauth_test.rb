@@ -68,6 +68,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
     assert_match(/\bConnect\b/, css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.text)
+    folder_button = css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.at_css("a")
+    assert_includes folder_button["class"], "--button-default-background-color"
     refute_equal @root_recording.id, folder_recording.id
     assert_select "[data-controller='recording-studio-root-switchable--root-switch-dropdown']", count: 0
     assert_not_includes response.body, "Sign out"
@@ -336,19 +338,22 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       pkce: @pkce
     )
     _second_root, second_access = create_access_recording_for(user: @user, workspace_name: "Reconnect workspace")
-    reconnect = approve_delegated_oauth(
+    reconnect_grant = approve_delegated_oauth(
       oauth_client: @oauth_client,
       user: @user,
       access_recording: second_access
     )
-    RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: reconnect.fetch(:authorization))
+    RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: reconnect_grant.fetch(:authorization))
 
     get authorize_path, params: authorize_params
 
     assert_response :success
-    assert_includes response.body, "Connected"
-    assert_includes response.body, "Reconnect"
-    assert_includes response.body, "Connect"
+    connected_button = css_select("[role='listitem']").find { |item| item.text.include?(@root_recording.recordable.name) }.at_css("a")
+    reconnect_button = css_select("[role='listitem']").find { |item| item.text.include?("Reconnect workspace") }.at_css("a")
+    assert_equal "Connected", connected_button.text.strip
+    assert_equal "Reconnect", reconnect_button.text.strip
+    assert_includes connected_button["class"], "--button-success-background-color"
+    assert_includes reconnect_button["class"], "--button-danger-background-color"
   end
 
   test "authorization code reuse voids the grant" do

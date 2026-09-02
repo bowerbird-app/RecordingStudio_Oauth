@@ -153,4 +153,18 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes controller, "FlatPack::Button::Component"
     refute_includes controller, "RecordingStudioAttachable"
   end
+
+  def test_connect_list_button_styles_use_flatpack_schemes
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
+    consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
+
+    assert_includes controller, '"Connect" => :default'
+    assert_includes controller, '"Reconnect" => :danger'
+    assert_includes controller, '"Connected" => :success'
+    refute_includes controller, '"Connect" => :primary'
+    refute_includes controller, '"Reconnect" => :primary'
+    refute_includes controller, '"Connected" => :secondary'
+    assert_includes consent, "style: :primary"
+    assert_includes consent, "style: :secondary"
+  end
 end
