@@ -25,6 +25,8 @@ bin/dev
 
 Open port 3000. Sign in with `admin@admin.com` / `Password`. Switch to the Admin root before opening staff admin.
 
+Dummy writes resolved engine paths to `app/assets/tailwind/gem_sources.css` before each `tailwindcss:build` or `tailwindcss:watch`. Import that file from `application.css`. Hardcoded `@source` globs miss gems installed under `/usr/local/lib/ruby/gems`, and without those classes PageNav back collapses. The generated file is gitignored.
+
 Page-only review shots live in `doc/review/`.
 
 ## Routes

@@ -39,7 +39,7 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected, Docs Workspace starts as Reconnect, Product Docs is Connect, Admin is staff-only.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected, Docs Workspace starts as Reconnect, Product Docs is Connect, Admin is staff-only. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Version
 

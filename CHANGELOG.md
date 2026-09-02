@@ -18,6 +18,7 @@ First release of the Recording Studio authorization server.
 - RFC 8414 discovery that points `token_endpoint` at Recording Studio API
 - Registers `authorization_code` and `refresh_token` on Recording Studio API 0.5.2 via `RecordingStudioApi.register_oauth_grant`
 - Dummy host with Seed Demo App
+- Dummy Tailwind writes resolved gem `@source` paths so Flatpack classes emit on Cloud Agent install paths
 
 ### Notes
 - This gem is not Users, Doorkeeper, DCR, OIDC, SAML, or OAuth scopes

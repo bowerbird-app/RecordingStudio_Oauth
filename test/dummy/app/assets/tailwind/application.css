@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Resolved engine/gem paths written before each Tailwind build/watch. */
+@import "./gem_sources.css";
+
 /* Include dummy app views for Tailwind CSS */
 @source "../../views/**/*.erb";
 
