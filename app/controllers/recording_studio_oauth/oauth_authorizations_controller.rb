@@ -9,6 +9,7 @@ module RecordingStudioOauth
       "Reconnect" => :danger,
       "Connected" => :success
     }.freeze
+    RECONNECT_HINT = "This connection is no longer live."
 
     layout "recording_studio_oauth/authorization"
 
@@ -305,12 +306,15 @@ module RecordingStudioOauth
 
     def connection_status_trailing(access_recording)
       status = connection_status_for(access_recording)
-      view_context.render FlatPack::Button::Component.new(
+      button = view_context.render FlatPack::Button::Component.new(
         text: status,
         style: CONNECT_BUTTON_STYLE.fetch(status),
         size: :sm,
         href: connect_choice_url(access_recording)
       )
+      return button unless status == "Reconnect"
+
+      view_context.render(FlatPack::Tooltip::Component.new(text: RECONNECT_HINT, placement: :top)) { button }
     end
     helper_method :connection_status_trailing
 

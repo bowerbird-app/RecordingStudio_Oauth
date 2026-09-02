@@ -167,4 +167,14 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes consent, "style: :primary"
     assert_includes consent, "style: :secondary"
   end
+
+  def test_reconnect_button_wraps_a_flatpack_tooltip
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
+
+    assert_includes controller, "FlatPack::Tooltip::Component"
+    assert_includes controller, "This connection is no longer live."
+    assert_includes controller, "placement: :top"
+    refute_includes controller, "title: RECONNECT"
+    refute_includes controller, 'title: "This connection'
+  end
 end

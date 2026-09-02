@@ -70,6 +70,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_match(/\bConnect\b/, css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.text)
     folder_button = css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.at_css("a")
     assert_includes folder_button["class"], "--button-default-background-color"
+    assert_select "[role='tooltip']", count: 0
+    assert_select "[data-controller='flat-pack--tooltip']", count: 0
     refute_equal @root_recording.id, folder_recording.id
     assert_select "[data-controller='recording-studio-root-switchable--root-switch-dropdown']", count: 0
     assert_not_includes response.body, "Sign out"
@@ -354,6 +356,14 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_equal "Reconnect", reconnect_button.text.strip
     assert_includes connected_button["class"], "--button-success-background-color"
     assert_includes reconnect_button["class"], "--button-danger-background-color"
+    reconnect_item = css_select("[role='listitem']").find { |item| item.text.include?("Reconnect workspace") }
+    connected_item = css_select("[role='listitem']").find { |item| item.text.include?(@root_recording.recordable.name) }
+    assert reconnect_item.at_css("[data-controller='flat-pack--tooltip']")
+    assert_equal "This connection is no longer live.", reconnect_item.at_css("[role='tooltip']").text.strip
+    assert_nil connected_item.at_css("[role='tooltip']")
+    assert_nil connected_button["title"]
+    assert_nil reconnect_button["title"]
+    assert_select "[data-controller='flat-pack--tooltip']", count: 1
   end
 
   test "authorization code reuse voids the grant" do

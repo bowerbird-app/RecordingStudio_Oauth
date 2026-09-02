@@ -21,7 +21,7 @@ First release of the Recording Studio authorization server.
 - Dummy Tailwind writes resolved gem `@source` paths so Flatpack classes emit on Cloud Agent install paths
 - Connect, permission, and error sit in a viewport-centered `max-w-sm` frame like login. Connected apps and staff admin stay on default layout.
 - Connect title is `{app} wants to connect to {site}` from OauthClient plus Site Settings `name_for`
-- Connect list has no PageNav. The list sits in a Card with default padding. Trailing status is a Flatpack Button (Connect default, Connected success, Reconnect danger). Permission title is `{picked parent} permissions`. Primary action is Connect.
+- Connect list has no PageNav. The list sits in a Card with default padding. Trailing status is a Flatpack Button (Connect default, Connected success, Reconnect danger). Reconnect wraps a Flatpack Tooltip. Permission title is `{picked parent} permissions`. Primary action is Connect.
 
 ### Notes
 - This gem is not Users, Doorkeeper, DCR, OIDC, SAML, or OAuth scopes
