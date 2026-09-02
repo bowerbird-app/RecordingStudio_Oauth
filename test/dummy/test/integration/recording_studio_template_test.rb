@@ -79,4 +79,13 @@ class DummyHostTest < ActiveSupport::TestCase
     assert RecordingStudio.capability_enabled?(:accessible, for: AdminRoot)
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
   end
+
+  test "dummy importmap pins turbo and admin screen controllers" do
+    importmap = File.read(Rails.root.join("config/importmap.rb"))
+    application_js = File.read(Rails.root.join("app/javascript/application.js"))
+
+    assert_includes importmap, "@hotwired/turbo-rails"
+    assert_includes importmap, "recording_studio_admin/controllers"
+    assert_includes application_js, "@hotwired/turbo-rails"
+  end
 end

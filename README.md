@@ -33,6 +33,7 @@ People can see and remove connected apps. Staff can revoke a registered app.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
 5. Enable `:accessible` on the recordables people Connect from, including Folder if folder grants should appear.
 6. Host authentication stays on the host. Dummy uses Devise. Do not add Users as a dependency of this gem.
+7. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
 If `RecordingStudioApi.respond_to?(:register_oauth_grant)`, this gem registers `authorization_code` and `refresh_token` in `to_prepare`. API 0.5.1 does not have that method yet. Connect, models, and discovery still work. Token exchange through the API waits on that API change. Do not copy Connect into the API gem.
 
