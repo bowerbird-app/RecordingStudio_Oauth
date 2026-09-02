@@ -40,7 +40,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "data-recording-studio-default-layout"
     assert_includes response.body, "min-h-dvh"
     assert_includes response.body, "max-w-sm"
-    assert_select ".flat-pack-page-nav", count: 1
+    assert_select ".flat-pack-page-nav", count: 0
     assert_includes response.body, "#{@oauth_client.name} wants to connect"
     refute_match(/wants to connect to\s*</, response.body)
     refute_includes response.body, "It gets its own access here. Yours stays yours."
@@ -49,6 +49,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_select "label", text: "Workspace", count: 0
     assert_select "select[name='access_recording_id']", count: 0
     assert_select "button[name='decision'][value='continue']", count: 0
+    assert_select "button[name='decision'][value='connect']", count: 0
     assert_select "[role='list']"
     assert_select "[role='list'] [role='list']", count: 0
     labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
@@ -61,6 +62,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "access_recording_id=#{admin_root_access.id}"
     assert_includes response.body, "access_recording_id=#{folder_access.id}"
     assert_includes response.body, "access_recording_id=#{@access_recording.id}"
+    assert_select "[role='listitem'] a[href*='access_recording_id']"
     css_select("[role='listitem']").each do |item|
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
@@ -101,32 +103,37 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes labels, "Meadow"
   end
 
-  test "permission screen uses the chosen parent's site name" do
+  test "permission screen uses the picked parent name" do
     seed_site_name!(@root_recording, name: "Studio", actor: @user)
 
     get authorize_path, params: authorize_params.merge(access_recording_id: @access_recording.id)
 
     assert_response :success
-    assert_includes response.body, "#{@oauth_client.name} wants to connect to Studio"
-    assert_select "label", text: "Permission"
+    assert_includes response.body, "#{@root_recording.recordable.name} permissions"
+    refute_includes response.body, "wants to connect"
+    refute_includes response.body, @oauth_client.name
+    assert_select "label", count: 0
+    refute_includes response.body, "You can view"
+    assert_select ".flat-pack-page-nav", count: 1
   end
 
-  test "screen 2 continue issues a code and token pair" do
+  test "screen 2 connect issues a code and token pair" do
     get authorize_path, params: authorize_params.merge(access_recording_id: @access_recording.id)
 
     assert_response :success
-    assert_includes response.body, "#{@oauth_client.name} wants to connect"
-    refute_match(/wants to connect to\s*</, response.body)
-    assert_includes response.body, @root_recording.recordable.name
+    assert_includes response.body, "#{@root_recording.recordable.name} permissions"
+    refute_includes response.body, "wants to connect"
     assert_select "input[name='access_recording_id'][value=?]", @access_recording.id
-    assert_select "label", text: "Permission"
-    assert_select "button[name='decision'][value='continue']"
+    assert_select "label", count: 0
+    refute_includes response.body, "You can view"
+    assert_select "button[name='decision'][value='connect']"
     assert_select "button[name='decision'][value='cancel']"
+    assert_select ".flat-pack-page-nav", count: 1
 
     post authorize_path, params: authorize_params.merge(
       access_recording_id: @access_recording.id,
       role: "view",
-      decision: "continue"
+      decision: "connect"
     )
 
     assert_response :redirect
@@ -277,7 +284,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes response.body, "Your access changed. Connect again."
-    assert_select "button[name='decision'][value='continue']", count: 0
+    assert_select "button[name='decision'][value='connect']", count: 0
     authorization = RecordingStudioOauth::OauthAuthorization.find_by!(oauth_client: @oauth_client, manager_actor: @user)
     assert_equal "admin", authorization.role
   end
@@ -302,7 +309,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes response.body, "That access is gone. Connect again."
-    assert_select "button[name='decision'][value='continue']", count: 0
+    assert_select "button[name='decision'][value='connect']", count: 0
   end
 
   test "view-only screen 2 has no permission select" do
@@ -313,9 +320,10 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params.merge(access_recording_id: view_access.id)
 
     assert_response :success
-    assert_select "label", text: "Permission", count: 0
+    assert_includes response.body, "#{view_access.parent_recording.recordable.name} permissions"
+    assert_select "label", count: 0
     assert_select "input[name='role'][value=view]"
-    assert_select "button[name='decision'][value='continue']"
+    assert_select "button[name='decision'][value='connect']"
     assert_select "button[name='decision'][value='cancel']"
   end
 

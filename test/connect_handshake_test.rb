@@ -60,13 +60,4 @@ class ConnectHandshakeTest < Minitest::Test
 
     assert_equal "Studio Workspace", label
   end
-
-  def test_subtitle_drops_a_repeated_site_name
-    subtitle = RecordingStudioOauth::ConnectHandshake.subtitle(
-      parent_name: "Studio",
-      site_name: "Studio"
-    )
-
-    assert_nil subtitle
-  end
 end

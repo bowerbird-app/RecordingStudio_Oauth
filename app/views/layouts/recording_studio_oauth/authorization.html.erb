@@ -19,12 +19,14 @@
   <body class="bg-(--surface-page-background-color) text-(--surface-content-color)" data-theme="<%= content_for(:body_theme).presence || 'rounded' %>">
     <main class="flex min-h-dvh items-center justify-center p-6">
       <div class="w-full max-w-sm space-y-6">
-        <%= render FlatPack::PageNav::Component.new(
-          back_icon: content_for(:page_nav_back_icon).presence || "chevron-left",
-          back_label: content_for(:page_nav_back_label).presence || "Go back",
-          back_style: (content_for(:page_nav_back_style).presence || "secondary").to_sym,
-          back_size: (content_for(:page_nav_back_size).presence || "md").to_sym
-        ) %>
+        <% unless content_for?(:skip_connect_page_nav) %>
+          <%= render FlatPack::PageNav::Component.new(
+            back_icon: content_for(:page_nav_back_icon).presence || "chevron-left",
+            back_label: content_for(:page_nav_back_label).presence || "Go back",
+            back_style: (content_for(:page_nav_back_style).presence || "secondary").to_sym,
+            back_size: (content_for(:page_nav_back_size).presence || "md").to_sym
+          ) %>
+        <% end %>
         <%= yield %>
       </div>
     </main>

@@ -22,14 +22,6 @@ module RecordingStudioOauth
       end
     end
 
-    def subtitle(parent_name:, site_name:)
-      parent = present_name(parent_name)
-      site = present_name(site_name)
-      return if parent.blank? || parent == site
-
-      parent
-    end
-
     def shared_site_name?(site_names)
       names = Array(site_names).map { |name| present_name(name) }
       names.uniq.one? && names.first.present?

@@ -10,7 +10,7 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
 - RFC 8414 on the host `/.well-known` paths
-- Rounded Flatpack theme. Connect uses a centered login-style frame. Connected apps and staff admin stay on Recording Studio default layout.
+- Rounded Flatpack theme. Connect uses a centered login-style frame. The access list has no back control. Permission and error keep PageNav. Connected apps and staff admin stay on Recording Studio default layout.
 - Turbo plus Admin screen controllers, so staff registered-apps table rows load
 
 API is mounted so the dummy looks like a real host. Token URL stays on the API engine. Machine keys stay there. Boot registers `authorization_code` and `refresh_token` on that same URL. Dummy `access_actor_types` include `RecordingStudioApi::ApiClient` so `client_credentials` still works.

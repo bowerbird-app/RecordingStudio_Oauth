@@ -18,12 +18,12 @@ RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_e
 
 ## Connect
 
-Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. PageNav back stays. Connected apps and staff admin stay on core default layout.
+Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. The access list has no back control. Permission and error keep PageNav back. Connected apps and staff admin stay on core default layout.
 
-The title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
+The list title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
 
-1. A list in a card. Each row is a workspace or folder the person can already use. Trailing copy is Connect, Connected, or Reconnect. Staff AdminRoot is not a row. The list is flat, not a tree.
-2. Permission, capped at theirs. View is the default. If they only have View, the picker is hidden. Continue and Cancel are separate buttons. Cancel is `access_denied`.
+1. A list in a card. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect, Connected, or Reconnect. Connect and Reconnect are primary. Connected is secondary. Staff AdminRoot is not a row. The list is flat, not a tree.
+2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`.
 
 People can see and remove connected apps. Staff can revoke a registered app.
 

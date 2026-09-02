@@ -122,19 +122,25 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes index, "FlatPack::List::Component"
     assert_includes index, "FlatPack::Card::Component"
+    assert_includes index, "skip_connect_page_nav"
+    assert_includes index, "connection_status_trailing"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
     refute_includes consent, "ButtonGroup"
     refute_includes consent, "Grid::Component"
     refute_includes consent, "cols: 2"
     refute_includes consent, "page_nav_back_url"
-    assert_includes consent, 'value: "continue"'
+    refute_includes consent, "help_text"
+    refute_includes consent, "Permission"
+    assert_includes consent, 'text: "Connect"'
+    assert_includes consent, 'value: "connect"'
     assert_includes consent, 'value: "cancel"'
     refute_includes error, "Grid::Component"
     refute_includes error, "cols: 2"
     assert_includes layout, "min-h-dvh"
     assert_includes layout, "max-w-sm"
     assert_includes layout, "FlatPack::PageNav::Component"
+    assert_includes layout, "skip_connect_page_nav"
     refute_includes layout, "max-w-6xl"
   end
 
@@ -143,6 +149,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes controller, "RecordingStudioSiteSettings.name_for"
     assert_includes controller, "RecordingStudioSiteSettings.site_root_for"
+    assert_includes controller, "FlatPack::Button::Component"
     refute_includes controller, "RecordingStudioAttachable"
   end
 end

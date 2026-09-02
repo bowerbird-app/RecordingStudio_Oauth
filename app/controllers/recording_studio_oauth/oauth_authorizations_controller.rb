@@ -4,6 +4,12 @@ module RecordingStudioOauth
   class OauthAuthorizationsController < ApplicationController
     include Concerns::HostAuthentication
 
+    CONNECT_BUTTON_STYLE = {
+      "Connect" => :primary,
+      "Reconnect" => :primary,
+      "Connected" => :secondary
+    }.freeze
+
     layout "recording_studio_oauth/authorization"
 
     before_action :authenticate_host_user!
@@ -135,15 +141,13 @@ module RecordingStudioOauth
     end
     helper_method :connect_page_title
 
-    def connect_page_subtitle
-      return unless @selected_access_recording
+    def connect_permission_title
+      name = access_parent_name(@selected_access_recording)
+      return "Permissions" if name.blank?
 
-      ConnectHandshake.subtitle(
-        parent_name: access_parent_name(@selected_access_recording),
-        site_name: connect_site_name_for(@selected_access_recording)
-      )
+      "#{name} permissions"
     end
-    helper_method :connect_page_subtitle
+    helper_method :connect_permission_title
 
     def connect_row_label(access_recording)
       ConnectHandshake.row_label(
@@ -300,21 +304,15 @@ module RecordingStudioOauth
     helper_method :connection_status_for
 
     def connection_status_trailing(access_recording)
-      view_context.tag.span(
-        connection_status_for(access_recording),
-        class: "text-sm text-[var(--surface-muted-content-color)]"
+      status = connection_status_for(access_recording)
+      view_context.render FlatPack::Button::Component.new(
+        text: status,
+        style: CONNECT_BUTTON_STYLE.fetch(status),
+        size: :sm,
+        href: connect_choice_url(access_recording)
       )
     end
     helper_method :connection_status_trailing
-
-    def permission_helper_text
-      parent_name = access_parent_name(@selected_access_recording)
-      role_label = default_consent_role.to_s.humanize
-      return "You can #{role_label.downcase}." if parent_name.blank?
-
-      "You can #{role_label.downcase} #{parent_name}."
-    end
-    helper_method :permission_helper_text
 
     def redirect_to_client(**query)
       uri = URI.parse(@redirect_uri)

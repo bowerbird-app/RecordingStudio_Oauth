@@ -1,8 +1,7 @@
-<% recording_studio_page_nav(title: connect_page_title) %>
+<% recording_studio_page_nav(title: connect_permission_title) %>
 
 <%= render FlatPack::PageTitle::Component.new(
-  title: connect_page_title,
-  subtitle: connect_page_subtitle,
+  title: connect_permission_title,
   variant: :h1,
   class: "mb-0 pb-0 text-center"
 ) %>
@@ -29,8 +28,6 @@
       name: "role",
       options: @role_options,
       value: params[:role].presence || default_consent_role,
-      label: "Permission",
-      help_text: permission_helper_text,
       placeholder: nil,
       searchable: false,
       required: true
@@ -41,12 +38,12 @@
 
   <div class="space-y-3">
     <%= render FlatPack::Button::Component.new(
-      text: "Continue",
+      text: "Connect",
       style: :primary,
       size: :md,
       type: "submit",
       name: "decision",
-      value: "continue",
+      value: "connect",
       class: "w-full"
     ) %>
     <%= render FlatPack::Button::Component.new(
