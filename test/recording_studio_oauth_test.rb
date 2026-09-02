@@ -113,12 +113,24 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_connect_views_use_flatpack_not_button_group
     index = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/index.html.erb", __dir__))
     consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
+    error = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/error.html.erb", __dir__))
+    layout = File.read(File.expand_path("../app/views/layouts/recording_studio_oauth/authorization.html.erb", __dir__))
 
     assert_includes index, "FlatPack::List::Component"
     assert_includes index, "FlatPack::Card::Component"
+    refute_includes index, "Grid::Component"
+    refute_includes index, "cols: 2"
     refute_includes consent, "ButtonGroup"
+    refute_includes consent, "Grid::Component"
+    refute_includes consent, "cols: 2"
     refute_includes consent, "page_nav_back_url"
     assert_includes consent, 'value: "continue"'
     assert_includes consent, 'value: "cancel"'
+    refute_includes error, "Grid::Component"
+    refute_includes error, "cols: 2"
+    assert_includes layout, "min-h-dvh"
+    assert_includes layout, "max-w-sm"
+    assert_includes layout, "FlatPack::PageNav::Component"
+    refute_includes layout, "max-w-6xl"
   end
 end

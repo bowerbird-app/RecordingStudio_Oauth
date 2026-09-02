@@ -36,7 +36,11 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params
 
     assert_response :success
-    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "body[data-theme='rounded']", count: 1
+    refute_includes response.body, "data-recording-studio-default-layout"
+    assert_includes response.body, "min-h-dvh"
+    assert_includes response.body, "max-w-sm"
+    assert_select ".flat-pack-page-nav", count: 1
     assert_select "title", text: /Connect #{Regexp.escape(@oauth_client.name)}/
     assert_includes response.body, "It gets its own access here. Yours stays yours."
     assert_includes response.body, @root_recording.recordable.name
@@ -423,6 +427,18 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_equal "RecordingStudioOauth::OauthAuthorization", granted.actor_type
     assert_equal approved.fetch(:authorization).id, granted.actor_id
     refute_equal @user.id, granted.actor_id
+  end
+
+  test "error screen uses the login frame not a two-column grid" do
+    get authorize_path, params: authorize_params.merge(response_type: "token")
+
+    assert_response :bad_request
+    assert_includes response.body, "Could not connect"
+    assert_includes response.body, "response_type must be code"
+    assert_includes response.body, "min-h-dvh"
+    assert_includes response.body, "max-w-sm"
+    refute_includes response.body, "data-recording-studio-default-layout"
+    assert_select ".flat-pack-page-nav", count: 1
   end
 
   private

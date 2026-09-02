@@ -18,7 +18,7 @@ RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_e
 
 ## Connect
 
-Two screens, Flatpack, default layout, `data-theme="rounded"`.
+Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. PageNav back stays. Connected apps and staff admin stay on core default layout.
 
 1. A list in a card. Each row is a workspace or folder the person can already use. Trailing copy is Connect, Connected, or Reconnect. Staff AdminRoot is not a row. The list is flat, not a tree.
 2. Permission, capped at theirs. View is the default. If they only have View, the picker is hidden. Continue and Cancel are separate buttons. Cancel is `access_denied`.

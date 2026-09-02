@@ -19,6 +19,7 @@ First release of the Recording Studio authorization server.
 - Registers `authorization_code` and `refresh_token` on Recording Studio API 0.5.2 via `RecordingStudioApi.register_oauth_grant`
 - Dummy host with Seed Demo App
 - Dummy Tailwind writes resolved gem `@source` paths so Flatpack classes emit on Cloud Agent install paths
+- Connect, permission, and error sit in a viewport-centered `max-w-sm` frame like login. Connected apps and staff admin stay on default layout.
 
 ### Notes
 - This gem is not Users, Doorkeeper, DCR, OIDC, SAML, or OAuth scopes

@@ -4,6 +4,8 @@ module RecordingStudioOauth
   class OauthAuthorizationsController < ApplicationController
     include Concerns::HostAuthentication
 
+    layout "recording_studio_oauth/authorization"
+
     before_action :authenticate_host_user!
     before_action :set_current_actor
     before_action :load_oauth_request

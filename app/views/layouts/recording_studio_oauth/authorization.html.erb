@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% rs_config = RecordingStudio.configuration %>
+    <% app_name = (rs_config.respond_to?(:app_name) ? rs_config.app_name : nil) || "Connect" %>
+    <title><%= content_for(:title).presence || app_name %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/variables", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/rich_text", "data-turbo-track": "reload" %>
+    <%= yield :head %>
+    <%= javascript_importmap_tags if respond_to?(:javascript_importmap_tags) %>
+  </head>
+  <body class="bg-(--surface-page-background-color) text-(--surface-content-color)" data-theme="<%= content_for(:body_theme).presence || 'rounded' %>">
+    <main class="flex min-h-dvh items-center justify-center p-6">
+      <div class="w-full max-w-sm space-y-6">
+        <%= render FlatPack::PageNav::Component.new(
+          back_icon: content_for(:page_nav_back_icon).presence || "chevron-left",
+          back_label: content_for(:page_nav_back_label).presence || "Go back",
+          back_style: (content_for(:page_nav_back_style).presence || "secondary").to_sym,
+          back_size: (content_for(:page_nav_back_size).presence || "md").to_sym
+        ) %>
+        <%= yield %>
+      </div>
+    </main>
+  </body>
+</html>
