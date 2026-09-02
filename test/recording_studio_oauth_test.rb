@@ -122,6 +122,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes index, "FlatPack::List::Component"
     assert_includes index, "FlatPack::Card::Component"
+    refute_includes index, "padding: :none"
     assert_includes index, "skip_connect_page_nav"
     assert_includes index, "connection_status_trailing"
     refute_includes index, "Grid::Component"

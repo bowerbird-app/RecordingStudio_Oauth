@@ -50,6 +50,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_select "select[name='access_recording_id']", count: 0
     assert_select "button[name='decision'][value='continue']", count: 0
     assert_select "button[name='decision'][value='connect']", count: 0
+    assert_includes response.body, "p-[var(--card-padding-md)]"
     assert_select "[role='list']"
     assert_select "[role='list'] [role='list']", count: 0
     labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
