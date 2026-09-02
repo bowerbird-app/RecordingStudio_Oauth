@@ -37,6 +37,16 @@ GIT
       redis (~> 5.3)
 
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_attachable.git
+  revision: 7945b22e0151d901daf6a242c54cfac4703148fb
+  tag: v0.5.1
+  specs:
+    recording_studio_attachable (0.5.1)
+      flat_pack (>= 0.1.135)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+
+GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_root_switchable.git
   revision: 98be393513dea19e5cd633ef83616e282c92b6ea
   tag: v0.5.0
@@ -48,11 +58,24 @@ GIT
       recording_studio_accessible (~> 0.6)
 
 GIT
-  remote: https://github.com/bowerbird-app/flatpack.git
-  revision: 3654913a87f3d72556223b81e0d8140a292e3c2e
-  tag: v0.1.143
+  remote: https://github.com/bowerbird-app/RecordingStudio_site_settings.git
+  revision: fdc54708838734d7657c376cbebb3c63f23384dd
+  tag: v0.1.0
   specs:
-    flat_pack (0.1.143)
+    recording_studio_site_settings (0.1.0)
+      flat_pack (>= 0.1.144)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+      recording_studio_accessible (~> 0.8)
+      recording_studio_admin (~> 2.0)
+      recording_studio_attachable (~> 0.5)
+
+GIT
+  remote: https://github.com/bowerbird-app/flatpack.git
+  revision: 55208adf6cc35dc3300146ef93e58414dba168bc
+  tag: v0.1.144
+  specs:
+    flat_pack (0.1.144)
       pagy (~> 9.0)
       rails (>= 7.1, < 9)
       tailwind_merge (~> 0.13)
@@ -62,12 +85,13 @@ PATH
   remote: ../..
   specs:
     recording_studio_oauth (0.1.0)
-      flat_pack (~> 0.1.143)
+      flat_pack (~> 0.1.144)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.9)
       recording_studio_admin (~> 2.0)
       recording_studio_api (~> 0.5.2)
+      recording_studio_site_settings (~> 0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -497,8 +521,10 @@ DEPENDENCIES
   recording_studio_accessible!
   recording_studio_admin!
   recording_studio_api!
+  recording_studio_attachable!
   recording_studio_oauth!
   recording_studio_root_switchable!
+  recording_studio_site_settings!
   rubocop-rails-omakase
   solid_cable
   solid_cache
@@ -555,7 +581,7 @@ CHECKSUMS
   ffi (1.17.2-x86_64-darwin) sha256=981f2d4e32ea03712beb26e55e972797c2c5a7b0257955d8667ba58f2da6440e
   ffi (1.17.2-x86_64-linux-gnu) sha256=05d2026fc9dbb7cfd21a5934559f16293815b7ce0314846fee2ac8efbdb823ea
   ffi (1.17.2-x86_64-linux-musl) sha256=97c0eb3981414309285a64dc4d466bd149e981c279a56371ef811395d68cb95c
-  flat_pack (0.1.143)
+  flat_pack (0.1.144)
   fugit (1.12.1) sha256=5898f478ede9b415f0804e42b8f3fd53f814bd85eebffceebdbc34e1107aaf68
   globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
@@ -627,8 +653,10 @@ CHECKSUMS
   recording_studio_accessible (0.9.1)
   recording_studio_admin (2.0.2)
   recording_studio_api (0.5.2)
+  recording_studio_attachable (0.5.1)
   recording_studio_oauth (0.1.0)
   recording_studio_root_switchable (0.5.0)
+  recording_studio_site_settings (0.1.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
   redis-client (0.30.1) sha256=5151bc5c7bbfe48623732cdae3b900d8a22dc691cc7cdfacfb351ac55116522d
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4

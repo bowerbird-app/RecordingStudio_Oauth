@@ -70,6 +70,13 @@ begin
   grant_or_find_access.call(folder_recording, user, :edit)
   grant_or_find_access.call(admin_recording, user, :admin)
 
+  unless RecordingStudioSiteSettings.name_for(studio_root) == "Studio"
+    RecordingStudioSiteSettings.update!(studio_root, name: "Studio", actor: user)
+  end
+  unless RecordingStudioSiteSettings.name_for(docs_root) == "Studio"
+    RecordingStudioSiteSettings.update!(docs_root, name: "Studio", actor: user)
+  end
+
   pkce_challenge = RecordingStudioOauth::Pkce.s256_challenge("V" + ("a" * 42))
 
   unless RecordingStudioOauth::OauthAuthorization.exists?(oauth_client: oauth_client, manager_actor: user, manager_access_recording: studio_access, revoked_at: nil)
@@ -115,4 +122,5 @@ end
 puts "Seeded: admin@admin.com / Password"
 puts "Seeded: Seed Demo App client_id=#{oauth_client.client_id}"
 puts "Seeded: Studio Workspace (Connected), Docs Workspace (Reconnect), Product Docs (Connect)"
+puts "Seeded: site name Studio on Studio Workspace and Docs Workspace"
 puts "Seeded: Admin root for staff screens"

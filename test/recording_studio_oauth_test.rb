@@ -17,9 +17,10 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.9"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.5.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.143"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.144"'
     refute_includes gemspec, "recording_studio_users"
-    refute_includes gemspec, "0.1.144"
+    refute_includes gemspec, "~> 0.1.143"
   end
 
   def test_gemspec_excludes_cursor_config
@@ -53,9 +54,11 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.5.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.143"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.144"'
     refute_includes gemfile, "recording_studio_users"
-    refute_includes gemfile, 'tag: "v0.1.144"'
+    refute_includes gemfile, 'tag: "v0.1.143"'
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service
@@ -100,6 +103,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "~> 0.5.2"
+    assert_includes readme, "name_for"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"
   end
@@ -132,5 +136,13 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes layout, "max-w-sm"
     assert_includes layout, "FlatPack::PageNav::Component"
     refute_includes layout, "max-w-6xl"
+  end
+
+  def test_connect_title_reads_site_settings_name_for
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
+
+    assert_includes controller, "RecordingStudioSiteSettings.name_for"
+    assert_includes controller, "RecordingStudioSiteSettings.site_root_for"
+    refute_includes controller, "RecordingStudioAttachable"
   end
 end

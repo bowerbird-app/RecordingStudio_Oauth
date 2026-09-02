@@ -2,7 +2,6 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: connect_page_title,
-  subtitle: "It gets its own access here. Yours stays yours.",
   variant: :h1,
   class: "mb-0 pb-0 text-center"
 ) %>
@@ -23,7 +22,7 @@
           hover: true,
           trailing: connection_status_trailing(recording)
         ) do %>
-          <p class="font-medium"><%= access_parent_name(recording) %></p>
+          <p class="font-medium"><%= connect_row_label(recording) %></p>
         <% end %>
       <% end %>
     <% end %>

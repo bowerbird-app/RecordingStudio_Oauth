@@ -8,7 +8,8 @@ If you use Tailwind CSS:
 1. Run 'bin/rails tailwindcss:build' to rebuild your CSS with RecordingStudioOauth styles
 
 To use the engine:
-1. Start your Rails server
-2. Visit http://localhost:3000/recording_studio_oauth
+1. Install Recording Studio Site Settings so Connect can read a site name
+2. Start your Rails server
+3. Visit http://localhost:3000/recording_studio_oauth
 
 ===============================================================================

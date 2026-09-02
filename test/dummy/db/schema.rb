@@ -10,10 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_000011) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_000015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.uuid "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "admin_audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "access_recording_id"
@@ -201,6 +229,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000011) do
     t.index ["key"], name: "index_recording_studio_api_api_settings_on_key", unique: true
   end
 
+  create_table "recording_studio_attachable_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "attachment_kind", null: false
+    t.bigint "byte_size", null: false
+    t.string "content_type", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.string "original_filename", null: false
+    t.index ["attachment_kind", "content_type"], name: "idx_rs_attachable_kind_type"
+    t.index ["attachment_kind"], name: "idx_on_attachment_kind_d683071625"
+  end
+
   create_table "recording_studio_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "action", null: false
     t.uuid "actor_id"
@@ -306,12 +345,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000011) do
     t.uuid "root_recording_id"
     t.datetime "trashed_at"
     t.datetime "updated_at", null: false
+    t.index ["parent_recording_id"], name: "idx_rs_attachable_parent_active", where: "(((recordable_type)::text = 'RecordingStudioAttachable::Attachment'::text) AND (trashed_at IS NULL))"
     t.index ["parent_recording_id"], name: "index_recording_studio_recordings_on_parent_recording_id"
     t.index ["recordable_type", "recordable_id", "parent_recording_id", "trashed_at"], name: "index_recording_studio_recordings_on_recordable_parent_trashed"
     t.index ["recordable_type", "recordable_id"], name: "index_recording_studio_recordings_on_recordable"
     t.index ["recordable_type", "recordable_id"], name: "index_rs_unique_root_recording_per_recordable", unique: true, where: "(parent_recording_id IS NULL)"
     t.index ["root_recording_id", "parent_recording_id"], name: "index_rs_recordings_on_root_and_parent"
     t.index ["root_recording_id", "recordable_type", "recordable_id"], name: "index_rs_recordings_on_root_and_recordable"
+    t.index ["root_recording_id"], name: "idx_rs_attachable_root_active", where: "(((recordable_type)::text = 'RecordingStudioAttachable::Attachment'::text) AND (trashed_at IS NULL))"
     t.index ["root_recording_id"], name: "index_rs_recordings_on_root_recording"
   end
 
@@ -334,6 +375,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000011) do
     t.index ["root_recording_id"], name: "idx_rs_root_switchable_root_recording"
   end
 
+  create_table "recording_studio_site_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
@@ -352,6 +398,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000011) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "recording_studio_api_api_access_tokens", "recording_studio_api_api_credentials", column: "api_credential_id"
   add_foreign_key "recording_studio_api_api_credentials", "recording_studio_api_api_clients", column: "api_client_id"
   add_foreign_key "recording_studio_events", "recording_studio_recordings", column: "recording_id"

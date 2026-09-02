@@ -7,7 +7,8 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Devise sign-in (`admin@admin.com` / `Password`)
 - Accessible grants on Workspace, Folder, and AdminRoot
 - Seed Demo App plus Studio Workspace, Docs Workspace, and Product Docs
-- Mounted OAuth, API, Admin, and Accessible engines
+- Site Settings name `Studio` on both workspace roots
+- Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
 - RFC 8414 on the host `/.well-known` paths
 - Rounded Flatpack theme. Connect uses a centered login-style frame. Connected apps and staff admin stay on Recording Studio default layout.
 - Turbo plus Admin screen controllers, so staff registered-apps table rows load

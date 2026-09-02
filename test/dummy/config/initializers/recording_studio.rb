@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
 RecordingStudio.configure do |config|
-  config.recordable_types = [ "Workspace", "Folder", "Page", "AdminRoot" ]
+  config.recordable_types = [
+    "Workspace",
+    "Folder",
+    "Page",
+    "AdminRoot",
+    "RecordingStudioSiteSettings::SiteSetting",
+    "RecordingStudioAttachable::Attachment"
+  ]
   config.require_recordable_declarations = true
   config.app_name = "Recording Studio OAuth" if config.respond_to?(:app_name=)
   config.actor = -> { Current.actor }

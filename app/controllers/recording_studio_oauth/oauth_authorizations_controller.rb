@@ -128,9 +128,31 @@ module RecordingStudioOauth
     end
 
     def connect_page_title
-      "Connect #{@oauth_client.name}"
+      ConnectHandshake.title(
+        plugin_name: @oauth_client.name,
+        site_names: connect_title_site_names
+      )
     end
     helper_method :connect_page_title
+
+    def connect_page_subtitle
+      return unless @selected_access_recording
+
+      ConnectHandshake.subtitle(
+        parent_name: access_parent_name(@selected_access_recording),
+        site_name: connect_site_name_for(@selected_access_recording)
+      )
+    end
+    helper_method :connect_page_subtitle
+
+    def connect_row_label(access_recording)
+      ConnectHandshake.row_label(
+        parent_name: access_parent_name(access_recording),
+        site_name: connect_site_name_for(access_recording),
+        shared_site_name: connect_shared_site_name?
+      )
+    end
+    helper_method :connect_row_label
 
     def show_permission_choice?
       Array(@role_options).many?
@@ -220,6 +242,33 @@ module RecordingStudioOauth
       end
     end
     helper_method :connect_choice_url
+
+    def connect_title_site_names
+      if @selected_access_recording
+        [connect_site_name_for(@selected_access_recording)]
+      else
+        Array(@access_candidates).map { |recording| connect_site_name_for(recording) }
+      end
+    end
+
+    def connect_shared_site_name?
+      ConnectHandshake.shared_site_name?(Array(@access_candidates).map { |recording| connect_site_name_for(recording) })
+    end
+
+    def connect_site_name_for(access_recording)
+      RecordingStudioSiteSettings.name_for(connect_site_root_for(access_recording))
+    end
+
+    def connect_site_root_for(access_recording)
+      recording = access_recording&.parent_recording
+      while recording
+        return recording if RecordingStudioSiteSettings.site_root?(recording)
+
+        recording = recording.parent_recording
+      end
+
+      RecordingStudioSiteSettings.site_root_for(self)
+    end
 
     def access_parent_name(access_recording)
       point = access_recording.parent_recording

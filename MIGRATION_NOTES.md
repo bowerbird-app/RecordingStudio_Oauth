@@ -8,11 +8,13 @@
 - Accessible `~> 0.9` (dummy tag `v0.9.1`)
 - API `~> 0.5.2` (dummy tag `v0.5.2`)
 - Admin `~> 2.0` (dummy tag `v2.0.2`)
-- Flatpack `~> 0.1.143` (dummy tag `v0.1.143`)
+- Site Settings `~> 0.1` (dummy tag `v0.1.0`)
+- Attachable `~> 0.5` (dummy tag `v0.5.1`, required by Site Settings)
+- Flatpack `~> 0.1.144` (dummy tag `v0.1.144`)
 
-Do not pin Flatpack 0.1.144. Do not depend on Users.
+Do not depend on Users.
 
-Dummy copies engine and API migrations into `test/dummy/db/migrate`. The engine skips appending migrations when the host path contains the gem root, which is true for this nested dummy.
+Dummy copies engine and API migrations into `test/dummy/db/migrate`. The engine skips appending migrations when the host path contains the gem root, which is true for this nested dummy. Dummy also copies Site Settings and Attachable migrations, plus Active Storage tables Attachable needs.
 
 ## Verification
 

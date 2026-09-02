@@ -87,6 +87,7 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
     assert RecordingStudio.capability_enabled?(:accessible, for: "Folder")
     refute RecordingStudio.capability_enabled?(:accessible, for: "Page")
     assert RecordingStudio.capability_enabled?(:accessible, for: "AdminRoot")
+    assert_includes RecordingStudio.allowed_parent_types_for("RecordingStudioSiteSettings::SiteSetting"), "Workspace"
   end
 
   private

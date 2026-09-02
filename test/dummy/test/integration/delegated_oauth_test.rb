@@ -41,8 +41,10 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "min-h-dvh"
     assert_includes response.body, "max-w-sm"
     assert_select ".flat-pack-page-nav", count: 1
-    assert_select "title", text: /Connect #{Regexp.escape(@oauth_client.name)}/
-    assert_includes response.body, "It gets its own access here. Yours stays yours."
+    assert_includes response.body, "#{@oauth_client.name} wants to connect"
+    refute_match(/wants to connect to\s*</, response.body)
+    refute_includes response.body, "It gets its own access here. Yours stays yours."
+    refute_includes response.body, "Connect #{@oauth_client.name}"
     assert_includes response.body, @root_recording.recordable.name
     assert_select "label", text: "Workspace", count: 0
     assert_select "select[name='access_recording_id']", count: 0
@@ -68,11 +70,53 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Sign out"
   end
 
+  test "shared site name is the handshake title" do
+    other_root, = create_access_recording_for(user: @user, workspace_name: "Docs Workspace")
+    seed_site_name!(@root_recording, name: "Studio", actor: @user)
+    seed_site_name!(other_root, name: "Studio", actor: @user)
+
+    get authorize_path, params: authorize_params
+
+    assert_response :success
+    assert_includes response.body, "#{@oauth_client.name} wants to connect to Studio"
+    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    assert_includes labels, @root_recording.recordable.name
+    assert_includes labels, other_root.recordable.name
+    refute_equal ["Studio"], labels.uniq
+  end
+
+  test "different site names put name_for on each row" do
+    other_root, = create_access_recording_for(user: @user, workspace_name: "Docs Workspace")
+    seed_site_name!(@root_recording, name: "Harbor", actor: @user)
+    seed_site_name!(other_root, name: "Meadow", actor: @user)
+
+    get authorize_path, params: authorize_params
+
+    assert_response :success
+    assert_includes response.body, "#{@oauth_client.name} wants to connect"
+    refute_includes response.body, "wants to connect to Harbor"
+    refute_includes response.body, "wants to connect to Meadow"
+    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    assert_includes labels, "Harbor"
+    assert_includes labels, "Meadow"
+  end
+
+  test "permission screen uses the chosen parent's site name" do
+    seed_site_name!(@root_recording, name: "Studio", actor: @user)
+
+    get authorize_path, params: authorize_params.merge(access_recording_id: @access_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "#{@oauth_client.name} wants to connect to Studio"
+    assert_select "label", text: "Permission"
+  end
+
   test "screen 2 continue issues a code and token pair" do
     get authorize_path, params: authorize_params.merge(access_recording_id: @access_recording.id)
 
     assert_response :success
-    assert_includes response.body, "Connect #{@oauth_client.name}"
+    assert_includes response.body, "#{@oauth_client.name} wants to connect"
+    refute_match(/wants to connect to\s*</, response.body)
     assert_includes response.body, @root_recording.recordable.name
     assert_select "input[name='access_recording_id'][value=?]", @access_recording.id
     assert_select "label", text: "Permission"

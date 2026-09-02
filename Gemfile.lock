@@ -37,11 +37,34 @@ GIT
       redis (~> 5.3)
 
 GIT
-  remote: https://github.com/bowerbird-app/flatpack.git
-  revision: 3654913a87f3d72556223b81e0d8140a292e3c2e
-  tag: v0.1.143
+  remote: https://github.com/bowerbird-app/RecordingStudio_attachable.git
+  revision: 7945b22e0151d901daf6a242c54cfac4703148fb
+  tag: v0.5.1
   specs:
-    flat_pack (0.1.143)
+    recording_studio_attachable (0.5.1)
+      flat_pack (>= 0.1.135)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_site_settings.git
+  revision: fdc54708838734d7657c376cbebb3c63f23384dd
+  tag: v0.1.0
+  specs:
+    recording_studio_site_settings (0.1.0)
+      flat_pack (>= 0.1.144)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+      recording_studio_accessible (~> 0.8)
+      recording_studio_admin (~> 2.0)
+      recording_studio_attachable (~> 0.5)
+
+GIT
+  remote: https://github.com/bowerbird-app/flatpack.git
+  revision: 55208adf6cc35dc3300146ef93e58414dba168bc
+  tag: v0.1.144
+  specs:
+    flat_pack (0.1.144)
       pagy (~> 9.0)
       rails (>= 7.1, < 9)
       tailwind_merge (~> 0.13)
@@ -51,12 +74,13 @@ PATH
   remote: .
   specs:
     recording_studio_oauth (0.1.0)
-      flat_pack (~> 0.1.143)
+      flat_pack (~> 0.1.144)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.9)
       recording_studio_admin (~> 2.0)
       recording_studio_api (~> 0.5.2)
+      recording_studio_site_settings (~> 0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -359,7 +383,9 @@ DEPENDENCIES
   recording_studio_accessible!
   recording_studio_admin!
   recording_studio_api!
+  recording_studio_attachable!
   recording_studio_oauth!
+  recording_studio_site_settings!
   rubocop
   rubocop-rails
   simplecov
@@ -393,7 +419,7 @@ CHECKSUMS
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
   erb (6.0.0) sha256=2730893f9d8c9733f16cab315a4e4b71c1afa9cabc1a1e7ad1403feba8f52579
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
-  flat_pack (0.1.143)
+  flat_pack (0.1.144)
   globalid (1.3.0) sha256=05c639ad6eb4594522a0b07983022f04aa7254626ab69445a0e493aa3786ff11
   i18n (1.14.7) sha256=ceba573f8138ff2c0915427f1fc5bdf4aa3ab8ae88c8ce255eb3ecf0a11a5d0f
   io-console (0.8.1) sha256=1e15440a6b2f67b6ea496df7c474ed62c860ad11237f29b3bd187f054b925fcb
@@ -445,7 +471,9 @@ CHECKSUMS
   recording_studio_accessible (0.9.1)
   recording_studio_admin (2.0.2)
   recording_studio_api (0.5.2)
+  recording_studio_attachable (0.5.1)
   recording_studio_oauth (0.1.0)
+  recording_studio_site_settings (0.1.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
   redis-client (0.30.1) sha256=5151bc5c7bbfe48623732cdae3b900d8a22dc691cc7cdfacfb351ac55116522d
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4

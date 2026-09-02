@@ -7,6 +7,8 @@ Rails.application.routes.draw do
   mount RecordingStudioAccessible::Engine, at: "/admin/access", as: :recording_studio_admin_access
   mount RecordingStudioApi::Engine, at: "/recording_studio_api"
   mount RecordingStudioOauth::Engine, at: "/recording_studio_oauth"
+  mount RecordingStudioAttachable::Engine, at: "/recording_studio_attachable"
+  mount RecordingStudioSiteSettings::Engine, at: "/recording_studio_site_settings"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
 
   get "/.well-known/oauth-authorization-server",

@@ -20,6 +20,8 @@ RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_e
 
 Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. PageNav back stays. Connected apps and staff admin stay on core default layout.
 
+The title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
+
 1. A list in a card. Each row is a workspace or folder the person can already use. Trailing copy is Connect, Connected, or Reconnect. Staff AdminRoot is not a row. The list is flat, not a tree.
 2. Permission, capped at theirs. View is the default. If they only have View, the picker is hidden. Continue and Cancel are separate buttons. Cancel is `access_denied`.
 
@@ -27,19 +29,20 @@ People can see and remove connected apps. Staff can revoke a registered app.
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.9`, Admin `~> 2.0`, API `~> 0.5.2`, Flatpack `~> 0.1.143`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.9`, Admin `~> 2.0`, API `~> 0.5.2`, Site Settings `~> 0.1`, Flatpack `~> 0.1.144`.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
 5. Enable `:accessible` on the recordables people Connect from, including Folder if folder grants should appear.
 6. Host authentication stays on the host. Dummy uses Devise. Do not add Users as a dependency of this gem.
-7. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
+7. Install Recording Studio Site Settings (and Attachable, which that gem needs). Register `RecordingStudioSiteSettings::SiteSetting` and `RecordingStudioAttachable::Attachment`. Set `site_root_types` so Connect can read a site name.
+8. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
 Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Token exchange uses the API engine's existing `/oauth/token`. `client_credentials` stays built into API. Do not copy Connect into the API gem.
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected, Docs Workspace starts as Reconnect, Product Docs is Connect, Admin is staff-only. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected, Docs Workspace starts as Reconnect, Product Docs is Connect, Admin is staff-only. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Version
 

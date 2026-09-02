@@ -133,6 +133,10 @@ module OauthDummyHelpers
     result.value.merge(pkce: pkce, redirect_uri: redirect_uri)
   end
 
+  def seed_site_name!(root_recording, name:, actor:)
+    RecordingStudioSiteSettings.update!(root_recording, name: name, actor: actor)
+  end
+
   def authorize_path
     "/recording_studio_oauth/oauth/authorize"
   end
