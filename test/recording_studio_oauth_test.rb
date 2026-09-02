@@ -16,7 +16,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.9"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.5"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.5.2"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.143"'
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "0.1.144"
@@ -50,9 +50,9 @@ class RecordingStudioOauthTest < Minitest::Test
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.5.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "2.0.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.5.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.143"'
     refute_includes gemfile, "recording_studio_users"
     refute_includes gemfile, 'tag: "v0.1.144"'
@@ -97,7 +97,10 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "authorization server"
     assert_includes readme, "resource server"
     assert_includes readme, "recording_studio_api"
+    assert_includes readme, "register_oauth_grant"
+    assert_includes readme, "~> 0.5.2"
     refute_includes readme, "internal template"
+    refute_includes readme, "respond_to?(:register_oauth_grant)"
   end
 
   def test_engine_does_not_ship_a_home_view

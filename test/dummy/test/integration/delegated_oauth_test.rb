@@ -85,17 +85,18 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     code = code_from_redirect
     assert_match(/\Arsoauth_ac_/, code)
 
-    issued = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
+    post api_token_path, params: {
       grant_type: "authorization_code",
       client_id: @oauth_client.client_id,
       code: code,
       redirect_uri: "http://127.0.0.1/callback",
       code_verifier: @pkce.fetch(:verifier)
-    )
+    }
 
-    assert issued.success?, issued.error
-    assert_match(/\Arsoauth_at_/, issued.value.fetch(:access_token))
-    assert_match(/\Arsoauth_rt_/, issued.value.fetch(:refresh_token))
+    assert_response :success
+    issued = JSON.parse(response.body)
+    assert_match(/\Arsoauth_at_/, issued.fetch("access_token"))
+    assert_match(/\Arsoauth_rt_/, issued.fetch("refresh_token"))
   end
 
   test "cancel redirects to the client with access_denied" do
@@ -187,24 +188,20 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       pkce: second_pkce
     )
 
-    first_token = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
-      grant_type: "authorization_code",
+    first_token = exchange_authorization_code(
       client_id: @oauth_client.client_id,
       code: first.fetch(:code),
       redirect_uri: "http://127.0.0.1/callback",
       code_verifier: first_pkce.fetch(:verifier)
     )
-    second_token = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
-      grant_type: "authorization_code",
+    second_token = exchange_authorization_code(
       client_id: @oauth_client.client_id,
       code: second.fetch(:code),
       redirect_uri: "http://127.0.0.1/callback",
       code_verifier: second_pkce.fetch(:verifier)
     )
 
-    assert first_token.success?, first_token.error
-    assert second_token.success?, second_token.error
-    refute_equal first_token.value.fetch(:access_token), second_token.value.fetch(:access_token)
+    refute_equal first_token.fetch("access_token"), second_token.fetch("access_token")
     assert_equal 2, RecordingStudioOauth::OauthAuthorization.where(oauth_client: @oauth_client, manager_actor: @user).count
   end
 
@@ -312,12 +309,12 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       code_verifier: @pkce.fetch(:verifier)
     }
 
-    first = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(**token_params)
-    assert first.success?, first.error
+    post api_token_path, params: token_params
+    assert_response :success
 
-    second = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(**token_params)
-    assert second.failure?
-    assert_equal "invalid_grant", second.error.fetch(:error)
+    post api_token_path, params: token_params
+    assert_response :bad_request
+    assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")
     assert_not_nil approved.fetch(:authorization).reload.revoked_at
     assert_not_nil approved.fetch(:access_recording).reload.trashed_at
   end
@@ -329,30 +326,29 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       access_recording: @access_recording,
       pkce: @pkce
     )
-    first = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
-      grant_type: "authorization_code",
+    first = exchange_authorization_code(
       client_id: @oauth_client.client_id,
       code: approved.fetch(:code),
       redirect_uri: "http://127.0.0.1/callback",
       code_verifier: @pkce.fetch(:verifier)
     )
-    assert first.success?, first.error
 
-    rotated = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
+    post api_token_path, params: {
       grant_type: "refresh_token",
       client_id: @oauth_client.client_id,
-      refresh_token: first.value.fetch(:refresh_token)
-    )
-    assert rotated.success?, rotated.error
-    refute_equal first.value.fetch(:access_token), rotated.value.fetch(:access_token)
+      refresh_token: first.fetch("refresh_token")
+    }
+    assert_response :success
+    rotated = JSON.parse(response.body)
+    refute_equal first.fetch("access_token"), rotated.fetch("access_token")
 
-    reused = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
+    post api_token_path, params: {
       grant_type: "refresh_token",
       client_id: @oauth_client.client_id,
-      refresh_token: first.value.fetch(:refresh_token)
-    )
-    assert reused.failure?
-    assert_equal "invalid_grant", reused.error.fetch(:error)
+      refresh_token: first.fetch("refresh_token")
+    }
+    assert_response :bad_request
+    assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")
   end
 
   test "PKCE S256 is required for public clients" do
@@ -360,6 +356,43 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
     assert_response :redirect
     assert_equal "invalid_request", redirect_query.fetch("error")
+  end
+
+  test "boot registers authorization_code and refresh_token on the API grant hook" do
+    grants = RecordingStudioApi.oauth_grants
+
+    assert_equal RecordingStudioOauth::DelegatedGrant, grants.fetch("authorization_code")
+    assert_equal RecordingStudioOauth::DelegatedGrant, grants.fetch("refresh_token")
+    refute grants.key?("client_credentials")
+  end
+
+  test "this gem does not mount a second token endpoint" do
+    post "/recording_studio_oauth/oauth/token", params: {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: "rsoauth_ac_unused"
+    }
+
+    assert_response :not_found
+  end
+
+  test "client_credentials still issues a machine token on the API token URL" do
+    payload = RecordingStudioApi::Services::ProvisionApiClient.call(
+      access_recording: @access_recording,
+      name: "Machine client"
+    )
+    assert payload.success?, payload.error
+
+    post api_token_path, params: {
+      grant_type: "client_credentials",
+      client_id: payload.value.fetch(:credential).oauth_client_id,
+      client_secret: payload.value.fetch(:token)
+    }
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_match(/\Arsapi_at_/, body.fetch("access_token"))
+    refute_match(/\Arsoauth_at_/, body.fetch("access_token"))
   end
 
   test "discovery documents point authorize here and token at the API" do
@@ -411,5 +444,17 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
   def redirect_query
     URI.decode_www_form(URI.parse(response.redirect_url).query.to_s).to_h
+  end
+
+  def exchange_authorization_code(client_id:, code:, redirect_uri:, code_verifier:)
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: client_id,
+      code: code,
+      redirect_uri: redirect_uri,
+      code_verifier: code_verifier
+    }
+    assert_response :success
+    JSON.parse(response.body)
   end
 end

@@ -16,12 +16,13 @@ First release of the Recording Studio authorization server.
 - Connected apps
 - Staff admin of registered apps (Accessible grants on an admin root, not nominated admins)
 - RFC 8414 discovery that points `token_endpoint` at Recording Studio API
-- Optional `RecordingStudioApi.register_oauth_grant` registration when that API exists
+- Registers `authorization_code` and `refresh_token` on Recording Studio API 0.5.2 via `RecordingStudioApi.register_oauth_grant`
 - Dummy host with Seed Demo App
 
 ### Notes
 - This gem is not Users, Doorkeeper, DCR, OIDC, SAML, or OAuth scopes
 - Machine API keys stay in Recording Studio API
+- Recording Studio API `~> 0.5.2` is required for the grant hook
 - Do not pin Flatpack 0.1.144
 
 [0.1.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/releases/tag/v0.1.0

@@ -8,29 +8,29 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_accessible.git
-  revision: 2e9c593f963b47a21de078ad584b591dc098b4e1
-  tag: v0.9.0
+  revision: bdff3ee3ace5cf3bfe33ba40476c1522cf1b6d61
+  tag: v0.9.1
   specs:
-    recording_studio_accessible (0.9.0)
+    recording_studio_accessible (0.9.1)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_admin.git
-  revision: e5f0ba8acaf04b5f36e940e89e5a43709cb25e03
-  tag: 2.0.1
+  revision: 1c524c8e73ce66f7701a810abc989dff39ee93a9
+  tag: v2.0.2
   specs:
-    recording_studio_admin (2.0.1)
+    recording_studio_admin (2.0.2)
       flat_pack (~> 0.1.129)
       rails (~> 8.1.0)
       recording_studio_accessible (~> 0.6)
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_api.git
-  revision: 3c64689067c76582b114396c5dc644c480938ea1
-  tag: v0.5.1
+  revision: a109907efd2f8e99c36ba9bae1697ae33a3a9d10
+  tag: v0.5.2
   specs:
-    recording_studio_api (0.5.1)
+    recording_studio_api (0.5.2)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.9)
@@ -56,7 +56,7 @@ PATH
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.9)
       recording_studio_admin (~> 2.0)
-      recording_studio_api (~> 0.5)
+      recording_studio_api (~> 0.5.2)
 
 GEM
   remote: https://rubygems.org/
@@ -442,9 +442,9 @@ CHECKSUMS
   rake (13.3.1) sha256=8c9e89d09f66a26a01264e7e3480ec0607f0c497a861ef16063604b1b08eb19c
   rdoc (6.16.1) sha256=71357cc208e6da77ba0c4494e01ae870dd18b437c7c7d801dd73ee2f340b9f5c
   recording_studio (4.2.0)
-  recording_studio_accessible (0.9.0)
-  recording_studio_admin (2.0.1)
-  recording_studio_api (0.5.1)
+  recording_studio_accessible (0.9.1)
+  recording_studio_admin (2.0.2)
+  recording_studio_api (0.5.2)
   recording_studio_oauth (0.1.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
   redis-client (0.30.1) sha256=5151bc5c7bbfe48623732cdae3b900d8a22dc691cc7cdfacfb351ac55116522d

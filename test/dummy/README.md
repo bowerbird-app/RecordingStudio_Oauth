@@ -12,7 +12,7 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Rounded Flatpack theme and Recording Studio default layout
 - Turbo plus Admin screen controllers, so staff registered-apps table rows load
 
-API is mounted so the dummy looks like a real host. Token URL stays on the API engine. Machine keys stay there.
+API is mounted so the dummy looks like a real host. Token URL stays on the API engine. Machine keys stay there. Boot registers `authorization_code` and `refresh_token` on that same URL. Dummy `access_actor_types` include `RecordingStudioApi::ApiClient` so `client_credentials` still works.
 
 ## Quick start
 
