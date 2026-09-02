@@ -1,0 +1,120 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class RecordingStudioOauthTest < Minitest::Test
+  def test_version_matches_release
+    assert_equal "0.1.0", ::RecordingStudioOauth::VERSION
+  end
+
+  def test_engine_exists
+    assert_kind_of Class, ::RecordingStudioOauth::Engine
+  end
+
+  def test_gemspec_pins
+    gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
+
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.9"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.5"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.143"'
+    refute_includes gemspec, "recording_studio_users"
+    refute_includes gemspec, "0.1.144"
+  end
+
+  def test_gemspec_excludes_cursor_config
+    spec = Gem::Specification.load(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
+    cursor_files = spec.files.select { |path| path == ".cursor" || path.split("/").include?(".cursor") }
+
+    assert_empty cursor_files, "gemspec must not package .cursor/ (got #{cursor_files.inspect})"
+  end
+
+  def test_cursor_environment_is_repo_managed_without_snapshot
+    path = File.expand_path("../.cursor/environment.json", __dir__)
+    json = JSON.parse(File.read(path))
+
+    assert_equal "recording-studio-oauth", json["name"]
+    assert_equal ".cursor/install.sh", json["install"]
+    assert_equal ".cursor/start.sh", json["start"]
+    refute json.key?("snapshot"), "snapshot pins a Personal build and skips install"
+    refute json.key?("agentCanUpdateSnapshot")
+  end
+
+  def test_cursor_install_still_fetches_skills
+    install_script = File.read(File.expand_path("../.cursor/install.sh", __dir__))
+
+    assert_includes install_script, "fetch-skills.sh"
+  end
+
+  def test_dummy_gemfile_pins_verified_github_tags
+    gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
+
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.5.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "2.0.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.143"'
+    refute_includes gemfile, "recording_studio_users"
+    refute_includes gemfile, 'tag: "v0.1.144"'
+  end
+
+  def test_does_not_ship_copied_core_hooks_or_base_service
+    refute File.exist?(File.expand_path("../lib/recording_studio_oauth/hooks.rb", __dir__))
+    refute File.exist?(File.expand_path("../lib/recording_studio_oauth/services/base_service.rb", __dir__))
+  end
+
+  def test_dummy_app_uses_recording_studio_default_layout
+    application_controller_path = File.expand_path("dummy/app/controllers/application_controller.rb", __dir__)
+    controller_source = File.read(application_controller_path)
+
+    assert_includes controller_source, "include RecordingStudio::UsesDefaultLayout"
+    assert_includes controller_source, '"recording_studio/default_layout"'
+    assert_includes controller_source, "devise_controller? ? \"application\""
+    refute_includes controller_source, "flat_pack_sidebar"
+  end
+
+  def test_dummy_login_layout_keeps_flatpack_assets
+    application_layout = File.read(File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__))
+
+    assert_includes application_layout, '<html data-theme="rounded">'
+    assert_includes application_layout, 'stylesheet_link_tag "flat_pack/variables"'
+    assert_includes application_layout, "javascript_importmap_tags"
+    refute_includes application_layout, "mt-28"
+  end
+
+  def test_dummy_tailwind_keeps_flatpack_theme_selection_in_flatpack
+    tailwind_source = File.read(File.expand_path("dummy/app/assets/tailwind/application.css", __dir__))
+
+    assert_includes tailwind_source, "../../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}"
+    assert_includes tailwind_source, "flatpack-*/app/components/**/*.{rb,erb}"
+    refute_includes tailwind_source, "@theme"
+    refute_includes tailwind_source, "--color-fp-primary"
+  end
+
+  def test_product_readme_describes_the_authorization_server
+    readme = File.read(File.expand_path("../README.md", __dir__))
+
+    assert_includes readme, "authorization server"
+    assert_includes readme, "resource server"
+    assert_includes readme, "recording_studio_api"
+    refute_includes readme, "internal template"
+  end
+
+  def test_engine_does_not_ship_a_home_view
+    view_path = File.expand_path("../app/views/recording_studio_oauth/home/index.html.erb", __dir__)
+
+    refute File.exist?(view_path)
+  end
+
+  def test_connect_views_use_flatpack_not_button_group
+    index = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/index.html.erb", __dir__))
+    consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
+
+    assert_includes index, "FlatPack::List::Component"
+    assert_includes index, "FlatPack::Card::Component"
+    refute_includes consent, "ButtonGroup"
+    refute_includes consent, "page_nav_back_url"
+    assert_includes consent, 'value: "continue"'
+    assert_includes consent, 'value: "cancel"'
+  end
+end
