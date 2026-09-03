@@ -391,6 +391,172 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_not_nil approved.fetch(:access_recording).reload.trashed_at
   end
 
+  test "concurrent authorization code reuse voids the grant" do
+    approved = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: @pkce
+    )
+    args = {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: approved.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: @pkce.fetch(:verifier)
+    }
+    results = Array.new(2)
+
+    threads = 2.times.map do |index|
+      Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection do
+          results[index] = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(**args)
+        end
+      end
+    end
+    threads.each(&:join)
+
+    assert_equal 1, results.count(&:success?)
+    assert_equal 1, results.count(&:failure?)
+    assert_not_nil approved.fetch(:authorization).reload.revoked_at
+    assert_not_nil approved.fetch(:access_recording).reload.trashed_at
+  end
+
+  test "unused authorization code fails after disconnect" do
+    approved = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: @pkce
+    )
+    RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: approved.fetch(:authorization))
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: approved.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: @pkce.fetch(:verifier)
+    }
+
+    assert_response :bad_request
+    assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")
+  end
+
+  test "reconnect invalidates the previous unused code" do
+    first = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: @pkce
+    )
+    second_pkce = pkce_pair
+    second = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: second_pkce
+    )
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: first.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: @pkce.fetch(:verifier)
+    }
+
+    assert_response :bad_request
+    assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: second.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: second_pkce.fetch(:verifier)
+    }
+    assert_response :success
+  end
+
+  test "confidential client exchanges a code with a secret and no PKCE" do
+    client, secret = create_oauth_client(name: "Server App", confidential: true)
+    result = RecordingStudioOauth::Services::CreateOauthAuthorization.call(
+      oauth_client: client,
+      manager_actor: @user,
+      access_recording: @access_recording,
+      role: "view",
+      redirect_uri: "http://127.0.0.1/callback",
+      code_challenge: nil,
+      code_challenge_method: nil
+    )
+    assert result.success?, result.error.to_s
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: client.client_id,
+      client_secret: secret,
+      code: result.value.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback"
+    }
+
+    assert_response :success
+    issued = JSON.parse(response.body)
+    assert_match(/\Arsoauth_at_/, issued.fetch("access_token"))
+    assert_match(/\Arsoauth_rt_/, issued.fetch("refresh_token"))
+  end
+
+  test "issued access token authenticates the API as the authorization" do
+    approved = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: @pkce
+    )
+    issued = exchange_authorization_code(
+      client_id: @oauth_client.client_id,
+      code: approved.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: @pkce.fetch(:verifier)
+    )
+
+    get "/recording_studio_api/api/v1/workspaces",
+        headers: {
+          "Authorization" => "Bearer #{issued.fetch("access_token")}",
+          "Accept" => "application/json"
+        }
+
+    assert_response :success
+    ids = JSON.parse(response.body).fetch("records").map { |row| row.fetch("id") }
+    assert_includes ids, @root_recording.id
+  end
+
+  test "token endpoint does not distinguish unknown clients from bad secrets" do
+    confidential, = create_oauth_client(name: "Secret App", confidential: true)
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: "rsoauth_oc_missing",
+      code: "rsoauth_ac_unused",
+      redirect_uri: "http://127.0.0.1/callback"
+    }
+    unknown = JSON.parse(response.body)
+
+    post api_token_path, params: {
+      grant_type: "authorization_code",
+      client_id: confidential.client_id,
+      client_secret: "wrong-secret",
+      code: "rsoauth_ac_unused",
+      redirect_uri: "http://127.0.0.1/callback"
+    }
+    bad_secret = JSON.parse(response.body)
+
+    assert_response :unauthorized
+    assert_equal "invalid_client", unknown.fetch("error")
+    assert_equal unknown.fetch("error"), bad_secret.fetch("error")
+    assert_equal unknown.fetch("error_description"), bad_secret.fetch("error_description")
+  end
+
   test "refresh token rotation issues a new token and rejects the old refresh token" do
     approved = approve_delegated_oauth(
       oauth_client: @oauth_client,
@@ -418,6 +584,16 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       grant_type: "refresh_token",
       client_id: @oauth_client.client_id,
       refresh_token: first.fetch("refresh_token")
+    }
+    assert_response :bad_request
+    assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")
+    assert_not_nil approved.fetch(:authorization).reload.revoked_at
+    assert_not_nil approved.fetch(:access_recording).reload.trashed_at
+
+    post api_token_path, params: {
+      grant_type: "refresh_token",
+      client_id: @oauth_client.client_id,
+      refresh_token: rotated.fetch("refresh_token")
     }
     assert_response :bad_request
     assert_equal "invalid_grant", JSON.parse(response.body).fetch("error")

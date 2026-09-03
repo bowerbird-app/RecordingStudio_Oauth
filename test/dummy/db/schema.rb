@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_000015) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -265,6 +265,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_000015) do
   create_table "recording_studio_oauth_access_tokens", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
+    t.datetime "last_used_at"
     t.uuid "oauth_authorization_id", null: false
     t.datetime "revoked_at"
     t.string "token_digest", null: false

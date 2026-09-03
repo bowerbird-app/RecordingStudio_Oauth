@@ -56,23 +56,35 @@ module RecordingStudioOauth
           return oauth_failure("invalid_grant", "authorization code has already been used")
         end
         return oauth_failure("invalid_grant", "authorization code has expired") if stored.expired?
+        return oauth_failure("invalid_grant", "authorization is inactive") unless authorization.active?
 
         pkce_result = verify_pkce(client: client, stored: stored)
         return pkce_result if pkce_result != true
 
-        failure_result = nil
+        reused = false
+        inactive = false
         payload = nil
         OauthAuthorization.transaction do
           stored.lock!
-          if stored.reload.used?
-            failure_result = oauth_failure("invalid_grant", "authorization code has already been used")
+          stored.reload
+          authorization.reload
+          if stored.used?
+            reused = true
+            raise ActiveRecord::Rollback
+          end
+          unless authorization.active?
+            inactive = true
             raise ActiveRecord::Rollback
           end
 
           stored.mark_used!
           payload = issue_token_pair!(authorization)
         end
-        return failure_result if failure_result
+        if reused
+          VoidOauthAuthorization.call(authorization: authorization)
+          return oauth_failure("invalid_grant", "authorization code has already been used")
+        end
+        return oauth_failure("invalid_grant", "authorization is inactive") if inactive || payload.nil?
 
         success(payload)
       end
@@ -89,24 +101,38 @@ module RecordingStudioOauth
         return oauth_failure("invalid_grant", "refresh token is invalid") if stored.nil?
         return oauth_failure("invalid_grant", "refresh token is invalid") unless stored.oauth_authorization.oauth_client_id == client.id
         return oauth_failure("invalid_grant", "refresh token is expired") if stored.expired?
-        return oauth_failure("invalid_grant", "refresh token is revoked") if stored.revoked?
 
         authorization = stored.oauth_authorization
+        if stored.revoked?
+          VoidOauthAuthorization.call(authorization: authorization)
+          return oauth_failure("invalid_grant", "refresh token is revoked")
+        end
         return oauth_failure("invalid_grant", "authorization is inactive") unless authorization.active?
 
-        failure_result = nil
+        reused = false
+        inactive = false
         payload = nil
         OauthRefreshToken.transaction do
           stored.lock!
-          if stored.reload.revoked?
-            failure_result = oauth_failure("invalid_grant", "refresh token is revoked")
+          stored.reload
+          authorization.reload
+          if stored.revoked?
+            reused = true
+            raise ActiveRecord::Rollback
+          end
+          unless authorization.active?
+            inactive = true
             raise ActiveRecord::Rollback
           end
 
           stored.revoke!
           payload = issue_token_pair!(authorization, replaced_refresh: stored)
         end
-        return failure_result if failure_result
+        if reused
+          VoidOauthAuthorization.call(authorization: authorization)
+          return oauth_failure("invalid_grant", "refresh token is revoked")
+        end
+        return oauth_failure("invalid_grant", "authorization is inactive") if inactive || payload.nil?
 
         success(payload)
       end
@@ -115,7 +141,7 @@ module RecordingStudioOauth
         result = AuthenticateOauthClient.call(client_id: client_id, client_secret: client_secret, api: api_key)
         return result if result.success?
 
-        oauth_failure("invalid_client", result.error.to_s)
+        oauth_failure("invalid_client", "client authentication failed")
       end
 
       def verify_pkce(client:, stored:)

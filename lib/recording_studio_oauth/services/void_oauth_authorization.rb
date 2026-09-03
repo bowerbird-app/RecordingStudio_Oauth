@@ -44,6 +44,7 @@ module RecordingStudioOauth
                         .update_all(revoked_at: time, updated_at: time)
         OauthRefreshToken.where(oauth_authorization_id: authorization.id, revoked_at: nil)
                          .update_all(revoked_at: time, updated_at: time)
+        OauthAuthorizationCode.where(oauth_authorization_id: authorization.id, used_at: nil).delete_all
       end
 
       def service_args

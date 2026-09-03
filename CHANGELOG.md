@@ -17,6 +17,7 @@ First release of the Recording Studio authorization server.
 - Staff admin of registered apps (Accessible grants on an admin root, not nominated admins). Staff can register an app from Registered apps, copy the client id and one-time secret, and revoke. Secret and Status on that table are Flatpack badges. Secret has a short tooltip. Status does not.
 - RFC 8414 discovery that points `token_endpoint` at Recording Studio API
 - Registers `authorization_code` and `refresh_token` on Recording Studio API 0.5.2 via `RecordingStudioApi.register_oauth_grant`
+- Registers `RecordingStudioOauth::TokenAuthenticator` so `rsoauth_at_` bearer tokens authenticate on the API resource server
 - Dummy host with Seed Demo App
 - Dummy Tailwind writes resolved gem `@source` paths so Flatpack classes emit on Cloud Agent install paths
 - Connect, permission, and error sit in a viewport-centered `max-w-sm` frame like login. Connected apps and staff admin stay on default layout.
@@ -26,7 +27,7 @@ First release of the Recording Studio authorization server.
 ### Notes
 - This gem is not Users, Doorkeeper, DCR, OIDC, SAML, or OAuth scopes
 - Machine API keys stay in Recording Studio API
-- Recording Studio API `~> 0.5.2` is required for the grant hook
+- Recording Studio API `~> 0.5.2` is required for the grant hook and token authenticator
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 

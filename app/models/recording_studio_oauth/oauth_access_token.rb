@@ -28,6 +28,28 @@ module RecordingStudioOauth
       !revoked? && !expired? && oauth_authorization&.active?
     end
 
+    def active_for_authentication?
+      active?
+    end
+
+    def api_client
+      oauth_authorization&.oauth_client
+    end
+
+    def effective_access_recording
+      oauth_authorization&.access_recording
+    end
+
+    def effective_access_recording_id
+      oauth_authorization&.access_recording_id
+    end
+
+    def revoke_tokens_on_expiry!
+      return if oauth_authorization.nil?
+
+      Services::VoidOauthAuthorization.call(authorization: oauth_authorization)
+    end
+
     def revoke!(time: Time.current)
       update_columns(revoked_at: time, updated_at: time) if revoked_at.nil?
     end

@@ -102,6 +102,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "resource server"
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
+    assert_includes readme, "TokenAuthenticator"
     assert_includes readme, "~> 0.5.2"
     assert_includes readme, "name_for"
     refute_includes readme, "internal template"

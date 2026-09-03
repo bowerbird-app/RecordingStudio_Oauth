@@ -17,6 +17,7 @@ require "recording_studio_oauth/oauth_client_secret"
 require "recording_studio_oauth/oauth_error_mapper"
 require "recording_studio_oauth/integration"
 require "recording_studio_oauth/grant_registration"
+require "recording_studio_oauth/token_authenticator"
 require "recording_studio_oauth/services/authenticate_oauth_client"
 require "recording_studio_oauth/services/resolve_oauth_client"
 require "recording_studio_oauth/services/create_oauth_client"
@@ -74,6 +75,10 @@ module RecordingStudioOauth
       def identity_hash
         {}.compare_by_identity
       end
+    end
+
+    initializer "recording_studio_oauth.filter_parameters" do |app|
+      app.config.filter_parameters += %i[code_verifier oauth_client_secret]
     end
 
     initializer "recording_studio_oauth.append_migrations" do |app|
@@ -161,6 +166,7 @@ module RecordingStudioOauth
 
     config.to_prepare do
       RecordingStudioOauth::GrantRegistration.register!
+      RecordingStudioOauth::TokenAuthenticator.register!
       RecordingStudioOauth::Admin.register! if defined?(RecordingStudioAdmin)
     end
   end

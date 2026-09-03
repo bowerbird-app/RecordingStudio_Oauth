@@ -12,7 +12,7 @@ It is not Users. It is not Doorkeeper. It is not Dynamic Client Registration. It
 
 **OauthAuthorization** is an Accessible actor. Connect grants Access on the parent of the Access the person clicked, `depends_on:` that Access. The app's Access is a sibling of theirs. Same app and same node reconnects. Asking for more than they have, or a missing Access, rejects. Nothing is silently clamped.
 
-Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code voids the grant.
+Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code or a rotated refresh token voids the grant. Disconnect and reconnect drop unused codes so they cannot void a later grant.
 
 RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount.
 
@@ -38,7 +38,7 @@ People can see and remove connected apps. Staff can register an app from Admin, 
 7. Install Recording Studio Site Settings (and Attachable, which that gem needs). Register `RecordingStudioSiteSettings::SiteSetting` and `RecordingStudioAttachable::Attachment`. Set `site_root_types` so Connect can read a site name.
 8. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
-Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Token exchange uses the API engine's existing `/oauth/token`. `client_credentials` stays built into API. Do not copy Connect into the API gem.
+Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Boot also registers `RecordingStudioOauth::TokenAuthenticator` so `rsoauth_at_` tokens authenticate on the API resource server. Token exchange uses the API engine's existing `/oauth/token`. `client_credentials` stays built into API. Do not copy Connect into the API gem.
 
 ## Dummy
 
