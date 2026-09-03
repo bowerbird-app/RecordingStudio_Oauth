@@ -35,6 +35,25 @@ class AdminDefinitionsTest < Minitest::Test
     assert_equal "Lives on a server. Proves itself with a secret.", column.tooltip_for(secret_row, nil)
   end
 
+  def test_status_column_uses_admin_badge_without_tooltip
+    column = RecordingStudioOauth::Admin::OauthClientsScreen.table_value.columns.find { |item| item.key == :revoked_at }
+
+    assert_equal :badge, column.display
+    assert_equal "Status", column.title
+
+    active_row = client_row(revoked: false)
+
+    assert_equal "Active", column.cell(active_row, nil)
+    assert_equal({ text: "Active", style: :success, size: :sm }, column.display_options_for(active_row, nil, "Active"))
+    assert_nil column.tooltip_for(active_row, nil)
+
+    revoked_row = client_row(revoked: true)
+
+    assert_equal "Revoked", column.cell(revoked_row, nil)
+    assert_equal({ text: "Revoked", style: :default, size: :sm }, column.display_options_for(revoked_row, nil, "Revoked"))
+    assert_nil column.tooltip_for(revoked_row, nil)
+  end
+
   def test_admin_create_is_owned_by_this_gem
     controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__))
     routes = File.read(File.expand_path("../config/routes.rb", __dir__))
@@ -73,9 +92,10 @@ class AdminDefinitionsTest < Minitest::Test
 
   private
 
-  def client_row(confidential:)
+  def client_row(confidential: false, revoked: false)
     Object.new.tap do |row|
       row.define_singleton_method(:confidential?) { confidential }
+      row.define_singleton_method(:revoked?) { revoked }
     end
   end
 end

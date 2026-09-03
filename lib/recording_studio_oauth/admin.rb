@@ -86,6 +86,21 @@ module RecordingStudioOauth
       SECRET_CELLS.fetch(row.confidential?)
     end
 
+    STATUS_CELLS = {
+      false => {
+        label: "Active",
+        style: :success
+      }.freeze,
+      true => {
+        label: "Revoked",
+        style: :default
+      }.freeze
+    }.freeze
+
+    def status_cell(row)
+      STATUS_CELLS.fetch(row.revoked?)
+    end
+
     class OauthClientsScreen < RecordingStudioAdmin::Screen
       key "oauth_clients"
       title "Registered apps"
@@ -109,7 +124,14 @@ module RecordingStudioOauth
                  { text: cell[:label], style: cell[:style], size: :sm }
                },
                tooltip: ->(row, _context) { RecordingStudioOauth::Admin.secret_cell(row)[:tooltip] }
-        column :revoked_at, title: "Status", value: ->(row, _context) { row.revoked? ? "Revoked" : "Active" }
+        column :revoked_at,
+               title: "Status",
+               display: :badge,
+               value: ->(row, _context) { RecordingStudioOauth::Admin.status_cell(row)[:label] },
+               display_options: lambda { |row, _context, _value|
+                 cell = RecordingStudioOauth::Admin.status_cell(row)
+                 { text: cell[:label], style: cell[:style], size: :sm }
+               }
         action :revoke,
                text: "Revoke",
                url: ->(row, _context) { RecordingStudioOauth::Admin.revoke_oauth_client_path(row) },

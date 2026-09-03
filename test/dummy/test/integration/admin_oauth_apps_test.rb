@@ -58,6 +58,11 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert public_tooltip, "expected a Public secret tooltip"
     assert_includes public_tooltip.text, "Public"
     assert_includes public_tooltip.at_css("span")["class"], "badge-default-background-color"
+
+    active_badge = css_select("span").find do |element|
+      element["class"].to_s.include?("badge-success-background-color") && element.text.strip == "Active"
+    end
+    assert active_badge, "expected an Active status badge"
   end
 
   test "staff can open the new app form" do
@@ -177,6 +182,20 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
 
     assert_response :redirect
     assert_predicate client.reload, :revoked?
+
+    get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
+
+    assert_response :success
+    revoked_badge = css_select("span").find do |element|
+      element["class"].to_s.include?("badge-default-background-color") && element.text.strip == "Revoked"
+    end
+    assert revoked_badge, "expected a Revoked status badge"
+    refute css_select("span").any? { |element|
+      element["class"].to_s.include?("badge-success-background-color") && element.text.strip == "Active"
+    }
+    assert css_select('[role="tooltip"]').any? { |element|
+      element.text == "Cannot hide a password. No secret. Uses PKCE."
+    }
   end
 
   test "create is forbidden without admin access" do
