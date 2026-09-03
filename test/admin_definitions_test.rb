@@ -50,7 +50,7 @@ class AdminDefinitionsTest < Minitest::Test
     revoked_row = client_row(revoked: true)
 
     assert_equal "Revoked", column.cell(revoked_row, nil)
-    assert_equal({ text: "Revoked", style: :default, size: :sm }, column.display_options_for(revoked_row, nil, "Revoked"))
+    assert_equal({ text: "Revoked", style: :danger, size: :sm }, column.display_options_for(revoked_row, nil, "Revoked"))
     assert_nil column.tooltip_for(revoked_row, nil)
   end
 

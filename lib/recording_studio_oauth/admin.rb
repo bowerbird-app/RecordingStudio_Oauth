@@ -93,7 +93,7 @@ module RecordingStudioOauth
       }.freeze,
       true => {
         label: "Revoked",
-        style: :default
+        style: :danger
       }.freeze
     }.freeze
 

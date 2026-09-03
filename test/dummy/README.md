@@ -9,7 +9,7 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Seed Demo App plus Studio Workspace, Docs Workspace, and Product Docs
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
-- Staff Admin Registered apps can add an app (New app), show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge
+- Staff Admin Registered apps can add an app (New app), show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger.
 - RFC 8414 on the host `/.well-known` paths
 - Rounded Flatpack theme. Connect uses a centered login-style frame. The access list has no back control and sits in a Card with default padding. Reconnect shows a Flatpack tooltip. Permission and error keep PageNav. Connected apps and staff admin stay on Recording Studio default layout.
 - Turbo plus Admin screen controllers, so staff registered-apps table rows load

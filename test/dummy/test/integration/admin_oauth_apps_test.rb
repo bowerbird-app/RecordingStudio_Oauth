@@ -187,7 +187,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     revoked_badge = css_select("span").find do |element|
-      element["class"].to_s.include?("badge-default-background-color") && element.text.strip == "Revoked"
+      element["class"].to_s.include?("badge-danger-background-color") && element.text.strip == "Revoked"
     end
     assert revoked_badge, "expected a Revoked status badge"
     refute css_select("span").any? { |element|
