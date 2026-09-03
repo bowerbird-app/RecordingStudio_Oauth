@@ -14,7 +14,7 @@ First release of the Recording Studio authorization server.
 - `OauthAuthorization` as an Accessible actor, with authorization codes, rotating refresh tokens, and delegated access tokens
 - Two-screen Connect: list of workspaces and folders, then permission capped at the person's own access
 - Connected apps
-- Staff admin of registered apps (Accessible grants on an admin root, not nominated admins)
+- Staff admin of registered apps (Accessible grants on an admin root, not nominated admins). Staff can register an app from Registered apps, copy the client id and one-time secret, and revoke.
 - RFC 8414 discovery that points `token_endpoint` at Recording Studio API
 - Registers `authorization_code` and `refresh_token` on Recording Studio API 0.5.2 via `RecordingStudioApi.register_oauth_grant`
 - Dummy host with Seed Demo App

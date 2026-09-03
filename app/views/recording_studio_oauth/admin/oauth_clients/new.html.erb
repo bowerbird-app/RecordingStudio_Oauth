@@ -1,0 +1,47 @@
+<% recording_studio_page_nav(
+     title: "New app",
+     page_nav_back_url: oauth_clients_admin_screen_path,
+     page_nav_anchor_url: oauth_clients_admin_screen_path
+   ) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "New app",
+  subtitle: "People will see this name when they Connect.",
+  variant: :h1
+) %>
+
+<%= form_with url: admin_oauth_clients_path, method: :post, class: "space-y-6" do %>
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[name]",
+    label: "Name",
+    value: @oauth_client.name,
+    required: true,
+    error: @oauth_client.errors[:name].to_sentence.presence
+  ) %>
+
+  <%= render FlatPack::TextArea::Component.new(
+    name: "oauth_client[redirect_uris]",
+    label: "Redirect URLs",
+    value: Array(@oauth_client.redirect_uris).join("\n"),
+    rows: 4,
+    required: true,
+    help_text: "One http or https address per line, like https://example.com/callback.",
+    error: @oauth_client.errors[:redirect_uris].to_sentence.presence
+  ) %>
+
+  <%= render FlatPack::Select::Component.new(
+    name: "oauth_client[secret]",
+    label: "Secret",
+    options: RecordingStudioOauth::Services::CreateOauthClient::SECRET_CHOICES,
+    value: @secret_choice,
+    placeholder: nil,
+    searchable: false,
+    required: true
+  ) %>
+
+  <%= render FlatPack::Button::Component.new(
+    text: "Create app",
+    style: :primary,
+    type: "submit"
+  ) %>
+<% end %>

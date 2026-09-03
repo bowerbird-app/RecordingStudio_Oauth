@@ -25,7 +25,7 @@ The list title is `{app} wants to connect to {site}`. The app name is the regist
 1. A list in a card with default padding. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect (default), Connected (success), or Reconnect (danger). Reconnect has a tooltip: "This connection is no longer live." Staff AdminRoot is not a row. The list is flat, not a tree.
 2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`.
 
-People can see and remove connected apps. Staff can revoke a registered app.
+People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it.
 
 ## Install
 
@@ -42,7 +42,7 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Version
 

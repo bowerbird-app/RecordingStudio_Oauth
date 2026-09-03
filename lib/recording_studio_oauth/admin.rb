@@ -4,9 +4,24 @@ module RecordingStudioOauth
   module Admin
     module_function
 
+    def engine_mount_path
+      RecordingStudioOauth.configuration.engine_mount_path.to_s.presence || "/recording_studio_oauth"
+    end
+
+    def new_oauth_client_path
+      Engine.routes.url_helpers.new_admin_oauth_client_path(script_name: engine_mount_path)
+    end
+
+    def oauth_clients_path
+      Engine.routes.url_helpers.admin_oauth_clients_path(script_name: engine_mount_path)
+    end
+
+    def oauth_client_path(client)
+      Engine.routes.url_helpers.admin_oauth_client_path(client, script_name: engine_mount_path)
+    end
+
     def revoke_oauth_client_path(client)
-      mount = RecordingStudioOauth.configuration.engine_mount_path.to_s.presence || "/recording_studio_oauth"
-      Engine.routes.url_helpers.admin_revoke_oauth_client_path(client, script_name: mount)
+      Engine.routes.url_helpers.admin_revoke_oauth_client_path(client, script_name: engine_mount_path)
     end
 
     ActiveAppsWidget = RecordingStudioAdmin::Widget.new("oauth.active_apps") do
@@ -41,12 +56,30 @@ module RecordingStudioOauth
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
     end
 
+    class OauthClientsResource < RecordingStudioAdmin::Resource
+      key "oauth_clients"
+      section "oauth_apps"
+      title "Registered apps"
+      blast_radius :site
+
+      action :create,
+             text: "New app",
+             method: :post,
+             url: ->(_row, _context) { RecordingStudioOauth::Admin.oauth_clients_path },
+             required_role: :view
+    end
+
     class OauthClientsScreen < RecordingStudioAdmin::Screen
       key "oauth_clients"
       title "Registered apps"
-      subtitle "Revoke an app to stop new connections."
+      subtitle "Add an app, or revoke one to stop new connections."
       blast_radius :site
       query { |_context| OauthClient.order(:name) }
+
+      button :new,
+             text: "New app",
+             style: :primary,
+             url: ->(_context) { RecordingStudioOauth::Admin.new_oauth_client_path }
 
       table do
         column :name
@@ -69,6 +102,7 @@ module RecordingStudioOauth
       RecordingStudioAdmin.register_widget(ActiveAppsWidget)
       RecordingStudioAdmin.register_widget(ActiveConnectionsWidget)
       RecordingStudioAdmin.register_section(OauthAppsSection)
+      RecordingStudioAdmin.register_resource(OauthClientsResource)
       RecordingStudioAdmin.register_screen(OauthClientsScreen)
       @registered = true
     end

@@ -1,0 +1,49 @@
+<% credentials_subtitle = if @client_secret.present?
+     nil
+   elsif @oauth_client.confidential?
+     "The secret was shown once."
+   else
+     "Copy the client id. This app has no secret."
+   end %>
+<% recording_studio_page_nav(
+     title: "App credentials",
+     page_nav_back_url: oauth_clients_admin_screen_path,
+     page_nav_anchor_url: oauth_clients_admin_screen_path
+   ) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "App credentials",
+  subtitle: credentials_subtitle,
+  variant: :h1
+) %>
+
+<div class="space-y-6">
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client_name",
+    label: "Name",
+    value: @oauth_client.name,
+    quick_copy: true
+  ) %>
+
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client_id",
+    label: "Client id",
+    value: @oauth_client.client_id,
+    quick_copy: true
+  ) %>
+
+  <% if @client_secret.present? %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "oauth_client_secret",
+      label: "Secret",
+      value: @client_secret,
+      quick_copy: true
+    ) %>
+  <% end %>
+
+  <%= render FlatPack::Button::Component.new(
+    text: "Done",
+    style: :primary,
+    href: oauth_clients_admin_screen_path
+  ) %>
+</div>
