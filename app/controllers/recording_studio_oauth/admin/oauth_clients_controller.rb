@@ -12,48 +12,18 @@ module RecordingStudioOauth
 
       helper_method :recording_studio_admin_context, :oauth_clients_admin_screen_path
 
+      CREATED_NOTICE = "App created."
+      CREATED_SECRET_NOTICE = "App created. Copy the secret now. It will not come back."
+
       def new
         @oauth_client = OauthClient.new(confidential: false, api_key: Services::CreateOauthClient::DEFAULT_API_KEY)
         @secret_choice = Services::CreateOauthClient::PUBLIC_SECRET_CHOICE
       end
 
       def create
-        @secret_choice = oauth_client_params[:secret].presence || Services::CreateOauthClient::PUBLIC_SECRET_CHOICE
-        result = nil
-        created = perform_recording_studio_admin_action!(
-          "oauth_clients",
-          :create,
-          OauthClient.new,
-          audit_action: :create
-        ) do
-          result = Services::CreateOauthClient.call(
-            name: oauth_client_params[:name],
-            redirect_uris: Services::CreateOauthClient.redirect_uris_from_lines(oauth_client_params[:redirect_uris]),
-            confidential: Services::CreateOauthClient.confidential?(@secret_choice)
-          )
-          if result.success?
-            true
-          else
-            @oauth_client = result.errors.first || OauthClient.new
-            false
-          end
-        end
+        return render :new, status: :unprocessable_entity unless oauth_client_persisted?
 
-        if created
-          client = result.value.fetch(:client)
-          secret = result.value[:client_secret]
-          if secret.present?
-            flash[:notice] = "App created. Copy the secret now. It will not come back."
-            flash[:oauth_client_secret] = secret
-          else
-            flash[:notice] = "App created."
-          end
-          redirect_to admin_oauth_client_path(client)
-        else
-          render :new, status: :unprocessable_entity
-        end
-      rescue RecordingStudioAdmin::AuthorizationFailed, RecordingStudioAdmin::DefinitionNotFound
-        head :forbidden
+        redirect_created_oauth_client
       end
 
       def show
@@ -112,6 +82,44 @@ module RecordingStudioOauth
       def admin_access_recording
         type_names = Array(RecordingStudioOauth.configuration.admin_root_recordable_type_names)
         RecordingStudio::Recording.unscoped.find_by(recordable_type: type_names, parent_recording_id: nil, trashed_at: nil)
+      end
+
+      def oauth_client_persisted?
+        @secret_choice = requested_secret_choice
+        perform_recording_studio_admin_action!(
+          "oauth_clients",
+          :create,
+          OauthClient.new,
+          audit_action: :create
+        ) { create_oauth_client_saved? }
+      end
+
+      def create_oauth_client_saved?
+        @create_result = Services::CreateOauthClient.call(**create_oauth_client_args)
+        return true if @create_result.success?
+
+        @oauth_client = @create_result.errors.first || OauthClient.new
+        false
+      end
+
+      def create_oauth_client_args
+        {
+          name: oauth_client_params[:name],
+          redirect_uris: Services::CreateOauthClient.redirect_uris_from_lines(oauth_client_params[:redirect_uris]),
+          confidential: Services::CreateOauthClient.confidential?(requested_secret_choice)
+        }
+      end
+
+      def requested_secret_choice
+        oauth_client_params[:secret].presence || Services::CreateOauthClient::PUBLIC_SECRET_CHOICE
+      end
+
+      def redirect_created_oauth_client
+        payload = @create_result.value
+        secret = payload[:client_secret]
+        flash[:notice] = secret.present? ? CREATED_SECRET_NOTICE : CREATED_NOTICE
+        flash[:oauth_client_secret] = secret if secret.present?
+        redirect_to admin_oauth_client_path(payload.fetch(:client))
       end
 
       def oauth_client_params
