@@ -8,7 +8,8 @@ class TokenAuthenticatorTest < Minitest::Test
     RecordingStudioOauth::TokenAuthenticator.register!
 
     authenticators = RecordingStudioApi.token_authenticators
-    assert_equal 1, authenticators.count { |item| item == RecordingStudioOauth::TokenAuthenticator }
+    matches = authenticators.count { |item| item == RecordingStudioOauth::TokenAuthenticator }
+    assert_equal 1, matches
   end
 
   def test_valid_format_accepts_oauth_access_tokens
