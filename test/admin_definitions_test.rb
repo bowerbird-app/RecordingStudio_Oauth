@@ -16,6 +16,25 @@ class AdminDefinitionsTest < Minitest::Test
     refute_includes admin, "Revoke an app to stop new connections."
   end
 
+  def test_secret_column_uses_admin_badge_and_tooltip
+    column = RecordingStudioOauth::Admin::OauthClientsScreen.table_value.columns.find { |item| item.key == :confidential }
+
+    assert_equal :badge, column.display
+    assert_equal "Secret", column.title
+
+    public_row = client_row(confidential: false)
+
+    assert_equal "Public", column.cell(public_row, nil)
+    assert_equal({ text: "Public", style: :default, size: :sm }, column.display_options_for(public_row, nil, "Public"))
+    assert_equal "Cannot hide a password. No secret. Uses PKCE.", column.tooltip_for(public_row, nil)
+
+    secret_row = client_row(confidential: true)
+
+    assert_equal "Has a secret", column.cell(secret_row, nil)
+    assert_equal({ text: "Has a secret", style: :info, size: :sm }, column.display_options_for(secret_row, nil, "Has a secret"))
+    assert_equal "Lives on a server. Proves itself with a secret.", column.tooltip_for(secret_row, nil)
+  end
+
   def test_admin_create_is_owned_by_this_gem
     controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__))
     routes = File.read(File.expand_path("../config/routes.rb", __dir__))
@@ -50,5 +69,13 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes show_view, 'text: "Done"'
     refute_includes show_view, "oauth_client_secret_digest"
     refute_includes show_view, "authorization"
+  end
+
+  private
+
+  def client_row(confidential:)
+    Object.new.tap do |row|
+      row.define_singleton_method(:confidential?) { confidential }
+    end
   end
 end

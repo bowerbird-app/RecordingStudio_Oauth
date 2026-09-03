@@ -69,6 +69,23 @@ module RecordingStudioOauth
              required_role: :view
     end
 
+    SECRET_CELLS = {
+      false => {
+        label: "Public",
+        style: :default,
+        tooltip: "Cannot hide a password. No secret. Uses PKCE."
+      }.freeze,
+      true => {
+        label: "Has a secret",
+        style: :info,
+        tooltip: "Lives on a server. Proves itself with a secret."
+      }.freeze
+    }.freeze
+
+    def secret_cell(row)
+      SECRET_CELLS.fetch(row.confidential?)
+    end
+
     class OauthClientsScreen < RecordingStudioAdmin::Screen
       key "oauth_clients"
       title "Registered apps"
@@ -83,7 +100,15 @@ module RecordingStudioOauth
 
       table do
         column :name
-        column :confidential, title: "Secret", value: ->(row, _context) { row.confidential? ? "Has a secret" : "Public" }
+        column :confidential,
+               title: "Secret",
+               display: :badge,
+               value: ->(row, _context) { RecordingStudioOauth::Admin.secret_cell(row)[:label] },
+               display_options: lambda { |row, _context, _value|
+                 cell = RecordingStudioOauth::Admin.secret_cell(row)
+                 { text: cell[:label], style: cell[:style], size: :sm }
+               },
+               tooltip: ->(row, _context) { RecordingStudioOauth::Admin.secret_cell(row)[:tooltip] }
         column :revoked_at, title: "Status", value: ->(row, _context) { row.revoked? ? "Revoked" : "Active" }
         action :revoke,
                text: "Revoke",

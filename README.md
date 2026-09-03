@@ -25,7 +25,7 @@ The list title is `{app} wants to connect to {site}`. The app name is the regist
 1. A list in a card with default padding. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect (default), Connected (success), or Reconnect (danger). Reconnect has a tooltip: "This connection is no longer live." Staff AdminRoot is not a row. The list is flat, not a tree.
 2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`.
 
-People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it.
+People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it. Registered apps shows Secret as a badge. Hover or focus explains Public versus Has a secret without putting PKCE on the cell.
 
 ## Install
 

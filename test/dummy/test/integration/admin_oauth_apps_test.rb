@@ -50,6 +50,14 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Active"
     assert_includes response.body, "Revoke"
     refute_match(/rsoauth_cs_/, response.body)
+
+    public_tooltip = css_select('[data-controller="flat-pack--tooltip"]').find do |element|
+      element.at_css('[role="tooltip"]')&.text == "Cannot hide a password. No secret. Uses PKCE."
+    end
+
+    assert public_tooltip, "expected a Public secret tooltip"
+    assert_includes public_tooltip.text, "Public"
+    assert_includes public_tooltip.at_css("span")["class"], "badge-default-background-color"
   end
 
   test "staff can open the new app form" do
@@ -94,6 +102,13 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Public"
     refute_includes response.body, client.client_id
     refute_match(/rsoauth_cs_/, response.body)
+
+    public_tooltip = css_select('[data-controller="flat-pack--tooltip"]').find do |element|
+      element.at_css('[role="tooltip"]')&.text == "Cannot hide a password. No secret. Uses PKCE."
+    end
+
+    assert public_tooltip, "expected a Public secret tooltip on the created app"
+    assert_includes public_tooltip.at_css("span")["class"], "badge-default-background-color"
   end
 
   test "staff can create a confidential app and see the secret only once" do
@@ -130,6 +145,14 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Staff Secret App"
     assert_includes response.body, "Has a secret"
     refute_includes response.body, secret
+
+    secret_tooltip = css_select('[data-controller="flat-pack--tooltip"]').find do |element|
+      element.at_css('[role="tooltip"]')&.text == "Lives on a server. Proves itself with a secret."
+    end
+
+    assert secret_tooltip, "expected a Has a secret tooltip"
+    assert_includes secret_tooltip.text, "Has a secret"
+    assert_includes secret_tooltip.at_css("span")["class"], "badge-info-background-color"
   end
 
   test "staff create rejects a redirect URL with a fragment" do
