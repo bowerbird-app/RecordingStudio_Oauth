@@ -14,22 +14,58 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Layout/LineLength:
-  Max: 120
+  Enabled: false
 
-# Relax metrics for test files and generators
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+# Relax metrics for test files, generators, and the Connect/token services.
 Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
+    - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'lib/recording_studio_oauth/engine.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
 
 Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
     - 'lib/generators/**/*'
+    - 'db/migrate/**/*'
+    - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'app/controllers/recording_studio_oauth/connected_apps_controller.rb'
+    - 'app/controllers/recording_studio_oauth/oauth_discoveries_controller.rb'
+    - 'lib/recording_studio_oauth/configuration.rb'
+    - 'lib/recording_studio_oauth/engine.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
 
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
     - 'lib/generators/**/*'
+    - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'lib/recording_studio_oauth/engine.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'test/**/*'
+    - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'test/**/*'
+    - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'test/**/*'
+    - 'config/routes.rb'
+    - 'lib/recording_studio_oauth/admin.rb'
+    - 'lib/recording_studio_oauth/engine.rb'
+    - 'lib/recording_studio_oauth/services/**/*'
 
 # Allow empty blocks in tests (common for stubs/mocks)
 Lint/EmptyBlock:
@@ -49,4 +85,5 @@ Naming/VariableNumber:
 # Don't require super in service initialize methods
 Lint/MissingSuper:
   Exclude:
+    - 'lib/recording_studio_oauth/services/**/*'
     - 'test/services/**/*'

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Resolved engine/gem paths written before each Tailwind build/watch. */
+@import "./gem_sources.css";
+
 /* Include dummy app views for Tailwind CSS */
 @source "../../views/**/*.erb";
 
@@ -13,3 +16,12 @@
 
 /* Include the engine's views in the Tailwind build */
 @source "../../../../../app/views/**/*.erb";
+@source "../../../../../app/components/**/*.{rb,erb}";
+
+/* Include Admin, API, and Accessible screens when those engines render in dummy */
+@source "../../../vendor/bundle/**/recording_studio_admin/app/**/*.{rb,erb}";
+@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recordingstudio-admin-*/app/**/*.{rb,erb}";
+@source "../../../vendor/bundle/**/recording_studio_api/app/**/*.{rb,erb}";
+@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recordingstudio-api-*/app/**/*.{rb,erb}";
+@source "../../../vendor/bundle/**/recording_studio_accessible/app/**/*.{rb,erb}";
+@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recordingstudio-accessible-*/app/**/*.{rb,erb}";

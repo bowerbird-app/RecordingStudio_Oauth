@@ -1,0 +1,7 @@
+development:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"
+
+production:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"

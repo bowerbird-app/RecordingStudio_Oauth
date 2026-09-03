@@ -1,0 +1,12 @@
+<% recording_studio_page_nav(title: "Could not connect") %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Could not connect",
+  variant: :h1,
+  class: "mb-0 pb-0 text-center"
+) %>
+
+<%= render FlatPack::Alert::Component.new(
+  description: @oauth_error.fetch(:error_description),
+  style: :danger
+) %>

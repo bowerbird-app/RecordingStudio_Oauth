@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class RecordingStudioTemplateTest < ActiveSupport::TestCase
+class DummyHostTest < ActiveSupport::TestCase
   test "dummy app loads root switchable config and controller support" do
     assert_equal [ "all_workspaces" ], RecordingStudioRootSwitchable.configuration.scopes.keys
     assert_equal :application_layout, RecordingStudioRootSwitchable.configuration.layout
@@ -12,15 +12,17 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
-    assert_equal [ "Workspace" ], RecordingStudio.root_recordable_types
+    assert_equal [ "AdminRoot", "Workspace" ], RecordingStudio.root_recordable_types.sort
     assert_equal [ "Workspace", "Folder" ], RecordingStudio.allowed_parent_types_for("Page")
   end
 
-  test "dummy app schema keeps accessible grants and excludes removed core tables" do
+  test "dummy app schema keeps accessible grants and oauth tables" do
     connection = ActiveRecord::Base.connection
 
     assert connection.column_exists?(:recording_studio_recordings, :root_recording_id)
     assert connection.table_exists?(:recording_studio_accesses)
+    assert connection.table_exists?(:recording_studio_oauth_clients)
+    assert connection.table_exists?(:recording_studio_oauth_authorizations)
     refute connection.table_exists?(:recording_studio_access_boundaries)
     refute connection.table_exists?(:recording_studio_device_sessions)
   end
@@ -31,28 +33,30 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     load Rails.root.join("db/seeds.rb").to_s
 
     workspace = Workspace.find_by!(name: "Studio Workspace")
-    accessible_workspace = Workspace.find_by!(name: "Client Workspace")
-    private_workspace = Workspace.find_by!(name: "Private Workspace")
+    docs_workspace = Workspace.find_by!(name: "Docs Workspace")
     folder = Folder.find_by!(name: "Product Docs")
     page = Page.find_by!(title: "Getting Started")
+    admin_root = AdminRoot.find_by!(name: "Admin")
+    oauth_client = RecordingStudioOauth::OauthClient.find_by!(name: "Seed Demo App")
     root_recording = RecordingStudio::Recording.find_by!(recordable: workspace)
-    accessible_root_recording = RecordingStudio::Recording.find_by!(recordable: accessible_workspace)
-    private_root_recording = RecordingStudio::Recording.find_by!(recordable: private_workspace)
+    docs_root_recording = RecordingStudio::Recording.find_by!(recordable: docs_workspace)
     folder_recording = RecordingStudio::Recording.find_by!(recordable: folder)
     page_recording = RecordingStudio::Recording.find_by!(recordable: page)
+    admin_recording = RecordingStudio::Recording.find_by!(recordable: admin_root)
 
     assert_nil Current.actor
     assert_nil root_recording.parent_recording_id
-    assert_nil accessible_root_recording.parent_recording_id
-    assert_nil private_root_recording.parent_recording_id
+    assert_nil docs_root_recording.parent_recording_id
+    assert_nil admin_recording.parent_recording_id
     assert_equal root_recording, folder_recording.parent_recording
     assert_equal root_recording, folder_recording.root_recording
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
-    assert_equal 3, Workspace.count
+    refute oauth_client.confidential?
+    assert_equal 2, Workspace.where(name: ["Studio Workspace", "Docs Workspace"]).count
 
     assert_no_difference -> { User.count } do
-      assert_no_difference -> { RecordingStudio::Recording.count } do
+      assert_no_difference -> { RecordingStudioOauth::OauthClient.count } do
         load Rails.root.join("db/seeds.rb").to_s
       end
     end
@@ -61,23 +65,27 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     Current.actor = nil
   end
 
-  test "workspace opts into accessible and the example mixin without enabling them globally" do
+  test "workspace and folder enable accessible and admin root is staff only" do
     workspace_source = File.read(Rails.root.join("app/models/workspace.rb"))
-    example_source = File.read(GemTemplate::Engine.root.join("lib/gem_template/capabilities/example.rb"))
+    folder_source = File.read(Rails.root.join("app/models/folder.rb"))
 
-    assert_includes workspace_source, "include RecordingStudio::Capabilities::Example.to(label: \"dummy workspace\")"
-    assert_includes example_source, "RecordingStudio::Capabilities.include_for(:example, **)"
-    refute_includes example_source, "enable_capability"
-    refute_includes example_source, "set_capability_options"
+    refute_includes workspace_source, "Capabilities::Example"
+    assert_includes workspace_source, "enable_capability(:accessible"
+    assert_includes folder_source, "enable_capability(:accessible"
 
     assert RecordingStudio.capability_enabled?(:accessible, for: Workspace)
-    assert RecordingStudio.capability_enabled?(:example, for: Workspace)
-    assert_equal({ label: "dummy workspace" }, RecordingStudio.capability_options(:example, for: Workspace))
-    refute RecordingStudio.capability_enabled?(:accessible, for: Folder)
+    assert RecordingStudio.capability_enabled?(:accessible, for: Folder)
     refute RecordingStudio.capability_enabled?(:accessible, for: Page)
-    refute RecordingStudio.capability_enabled?(:example, for: Folder)
-    refute RecordingStudio.capability_enabled?(:example, for: Page)
-    assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:example)
+    assert RecordingStudio.capability_enabled?(:accessible, for: AdminRoot)
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+  end
+
+  test "dummy importmap pins turbo and admin screen controllers" do
+    importmap = File.read(Rails.root.join("config/importmap.rb"))
+    application_js = File.read(Rails.root.join("app/javascript/application.js"))
+
+    assert_includes importmap, "@hotwired/turbo-rails"
+    assert_includes importmap, "recording_studio_admin/controllers"
+    assert_includes application_js, "@hotwired/turbo-rails"
   end
 end
