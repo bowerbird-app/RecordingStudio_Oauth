@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.1.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.1.1", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -57,7 +57,8 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.144"'
-    refute_includes gemfile, "recording_studio_users"
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.10.0"'
+    assert_includes gemfile, 'gem "recording_studio_user"'
     refute_includes gemfile, 'tag: "v0.1.143"'
   end
 
@@ -72,7 +73,8 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes controller_source, "include RecordingStudio::UsesDefaultLayout"
     assert_includes controller_source, '"recording_studio/default_layout"'
-    assert_includes controller_source, "devise_controller? ? \"application\""
+    assert_includes controller_source, "return \"application\" if devise_controller?"
+    assert_includes controller_source, "RecordingStudioUser"
     refute_includes controller_source, "flat_pack_sidebar"
   end
 
@@ -105,6 +107,8 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "TokenAuthenticator"
     assert_includes readme, "~> 0.5.2"
     assert_includes readme, "name_for"
+    assert_includes readme, "Recording Studio Users"
+    assert_includes readme, "email-first"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"
   end

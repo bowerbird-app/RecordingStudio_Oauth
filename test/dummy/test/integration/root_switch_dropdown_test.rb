@@ -6,13 +6,17 @@ require "devise/test/integration_helpers"
 class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
-  test "sign in page uses the devise layout and is not squished by the default layout" do
+  test "sign in page uses Users email-first chrome, not the default layout" do
     get new_user_session_path
 
     assert_response :success
-    assert_includes response.body, "admin@admin.com"
-    assert_includes response.body, "Password"
-    assert_includes response.body, 'data-theme="rounded"'
+    assert_select "html[data-theme='rounded']"
+    assert_select "h2", text: "Welcome back"
+    assert_select "input[type='email'][name='user[email]'][placeholder='you@company.com']"
+    assert_select "input[type='password'][name='user[password]']", count: 0
+    assert_select "button[type='submit']", text: "Continue with email"
+    assert_select "button[type='submit']", text: "Continue with Google"
+    refute_includes response.body, "Remember me"
     refute_includes response.body, "data-recording-studio-default-layout"
     refute_includes response.body, "mt-28"
     refute_includes response.body, "fixed inset-0"

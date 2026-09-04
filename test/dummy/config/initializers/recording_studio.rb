@@ -6,6 +6,8 @@ RecordingStudio.configure do |config|
     "Folder",
     "Page",
     "AdminRoot",
+    "RecordingStudioUser::People",
+    "RecordingStudioUser::Profile",
     "RecordingStudioSiteSettings::SiteSetting",
     "RecordingStudioAttachable::Attachment"
   ]

@@ -34,7 +34,7 @@ People can see and remove connected apps. Staff can register an app from Admin, 
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
 5. Enable `:accessible` on the recordables people Connect from, including Folder if folder grants should appear.
-6. Host authentication stays on the host. Dummy uses Devise. Do not add Users as a dependency of this gem.
+6. Host authentication stays on the host. Do not add Users as a dependency of this gem. Dummy mounts Recording Studio Users for email-first sign-in (preferred path → password) and Continue-with social on the way into Connect.
 7. Install Recording Studio Site Settings (and Attachable, which that gem needs). Register `RecordingStudioSiteSettings::SiteSetting` and `RecordingStudioAttachable::Attachment`. Set `site_root_types` so Connect can read a site name.
 8. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
@@ -42,8 +42,10 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Login is Users email-first: screen 1 is email plus Continue with Google (local fake OmniAuth client), screen 2 is password (`primary_login_type` `:email`). Unauthenticated Connect stores the authorize URL and returns after sign-in.
+
+Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Version
 
-0.1.0
+0.1.1
