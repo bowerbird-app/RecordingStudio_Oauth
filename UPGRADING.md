@@ -1,5 +1,17 @@
 # Upgrading
 
+## 0.1.1
+
+This gem still does not depend on Users. Connect is unchanged.
+
+If the host wants social login and the preferred email-first sign-in path on the way into Connect:
+
+1. Add and mount [Recording Studio Users](https://github.com/bowerbird-app/RecordingStudio_users) (`v0.10.0` or newer).
+2. Skip Devise sessions, registrations, and passwords; point OmniAuth callbacks at Users; call `recording_studio_user_auth_for :users`.
+3. Set `primary_login_type` (`:email` default → password on screen 2, or `:otp` when OTP is enabled).
+4. Put OmniAuth provider secrets under Rails credentials `omniauth:` (or set `omniauth_providers`).
+5. Confirm an unauthenticated `/oauth/authorize` request returns to Connect after sign-in (Devise stores the return path).
+
 ## 0.1.0
 
 First release. There is no previous version to upgrade from.

@@ -8,6 +8,8 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  # Devise-owned screens (password reset) keep layouts/application. Sign in and
+  # sign up come from RecordingStudioUser and bring their own auth layout.
   layout :application_layout
 
   before_action :authenticate_user!
@@ -16,7 +18,9 @@ class ApplicationController < ActionController::Base
   private
 
   def application_layout
-    devise_controller? ? "application" : "recording_studio/default_layout"
+    return "application" if devise_controller?
+
+    "recording_studio/default_layout"
   end
 
   def set_current_actor

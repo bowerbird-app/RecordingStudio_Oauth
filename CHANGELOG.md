@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-09-04
+
+### Changed
+- Dummy host mounts Recording Studio Users `v0.10.0` for the Connect journey sign-in: email-first preferred path (password on screen 2) plus Continue-with social on screen 1. Unauthenticated `/oauth/authorize` still stores the return path and comes back to Connect after sign-in.
+- This gem still does not depend on Users. Hosts keep their own auth; use Users when they want that sign-in chrome.
+
+### Notes
+- Dummy registers a fake Google OmniAuth client in local env so Continue with Google is visible without shipping real secrets. Hosts should use Rails credentials under `omniauth:` instead.
+
 ## [0.1.0] - 2026-09-02
 
 First release of the Recording Studio authorization server.
@@ -31,4 +40,5 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.1.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/releases/tag/v0.1.1
 [0.1.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/releases/tag/v0.1.0

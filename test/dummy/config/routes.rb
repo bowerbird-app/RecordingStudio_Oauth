@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users,
+             skip: %i[sessions registrations passwords],
+             controllers: { omniauth_callbacks: "recording_studio_user/omniauth_callbacks" }
+
+  recording_studio_user_auth_for :users
 
   get "/recording_studio", to: redirect("/"), as: nil
   mount RecordingStudio::Engine, at: "/recording_studio"
@@ -10,6 +14,7 @@ Rails.application.routes.draw do
   mount RecordingStudioAttachable::Engine, at: "/recording_studio_attachable"
   mount RecordingStudioSiteSettings::Engine, at: "/recording_studio_site_settings"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
+  mount RecordingStudioUser::Engine => RecordingStudioUser.config.mount_path, as: :recording_studio_users
 
   get "/.well-known/oauth-authorization-server",
       to: "recording_studio_oauth/oauth_discoveries#authorization_server",

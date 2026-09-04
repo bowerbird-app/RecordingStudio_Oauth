@@ -12,9 +12,9 @@
 - Attachable `~> 0.5` (dummy tag `v0.5.1`, required by Site Settings)
 - Flatpack `~> 0.1.144` (dummy tag `v0.1.144`)
 
-Do not depend on Users.
+Do not depend on Users in the gemspec. The dummy host mounts Users `v0.10.0` only as the reference sign-in for the Connect journey.
 
-Dummy copies engine and API migrations into `test/dummy/db/migrate`. The engine skips appending migrations when the host path contains the gem root, which is true for this nested dummy. Dummy also copies Site Settings and Attachable migrations, plus Active Storage tables Attachable needs.
+Dummy copies engine and API migrations into `test/dummy/db/migrate`. The engine skips appending migrations when the host path contains the gem root, which is true for this nested dummy. Dummy also copies Site Settings, Attachable, and Users migrations, plus Active Storage tables Attachable needs.
 
 ## Verification
 
