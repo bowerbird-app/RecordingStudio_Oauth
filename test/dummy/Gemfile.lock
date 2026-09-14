@@ -1,1 +1,1 @@
-ARTIFACT:/tmp/co_final_invoke.json
+@include(/tmp/oauth_dummy_lock.txt)
