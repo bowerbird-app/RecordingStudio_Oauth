@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-09-14
+
+### Added
+- `RecordingStudioOauth.register_protected_resource` so addons (MCP) can register extra RFC 9728 resource identities on this authorization server.
+- Authorize rejects an unknown `resource` with `invalid_target`. Blank `resource` stays allowed for looser clients such as ChatGPT Connect.
+
+### Changed
+- Default allowed resources are the API resource URL and the request origin.
+
+### Upgrade notes
+- Hosts that serve MCP should register the MCP URL (or origin) via `RecordingStudioOauth.register_protected_resource`. Recording Studio MCP does this on boot.
+- Clients that omit `resource` keep working. Clients that send an unknown resource now fail at authorize.
+
 ## [0.1.0] - 2026-09-02
 
 First release of the Recording Studio authorization server.
