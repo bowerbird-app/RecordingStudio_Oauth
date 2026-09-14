@@ -23,7 +23,12 @@ class GrantRegistrationTest < Minitest::Test
     ) do
       RecordingStudioOauth::DelegatedGrant.call(
         grant_type: "authorization_code",
-        params: { "code" => "abc", "redirect_uri" => "http://127.0.0.1/callback", "code_verifier" => "verifier" },
+        params: {
+          "code" => "abc",
+          "redirect_uri" => "http://127.0.0.1/callback",
+          "code_verifier" => "verifier",
+          "resource" => "https://app.example.com/recording_studio_mcp"
+        },
         client_id: "client-1",
         client_secret: nil,
         api: "public"
@@ -36,5 +41,6 @@ class GrantRegistrationTest < Minitest::Test
     assert_equal "abc", captured.fetch(:code)
     assert_equal "http://127.0.0.1/callback", captured.fetch(:redirect_uri)
     assert_equal "verifier", captured.fetch(:code_verifier)
+    assert_equal "https://app.example.com/recording_studio_mcp", captured.fetch(:resource)
   end
 end

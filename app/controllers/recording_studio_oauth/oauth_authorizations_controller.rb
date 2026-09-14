@@ -86,6 +86,11 @@ module RecordingStudioOauth
         return
       end
 
+      unless RecordingStudioOauth.protected_resources(api_key: @api_key).permit?(params[:resource], base_url: request.base_url)
+        render_oauth_error("invalid_target", "resource is not a registered protected resource")
+        return
+      end
+
       client_result = Services::ResolveOauthClient.call(client_id: params[:client_id], api: @api_key)
       unless client_result.success?
         render_oauth_error("invalid_client", "client is invalid")
