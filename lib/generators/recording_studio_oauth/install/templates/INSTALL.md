@@ -8,5 +8,5 @@ Next steps:
 4. Apply the migrations with `bin/rails db:migrate`.
 5. Install Recording Studio Site Settings (and Attachable) so Connect can read a site name.
 6. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
-7. Mount routes are added at the configured mount path. Adjust auth, layout, and current actor integration to match your host app.
+7. Mount routes are added at the configured mount path, including `ProtectedResourceRegistry.draw_origin_well_known` for origin path-inserted protected-resource metadata. Adjust auth, layout, and current actor integration to match your host app.
 8. Keep strict recordable declarations enabled and add `recording_studio_recordable(...)` to every configured recordable before running `RecordingStudio.validate_recordable_declarations!`.
