@@ -72,12 +72,7 @@ module RecordingStudioOauth
     end
 
     def resource_identifier
-      api_mount = RecordingStudioOauth.configuration.api_mount_path.presence || "/recording_studio_api"
-      if current_api_key == "public"
-        "#{request.base_url}#{api_mount}/api"
-      else
-        "#{request.base_url}#{api_mount}/apis/#{current_api_key}"
-      end
+      ProtectedResources.api_resource_identifier(request, api_key: current_api_key)
     end
   end
 end
