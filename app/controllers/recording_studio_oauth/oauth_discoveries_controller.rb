@@ -41,9 +41,7 @@ module RecordingStudioOauth
 
     def issuer_path
       mount = request.script_name.to_s
-      if mount.blank? || mount == "/"
-        mount = RecordingStudioOauth.configuration.engine_mount_path.presence || "/recording_studio_oauth"
-      end
+      mount = RecordingStudioOauth.configuration.engine_mount_path.presence || "/recording_studio_oauth" if mount.blank? || mount == "/"
       current_api_key == "public" ? mount : "#{mount}/apis/#{current_api_key}"
     end
 

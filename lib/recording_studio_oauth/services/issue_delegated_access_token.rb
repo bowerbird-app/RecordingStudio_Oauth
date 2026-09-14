@@ -24,9 +24,7 @@ module RecordingStudioOauth
       def perform
         return oauth_failure("invalid_request", "grant_type is required") if grant_type.blank?
         return oauth_failure("unsupported_grant_type", "grant_type must be #{SUPPORTED_GRANT_TYPES.join(', ')}") unless SUPPORTED_GRANT_TYPES.include?(grant_type)
-        unless RecordingStudioOauth.protected_resources(api_key: api_key).permit?(resource)
-          return oauth_failure("invalid_target", "resource is not a registered protected resource")
-        end
+        return oauth_failure("invalid_target", "resource is not a registered protected resource") unless RecordingStudioOauth.protected_resources(api_key: api_key).permit?(resource)
 
         case grant_type
         when "authorization_code"

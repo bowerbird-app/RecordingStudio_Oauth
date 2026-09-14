@@ -48,16 +48,7 @@ module RecordingStudioOauth
       return false if resource.is_a?(Array)
       return true if resource.nil? || resource.to_s.strip.empty?
 
-      uri = parse_absolute_http_uri(resource)
-      return false unless uri
-
-      entry = resolve(path_suffix: uri_path_suffix(uri))
-      return false unless entry
-
-      expected_base = base_url.to_s.strip.presence || @public_origin
-      return true if expected_base.blank?
-
-      entry.identifier_for(base_url: expected_base) == identifier_from_uri(uri)
+      registered_resource?(resource, base_url: base_url)
     end
 
     def identifiers(base_url:)
@@ -105,9 +96,7 @@ module RecordingStudioOauth
       end
 
       def add_entry!(entries, seen, entry)
-        if seen.key?(entry.path)
-          raise ArgumentError, "protected resource path #{entry.path.inspect} is already registered"
-        end
+        raise ArgumentError, "protected resource path #{entry.path.inspect} is already registered" if seen.key?(entry.path)
 
         seen[entry.path] = true
         entries << entry
@@ -124,7 +113,22 @@ module RecordingStudioOauth
 
     private
 
-    def parse_absolute_http_uri(value)
+    def registered_resource?(resource, base_url:)
+      uri = ProtectedResourceUri.parse(resource)
+      return false unless uri
+
+      entry = resolve(path_suffix: ProtectedResourceUri.path_suffix(uri))
+      return false unless entry
+
+      expected_base = base_url.to_s.strip.presence || @public_origin
+      expected_base.blank? || entry.identifier_for(base_url: expected_base) == ProtectedResourceUri.identifier(uri)
+    end
+  end
+
+  module ProtectedResourceUri
+    module_function
+
+    def parse(value)
       uri = URI.parse(value.to_s.strip)
       return unless uri.is_a?(URI::HTTP)
       return if uri.host.to_s.empty?
@@ -137,14 +141,14 @@ module RecordingStudioOauth
       nil
     end
 
-    def uri_path_suffix(uri)
+    def path_suffix(uri)
       path = uri.path.to_s.sub(%r{/+\z}, "")
       return "" if path.empty? || path == "/"
 
       path.delete_prefix("/")
     end
 
-    def identifier_from_uri(uri)
+    def identifier(uri)
       origin = "#{uri.scheme}://#{uri.host}"
       origin = "#{origin}:#{uri.port}" unless default_port?(uri)
       path = uri.path.to_s.sub(%r{/+\z}, "")
