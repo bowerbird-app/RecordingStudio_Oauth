@@ -1,5 +1,40 @@
 # Upgrading
 
+## 0.2.0
+
+Protected resource identities are a registry. The public authorization server advertises the API path and the MCP mount. Tokens stay unbound `rsoauth_at_` bearers.
+
+### Origin well-known
+
+`GET /.well-known/oauth-protected-resource` on the host origin no longer returns the API document. That URL is 404 unless you set `register_origin_as_protected_resource = true`. ChatGPT and API clients keep using `/recording_studio_oauth/.well-known/oauth-protected-resource`.
+
+Draw the origin path-inserted routes in the host:
+
+```ruby
+RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)
+```
+
+That serves `/.well-known/oauth-protected-resource/recording_studio_mcp` and `/.well-known/oauth-protected-resource/recording_studio_api/api`.
+
+The install generator adds this call. Existing hosts need it in `config/routes.rb`.
+
+### Config
+
+New keys on `RecordingStudioOauth.configuration`:
+
+- `mcp_mount_path`, default `/recording_studio_mcp`
+- `register_origin_as_protected_resource`, default `false`
+- `extra_protected_resource_paths`, default `[]`
+- `public_origin`, optional. Token-time `resource` checks use this host when there is no request.
+
+### Authorize and token
+
+A present `resource` parameter must match a registry entry. Unknown values return `invalid_target`. You can still omit the parameter. The value is not stored on codes, grants, or tokens. `TokenAuthenticator` is unchanged.
+
+### MCP 401
+
+This gem does not change RecordingStudio_MCP. Point `WWW-Authenticate` `resource_metadata` at the MCP well-known URL. See README.
+
 ## 0.1.0
 
 First release. There is no previous version to upgrade from.

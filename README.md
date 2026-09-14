@@ -16,6 +16,61 @@ Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorizati
 
 RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount.
 
+## Protected resources
+
+This gem is one authorization server. It advertises more than one protected-resource identity. Tokens stay opaque `rsoauth_at_` bearers with no audience.
+
+| Kind | Identifier | Origin well-known |
+| --- | --- | --- |
+| API | `https://app.example.com/recording_studio_api/api` | `/.well-known/oauth-protected-resource/recording_studio_api/api` |
+| MCP | `https://app.example.com/recording_studio_mcp` | `/.well-known/oauth-protected-resource/recording_studio_mcp` |
+
+The engine URL `/recording_studio_oauth/.well-known/oauth-protected-resource` still serves the API identifier. Origin unsuffixed `/.well-known/oauth-protected-resource` is 404 unless you set `register_origin_as_protected_resource = true`.
+
+Draw origin path-inserted well-known in the host:
+
+```ruby
+mount RecordingStudioOauth::Engine, at: "/recording_studio_oauth"
+RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)
+```
+
+The MCP gem or host owns the 401. Point `resource_metadata` at the MCP document:
+
+```http
+WWW-Authenticate: Bearer realm="RecordingStudioMcp", resource_metadata="https://app.example.com/.well-known/oauth-protected-resource/recording_studio_mcp"
+```
+
+Build that header with:
+
+```ruby
+RecordingStudioOauth.protected_resources.www_authenticate_challenge(base_url: request.base_url)
+```
+
+The document at that URL is:
+
+```json
+{
+  "resource": "https://app.example.com/recording_studio_mcp",
+  "authorization_servers": ["https://app.example.com/recording_studio_oauth"],
+  "bearer_methods_supported": ["header"]
+}
+```
+
+`authorization_servers` is this gem's issuer. Token exchange stays `/recording_studio_api/oauth/token`. A token minted after an MCP `resource` value is still an `rsoauth_at_` bearer and authenticates on API and MCP.
+
+API 401 stays `Bearer realm="RecordingStudioApi"`. Do not reuse that realm as MCP identity.
+
+```ruby
+RecordingStudioOauth.configure do |config|
+  config.mcp_mount_path = "/recording_studio_mcp"
+  config.register_origin_as_protected_resource = false
+  config.extra_protected_resource_paths = []
+  config.public_origin = "https://app.example.com"
+end
+```
+
+A present `resource` on authorize or token must match a registry entry. Unknown values return `invalid_target`. Omit the parameter as before. The value is not stored.
+
 ## Connect
 
 Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. The access list has no back control. Permission and error keep PageNav back. Connected apps and staff admin stay on core default layout.
@@ -46,4 +101,4 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Version
 
-0.1.0
+0.2.0

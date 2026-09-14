@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.1.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.2.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -105,6 +105,8 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "TokenAuthenticator"
     assert_includes readme, "~> 0.5.2"
     assert_includes readme, "name_for"
+    assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
+    assert_includes readme, "www_authenticate_challenge"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"
   end
