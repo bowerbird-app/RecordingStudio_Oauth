@@ -1,1 +1,1 @@
-file:///tmp/oauth_dummy_lock.txt
+{{read_file:/tmp/oauth_dummy_lock.txt}}
