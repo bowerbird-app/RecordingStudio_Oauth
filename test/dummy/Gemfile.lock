@@ -1,1 +1,24 @@
-/tmp/upload_content_final.txt
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio.git
+  revision: fce33c603f8e57a2c0dd278ab901651f6d78c5d4
+  tag: v4.2.0
+  specs:
+    recording_studio (4.2.0)
+      rails (>= 8.1.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_accessible.git
+  revision: bdff3ee3ace5cf3bfe33ba40476c1522cf1b6d61
+  tag: v0.9.1
+  specs:
+    recording_studio_accessible (0.9.1)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+
+PATH
+  remote: ../..
+  specs:
+    recording_studio_oauth (0.1.1)
+
+BUNDLED WITH
+  4.0.0
