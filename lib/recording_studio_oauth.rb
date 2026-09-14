@@ -2,6 +2,7 @@
 
 require "recording_studio_oauth/version"
 require "recording_studio_oauth/configuration"
+require "recording_studio_oauth/protected_resources"
 
 module RecordingStudioOauth
   class << self
@@ -12,6 +13,10 @@ module RecordingStudioOauth
     def configure
       yield(configuration) if block_given?
       configuration
+    end
+
+    def register_protected_resource(identifier)
+      ProtectedResources.register(identifier)
     end
   end
 end
