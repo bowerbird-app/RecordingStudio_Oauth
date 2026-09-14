@@ -26,10 +26,10 @@ module RecordingStudioOauth
     def self.draw_origin_well_known(mapper)
       mapper.get "/.well-known/oauth-protected-resource",
                  to: "recording_studio_oauth/oauth_discoveries#protected_resource",
-                 defaults: { api_key: "public", placement: "origin" }
+                 defaults: { api_key: "public" }
       mapper.get "/.well-known/oauth-protected-resource/*resource_path",
                  to: "recording_studio_oauth/oauth_discoveries#protected_resource",
-                 defaults: { api_key: "public", placement: "origin" }
+                 defaults: { api_key: "public" }
     end
 
     def resolve(path_suffix:)

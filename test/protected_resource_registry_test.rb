@@ -162,7 +162,7 @@ class ProtectedResourceRegistryTest < Minitest::Test
     assert_equal %i[api mcp], registry.entries.map(&:kind)
   end
 
-  def test_draw_origin_well_known_sets_origin_placement
+  def test_draw_origin_well_known_draws_origin_root_routes
     drawn = []
     mapper = Object.new
     mapper.define_singleton_method(:get) { |path, **options| drawn << [path, options] }
@@ -174,14 +174,14 @@ class ProtectedResourceRegistryTest < Minitest::Test
         "/.well-known/oauth-protected-resource",
         {
           to: "recording_studio_oauth/oauth_discoveries#protected_resource",
-          defaults: { api_key: "public", placement: "origin" }
+          defaults: { api_key: "public" }
         }
       ],
       [
         "/.well-known/oauth-protected-resource/*resource_path",
         {
           to: "recording_studio_oauth/oauth_discoveries#protected_resource",
-          defaults: { api_key: "public", placement: "origin" }
+          defaults: { api_key: "public" }
         }
       ]
     ], drawn

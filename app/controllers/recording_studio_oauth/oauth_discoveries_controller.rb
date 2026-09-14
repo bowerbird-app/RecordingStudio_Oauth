@@ -59,7 +59,8 @@ module RecordingStudioOauth
     end
 
     def origin_protected_resource_request?
-      params[:placement].to_s == "origin"
+      mount = request.script_name.to_s
+      mount.blank? || mount == "/"
     end
 
     def authorization_endpoint
