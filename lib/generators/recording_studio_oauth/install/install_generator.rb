@@ -18,6 +18,7 @@ module RecordingStudioOauth
 
       def mount_engine
         route %(mount RecordingStudioOauth::Engine, at: "#{options[:mount_path]}")
+        route "RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)"
       end
 
       def copy_initializer

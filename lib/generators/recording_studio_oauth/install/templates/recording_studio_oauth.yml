@@ -1,7 +1,11 @@
 development:
   api_mount_path: "/recording_studio_api"
   engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false
 
 production:
   api_mount_path: "/recording_studio_api"
   engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false

@@ -7,7 +7,11 @@ module RecordingStudioOauth
     end
 
     def protected_resource
-      render json: protected_resource_metadata
+      registry = RecordingStudioOauth.protected_resources(api_key: current_api_key)
+      entry = protected_resource_entry(registry)
+      return head :not_found unless entry
+
+      render json: entry.metadata(base_url: request.base_url, issuer: issuer)
     end
 
     private
@@ -27,14 +31,6 @@ module RecordingStudioOauth
       }
     end
 
-    def protected_resource_metadata
-      {
-        resource: resource_identifier,
-        authorization_servers: [issuer],
-        bearer_methods_supported: ["header"]
-      }
-    end
-
     def current_api_key
       params[:api_key].to_s.presence || "public"
     end
@@ -45,8 +41,24 @@ module RecordingStudioOauth
 
     def issuer_path
       mount = request.script_name.to_s
-      mount = "/recording_studio_oauth" if mount.blank? || mount == "/"
+      mount = RecordingStudioOauth.configuration.engine_mount_path.presence || "/recording_studio_oauth" if mount.blank? || mount == "/"
       current_api_key == "public" ? mount : "#{mount}/apis/#{current_api_key}"
+    end
+
+    def protected_resource_entry(registry)
+      suffix = params[:resource_path]
+      if suffix.present?
+        registry.resolve(path_suffix: suffix.to_s)
+      elsif origin_protected_resource_request?
+        registry.resolve(path_suffix: "")
+      else
+        registry.find(kind: :api)
+      end
+    end
+
+    def origin_protected_resource_request?
+      mount = request.script_name.to_s
+      mount.blank? || mount == "/"
     end
 
     def authorization_endpoint
@@ -68,15 +80,6 @@ module RecordingStudioOauth
         "#{request.base_url}#{api_mount}/oauth/revoke"
       else
         "#{request.base_url}#{api_mount}/apis/#{current_api_key}/oauth/revoke"
-      end
-    end
-
-    def resource_identifier
-      api_mount = RecordingStudioOauth.configuration.api_mount_path.presence || "/recording_studio_api"
-      if current_api_key == "public"
-        "#{request.base_url}#{api_mount}/api"
-      else
-        "#{request.base_url}#{api_mount}/apis/#{current_api_key}"
       end
     end
   end

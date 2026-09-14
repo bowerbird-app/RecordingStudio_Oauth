@@ -13,6 +13,10 @@ class ConfigurationTest < Minitest::Test
     assert_equal ["AdminRoot"], @configuration.admin_root_recordable_type_names
     assert_equal "/recording_studio_api", @configuration.api_mount_path
     assert_equal "/recording_studio_oauth", @configuration.engine_mount_path
+    assert_equal "/recording_studio_mcp", @configuration.mcp_mount_path
+    assert_equal false, @configuration.register_origin_as_protected_resource
+    assert_equal [], @configuration.extra_protected_resource_paths
+    assert_nil @configuration.public_origin
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
   end
 
@@ -53,6 +57,10 @@ class ConfigurationTest < Minitest::Test
 
     assert_equal 2, result.fetch(:hooks_registered).fetch(:before_initialize)
     assert_equal 1, result.fetch(:hooks_registered).fetch(:after_service)
+    assert_equal "/recording_studio_mcp", result.fetch(:mcp_mount_path)
+    assert_equal false, result.fetch(:register_origin_as_protected_resource)
+    assert_equal [], result.fetch(:extra_protected_resource_paths)
+    assert_nil result.fetch(:public_origin)
   end
 
   def test_configure_without_block_is_safe

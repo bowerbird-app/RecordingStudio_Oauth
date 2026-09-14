@@ -12,6 +12,10 @@ module RecordingStudioOauth
                   :refresh_token_ttl,
                   :api_mount_path,
                   :engine_mount_path,
+                  :mcp_mount_path,
+                  :register_origin_as_protected_resource,
+                  :extra_protected_resource_paths,
+                  :public_origin,
                   :layout_name
     attr_reader :hooks
 
@@ -24,6 +28,10 @@ module RecordingStudioOauth
       @refresh_token_ttl = 30.days
       @api_mount_path = "/recording_studio_api"
       @engine_mount_path = "/recording_studio_oauth"
+      @mcp_mount_path = "/recording_studio_mcp"
+      @register_origin_as_protected_resource = false
+      @extra_protected_resource_paths = []
+      @public_origin = nil
       @layout_name = "recording_studio/default_layout"
       @hooks = RecordingStudio::Hooks.new
     end
@@ -38,6 +46,10 @@ module RecordingStudioOauth
         refresh_token_ttl: refresh_token_ttl,
         api_mount_path: api_mount_path,
         engine_mount_path: engine_mount_path,
+        mcp_mount_path: mcp_mount_path,
+        register_origin_as_protected_resource: register_origin_as_protected_resource,
+        extra_protected_resource_paths: extra_protected_resource_paths,
+        public_origin: public_origin,
         layout_name: layout_name,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
       }
