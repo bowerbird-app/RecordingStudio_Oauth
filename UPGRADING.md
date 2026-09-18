@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.2.2
+
+No host code change. A public app created in Registered Apps (`api_key` defaults to `public`) can exchange an authorization code, and refresh the issued tokens, on a named API token URL such as `/recording_studio_api/apis/wp_plugin_demo/oauth/token`. Confidential clients still have to match that API. Do not seed `api_key=wp_plugin_demo` to make Connect work.
+
 ## 0.2.1
 
 No host code change. Connect and Cancel on the permission screen submit as a full page navigation so an off-host `redirect_uri` is not fetched by Turbo Drive. Workspace list GET links stay on Turbo.

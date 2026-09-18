@@ -19,7 +19,7 @@ module RecordingStudioOauth
         client = OauthClient.find_by(client_id: client_id)
         return failure("unknown client") if client.nil?
         return failure("client is revoked") if client.revoked?
-        return failure("client is not registered for this API") unless client.api_key == api_key
+        return failure("client is not registered for this API") unless client.registered_for_api?(api_key)
 
         if client.confidential?
           return failure("client authentication failed") unless client.authenticate_secret?(client_secret)

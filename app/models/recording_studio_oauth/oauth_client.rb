@@ -25,6 +25,13 @@ module RecordingStudioOauth
       !confidential?
     end
 
+    def registered_for_api?(request_api)
+      request_key = request_api.to_s
+      return true if public? && api_key == "public"
+
+      api_key == request_key
+    end
+
     def revoked?
       revoked_at.present?
     end
