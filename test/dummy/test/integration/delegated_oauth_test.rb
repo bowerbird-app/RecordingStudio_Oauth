@@ -568,6 +568,16 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     rotated = JSON.parse(response.body)
     assert_match(/\Arsoauth_at_/, rotated.fetch("access_token"))
     refute_equal issued.fetch("access_token"), rotated.fetch("access_token")
+
+    get "/recording_studio_api/api/v1/workspaces",
+        headers: {
+          "Authorization" => "Bearer #{rotated.fetch("access_token")}",
+          "Accept" => "application/json"
+        }
+
+    assert_response :success
+    ids = JSON.parse(response.body).fetch("records").map { |row| row.fetch("id") }
+    assert_includes ids, @root_recording.id
   end
 
   test "confidential client bound to public is invalid_client on a named API token path" do

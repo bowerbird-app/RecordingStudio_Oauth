@@ -2,7 +2,9 @@
 
 ## 0.2.2
 
-No host code change. A public app created in Registered Apps (`api_key` defaults to `public`) can exchange an authorization code, and refresh the issued tokens, on a named API token URL such as `/recording_studio_api/apis/wp_plugin_demo/oauth/token`. Confidential clients still have to match that API. Do not seed `api_key=wp_plugin_demo` to make Connect work.
+No host code change. A public app created in Registered Apps (`api_key` defaults to `public`) can exchange an authorization code, and refresh the issued tokens, on a named API token URL such as `/recording_studio_api/apis/wp_plugin_demo/oauth/token`. Confidential clients still have to match that API.
+
+WordPress Connect still cannot call `/recording_studio_api/apis/wp_plugin_demo/v1/...` with that bearer until Recording Studio API accepts a public Oauth client on a named resource path. Do not remove the `api_key=wp_plugin_demo` seed until that API change lands.
 
 ## 0.2.1
 

@@ -16,6 +16,7 @@ Public Registered Apps can finish Connect token exchange on a named API token UR
 ### Notes
 - Authorize stays on `/recording_studio_oauth/oauth/authorize`. This gem still does not mount a token endpoint.
 - `client_credentials` stays in Recording Studio API and still requires a client bound to that named API.
+- A token minted this way still authenticates on the public API. Recording Studio API `TokenAuthenticationBase` still rejects that bearer on `/apis/<named>/...` because `OauthClient#api_key` is `public`. That check is in RecordingStudio_API.
 
 ## [0.2.1] - 2026-09-18
 
