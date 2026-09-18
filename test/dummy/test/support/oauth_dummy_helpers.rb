@@ -145,6 +145,10 @@ module OauthDummyHelpers
     "/recording_studio_api/oauth/token"
   end
 
+  def named_api_token_path(api)
+    "/recording_studio_api/apis/#{api}/oauth/token"
+  end
+
   def switch_to_root!(root_recording)
     patch recording_studio_root_switchable.root_switch_path(scope: "all_workspaces"), params: {
       root_switch: {

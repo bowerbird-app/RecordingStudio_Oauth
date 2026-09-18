@@ -536,6 +536,74 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes ids, @root_recording.id
   end
 
+  test "public client completes authorization_code on a named API token path" do
+    RecordingStudioApi.configuration.api(:wp_plugin_demo)
+    approved = approve_delegated_oauth(
+      oauth_client: @oauth_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: @pkce
+    )
+
+    post named_api_token_path("wp_plugin_demo"), params: {
+      grant_type: "authorization_code",
+      client_id: @oauth_client.client_id,
+      code: approved.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: @pkce.fetch(:verifier)
+    }
+
+    assert_response :success
+    issued = JSON.parse(response.body)
+    assert_match(/\Arsoauth_at_/, issued.fetch("access_token"))
+    assert_match(/\Arsoauth_rt_/, issued.fetch("refresh_token"))
+
+    post named_api_token_path("wp_plugin_demo"), params: {
+      grant_type: "refresh_token",
+      client_id: @oauth_client.client_id,
+      refresh_token: issued.fetch("refresh_token")
+    }
+
+    assert_response :success
+    rotated = JSON.parse(response.body)
+    assert_match(/\Arsoauth_at_/, rotated.fetch("access_token"))
+    refute_equal issued.fetch("access_token"), rotated.fetch("access_token")
+
+    get "/recording_studio_api/api/v1/workspaces",
+        headers: {
+          "Authorization" => "Bearer #{rotated.fetch("access_token")}",
+          "Accept" => "application/json"
+        }
+
+    assert_response :success
+    ids = JSON.parse(response.body).fetch("records").map { |row| row.fetch("id") }
+    assert_includes ids, @root_recording.id
+  end
+
+  test "confidential client bound to public is invalid_client on a named API token path" do
+    RecordingStudioApi.configuration.api(:wp_plugin_demo)
+    confidential, secret = create_oauth_client(name: "Secret App", confidential: true)
+    pkce = pkce_pair
+    approved = approve_delegated_oauth(
+      oauth_client: confidential,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: pkce
+    )
+
+    post named_api_token_path("wp_plugin_demo"), params: {
+      grant_type: "authorization_code",
+      client_id: confidential.client_id,
+      client_secret: secret,
+      code: approved.fetch(:code),
+      redirect_uri: "http://127.0.0.1/callback",
+      code_verifier: pkce.fetch(:verifier)
+    }
+
+    assert_response :unauthorized
+    assert_equal "invalid_client", JSON.parse(response.body).fetch("error")
+  end
+
   test "token endpoint does not distinguish unknown clients from bad secrets" do
     confidential, = create_oauth_client(name: "Secret App", confidential: true)
 

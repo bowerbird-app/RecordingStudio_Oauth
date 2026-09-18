@@ -93,7 +93,7 @@ People can see and remove connected apps. Staff can register an app from Admin, 
 7. Install Recording Studio Site Settings (and Attachable, which that gem needs). Register `RecordingStudioSiteSettings::SiteSetting` and `RecordingStudioAttachable::Attachment`. Set `site_root_types` so Connect can read a site name.
 8. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
-Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Boot also registers `RecordingStudioOauth::TokenAuthenticator` so `rsoauth_at_` tokens authenticate on the API resource server. Token exchange uses the API engine's existing `/oauth/token`. `client_credentials` stays built into API. Do not copy Connect into the API gem.
+Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Boot also registers `RecordingStudioOauth::TokenAuthenticator` so `rsoauth_at_` tokens authenticate on the API resource server. Token exchange uses the API engine's existing `/oauth/token`, including a named path such as `/apis/wp_plugin_demo/oauth/token`. A public Registered App (`api_key=public`) can complete `authorization_code` and `refresh_token` on that named path. The minted bearer still authenticates on the public API. Recording Studio API still requires `api_client.api_key` to match a named resource path. Confidential clients still have to match the request API. `client_credentials` stays built into API. Do not copy Connect into the API gem.
 
 ## Dummy
 
@@ -101,4 +101,4 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Version
 
-0.2.1
+0.2.2
