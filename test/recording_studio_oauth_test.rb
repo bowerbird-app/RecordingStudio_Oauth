@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.2.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.2.1", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -139,6 +139,8 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes consent, 'text: "Connect"'
     assert_includes consent, 'value: "connect"'
     assert_includes consent, 'value: "cancel"'
+    assert_includes consent, "data: { turbo: false }"
+    refute_includes index, "data: { turbo: false }"
     refute_includes error, "Grid::Component"
     refute_includes error, "cols: 2"
     assert_includes layout, "min-h-dvh"

@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.2.1
+
+No host code change. Connect and Cancel on the permission screen submit as a full page navigation so an off-host `redirect_uri` is not fetched by Turbo Drive. Workspace list GET links stay on Turbo.
+
 ## 0.2.0
 
 Protected resource identities are a registry. The public authorization server advertises the API path and the MCP mount. Tokens stay unbound `rsoauth_at_` bearers.

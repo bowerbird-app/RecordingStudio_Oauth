@@ -13,7 +13,7 @@
   ) %>
 <% end %>
 
-<%= form_with url: authorize_form_url, method: :post, class: "space-y-6" do %>
+<%= form_with url: authorize_form_url, method: :post, class: "space-y-6", data: { turbo: false } do %>
   <%= hidden_field_tag :response_type, "code" %>
   <%= hidden_field_tag :client_id, @oauth_client.client_id %>
   <%= hidden_field_tag :redirect_uri, @redirect_uri %>

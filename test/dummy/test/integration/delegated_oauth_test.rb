@@ -64,6 +64,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "access_recording_id=#{folder_access.id}"
     assert_includes response.body, "access_recording_id=#{@access_recording.id}"
     assert_select "[role='listitem'] a[href*='access_recording_id']"
+    assert_select "form[data-turbo=false]", count: 0
+    assert_select "form button[name='decision']", count: 0
     css_select("[role='listitem']").each do |item|
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
@@ -134,6 +136,9 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_select "button[name='decision'][value='connect']"
     assert_select "button[name='decision'][value='cancel']"
     assert_select ".flat-pack-page-nav", count: 1
+    assert_select "form[action=?][method=post][data-turbo=false]", authorize_path
+    assert_select "form[data-turbo=false] button[name='decision'][value='connect']"
+    assert_select "form[data-turbo=false] button[name='decision'][value='cancel']"
 
     post authorize_path, params: authorize_params.merge(
       access_recording_id: @access_recording.id,
