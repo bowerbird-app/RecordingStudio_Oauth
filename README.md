@@ -78,7 +78,7 @@ Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame:
 The list title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
 
 1. A list in a card with default padding. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect (default), Connected (success), or Reconnect (danger). Reconnect has a tooltip: "This connection is no longer live." Staff AdminRoot is not a row. The list is flat, not a tree.
-2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`.
+2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`. Those two submit with `data-turbo="false"` so an off-host `redirect_uri` is a full page navigation. Workspace list GET links stay on Turbo.
 
 People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it. Registered apps shows Secret and Status as badges. Hover or focus explains Public versus Has a secret. Active and Revoked need no extra line.
 
@@ -101,4 +101,4 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Version
 
-0.2.0
+0.2.1
