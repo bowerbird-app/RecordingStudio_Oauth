@@ -1,5 +1,20 @@
 # Upgrading
 
+## 0.3.0
+
+No change for hosts that do not run WordPress Connect.
+
+To share one WordPress Registered App across many sites:
+
+1. Register one public app named WordPress, or keep the name you already use.
+2. Set its redirect URI to `https://<your-host>/recording_studio_oauth/wordpress/callback`. Use `RecordingStudioOauth.wordpress_relay_callback_url(base_url:)` if you seed the app.
+3. Point the WordPress plugin at `https://<your-host>/recording_studio_oauth/wordpress/connect` with `client_id`, `return_to`, `state`, and PKCE S256.
+4. On token exchange, send that same relay callback as `redirect_uri`. Do not send the WordPress admin-post URL.
+
+`return_to` must be the site's `admin-post.php?action=recording_studio_oauth_callback` URL. Extra query keys are rejected. The plugin Settings UI and ZIP client id stay in the WordPress plugin repo.
+
+See `docs/wordpress-connect-relay.md`.
+
 ## 0.2.2
 
 No host code change. A public app created in Registered Apps (`api_key` defaults to `public`) can exchange an authorization code, and refresh the issued tokens, on a named API token URL such as `/recording_studio_api/apis/wp_plugin_demo/oauth/token`. Confidential clients still have to match that API.

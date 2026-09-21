@@ -6,7 +6,8 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 
 - Devise sign-in (`admin@admin.com` / `Password`)
 - Accessible grants on Workspace, Folder, and AdminRoot
-- Seed Demo App plus Studio Workspace, Docs Workspace, and Product Docs
+- Seed Demo App plus a public WordPress app whose redirect is the host relay
+- Studio Workspace, Docs Workspace, and Product Docs
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
 - Staff Admin Registered apps can add an app (New app), show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger.
@@ -36,6 +37,8 @@ Page-only review shots live in `doc/review/`.
 
 - `/` dummy home
 - `/recording_studio_oauth/oauth/authorize` Connect
+- `/recording_studio_oauth/wordpress/connect` WordPress Connect start
+- `/recording_studio_oauth/wordpress/callback` WordPress Connect relay
 - `/recording_studio_oauth/connected_apps` connected apps
 - `/admin` staff admin (switch the dummy to the Admin root first)
 - `/recording_studio_api/oauth/token` API token URL

@@ -55,6 +55,15 @@ oauth_client.confidential = false
 oauth_client.api_key = "public"
 oauth_client.save!
 
+wordpress_client = RecordingStudioOauth::OauthClient.find_or_initialize_by(name: "WordPress")
+wordpress_client.redirect_uris = [
+  RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://localhost:3000"),
+  RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://127.0.0.1:3000")
+]
+wordpress_client.confidential = false
+wordpress_client.api_key = "public"
+wordpress_client.save!
+
 previous_actor = Current.actor
 Current.actor = user
 
@@ -121,6 +130,7 @@ end
 
 puts "Seeded: admin@admin.com / Password"
 puts "Seeded: Seed Demo App client_id=#{oauth_client.client_id}"
+puts "Seeded: WordPress client_id=#{wordpress_client.client_id} redirect=#{wordpress_client.redirect_uris.first}"
 puts "Seeded: Studio Workspace (Connected), Docs Workspace (Reconnect), Product Docs (Connect)"
 puts "Seeded: site name Studio on Studio Workspace and Docs Workspace"
 puts "Seeded: Admin root for staff screens"
