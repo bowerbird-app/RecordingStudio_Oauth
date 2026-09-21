@@ -38,6 +38,7 @@ class DummyHostTest < ActiveSupport::TestCase
     page = Page.find_by!(title: "Getting Started")
     admin_root = AdminRoot.find_by!(name: "Admin")
     oauth_client = RecordingStudioOauth::OauthClient.find_by!(name: "Seed Demo App")
+    wordpress_client = RecordingStudioOauth::OauthClient.find_by!(name: "WordPress")
     root_recording = RecordingStudio::Recording.find_by!(recordable: workspace)
     docs_root_recording = RecordingStudio::Recording.find_by!(recordable: docs_workspace)
     folder_recording = RecordingStudio::Recording.find_by!(recordable: folder)
@@ -53,6 +54,8 @@ class DummyHostTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     refute oauth_client.confidential?
+    refute wordpress_client.confidential?
+    assert_includes wordpress_client.redirect_uris, RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://localhost:3000")
     assert_equal 2, Workspace.where(name: ["Studio Workspace", "Docs Workspace"]).count
 
     assert_no_difference -> { User.count } do
