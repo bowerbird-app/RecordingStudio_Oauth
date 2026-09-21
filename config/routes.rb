@@ -18,6 +18,12 @@ RecordingStudioOauth::Engine.routes.draw do
         to: "oauth_authorizations#create",
         via: :post,
         defaults: { api_key: "public" }
+  get "/wordpress/connect",
+      to: "wordpress_relays#start",
+      as: :wordpress_oauth_connect
+  get "/wordpress/callback",
+      to: "wordpress_relays#callback",
+      as: :wordpress_oauth_callback
 
   resources :connected_apps, only: %i[index destroy]
 

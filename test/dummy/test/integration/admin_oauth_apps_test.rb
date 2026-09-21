@@ -186,14 +186,16 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
 
     assert_response :success
-    revoked_badge = css_select("span").find do |element|
+    row = css_select("tr, [role='row']").find { |element| element.text.include?("Seed Demo App") }
+    assert row, "expected Seed Demo App in the registered apps table"
+    revoked_badge = row.css("span").find do |element|
       element["class"].to_s.include?("badge-danger-background-color") && element.text.strip == "Revoked"
     end
-    assert revoked_badge, "expected a Revoked status badge"
-    refute css_select("span").any? { |element|
+    assert revoked_badge, "expected Seed Demo App to show a Revoked status badge"
+    refute row.css("span").any? { |element|
       element["class"].to_s.include?("badge-success-background-color") && element.text.strip == "Active"
     }
-    assert css_select('[role="tooltip"]').any? { |element|
+    assert row.css('[role="tooltip"]').any? { |element|
       element.text == "Cannot hide a password. No secret. Uses PKCE."
     }
   end
