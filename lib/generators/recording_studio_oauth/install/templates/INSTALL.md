@@ -10,4 +10,4 @@ Next steps:
 6. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
 7. Mount routes are added at the configured mount path, including `ProtectedResourceRegistry.draw_origin_well_known` for origin path-inserted protected-resource metadata. Adjust auth, layout, and current actor integration to match your host app.
 8. Keep strict recordable declarations enabled and add `recording_studio_recordable(...)` to every configured recordable before running `RecordingStudio.validate_recordable_declarations!`.
-9. For WordPress Connect, register one public app whose redirect URI is `/recording_studio_oauth/wordpress/callback`. See `docs/wordpress-connect-relay.md`.
+9. For the central Connect relay, register a public app, set its redirect URI to `/recording_studio_oauth/callback`, and turn on Use central relay. See `docs/central-connect-relay.md`.

@@ -67,21 +67,27 @@ class AdminDefinitionsTest < Minitest::Test
     refute_includes controller, "Pundit"
     refute_includes controller, "Doorkeeper"
     refute_includes controller, "layout \"recording_studio_oauth/authorization\""
-    assert_includes routes, "resources :oauth_clients, only: %i[new create show]"
+    assert_includes routes, "resources :oauth_clients, only: %i[new create show edit update]"
     assert_includes engine, "create_oauth_client"
   end
 
   def test_admin_new_and_credentials_views_use_flatpack_and_default_layout
     new_view = File.read(File.expand_path("../app/views/recording_studio_oauth/admin/oauth_clients/new.html.erb", __dir__))
+    form = File.read(File.expand_path("../app/views/recording_studio_oauth/admin/oauth_clients/_form.html.erb", __dir__))
     show_view = File.read(File.expand_path("../app/views/recording_studio_oauth/admin/oauth_clients/show.html.erb", __dir__))
 
-    assert_includes new_view, "FlatPack::TextInput::Component"
-    assert_includes new_view, "FlatPack::TextArea::Component"
-    assert_includes new_view, "FlatPack::Select::Component"
-    assert_includes new_view, 'text: "Create app"'
-    assert_includes new_view, 'label: "Name"'
-    assert_includes new_view, 'label: "Redirect URLs"'
-    assert_includes new_view, 'label: "Secret"'
+    assert_includes form, "FlatPack::TextInput::Component"
+    assert_includes form, "FlatPack::TextArea::Component"
+    assert_includes form, "FlatPack::Select::Component"
+    assert_includes form, "FlatPack::Checkbox::Component"
+    assert_includes form, "FlatPack::Tooltip::Component"
+    assert_includes new_view, 'submit_text: "Create app"'
+    assert_includes form, 'label: "Name"'
+    assert_includes form, 'label: "Redirect URLs"'
+    assert_includes form, 'label: "Secret"'
+    assert_includes form, 'label: "Use central relay"'
+    refute_includes form, "Card::Component"
+    refute_includes form, "max-w-sm"
     refute_includes new_view, "Card::Component"
     refute_includes new_view, "max-w-sm"
     assert_includes show_view, "quick_copy: true"

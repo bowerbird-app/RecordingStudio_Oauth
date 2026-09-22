@@ -1,0 +1,17 @@
+<% recording_studio_page_nav(
+     title: "Edit app",
+     page_nav_back_url: admin_oauth_client_path(@oauth_client),
+     page_nav_anchor_url: oauth_clients_admin_screen_path
+   ) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Edit app",
+  subtitle: @oauth_client.name,
+  variant: :h1
+) %>
+
+<%= render "form",
+     form_url: admin_oauth_client_path(@oauth_client),
+     form_method: :patch,
+     submit_text: "Save",
+     show_secret: false %>

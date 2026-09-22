@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module RecordingStudioOauth
-  module WordPressRelay
-    CONNECT_PATH = "/wordpress/connect"
-    CALLBACK_PATH = "/wordpress/callback"
+  module CentralRelay
+    CONNECT_PATH = "/connect"
+    CALLBACK_PATH = "/callback"
 
     module_function
 

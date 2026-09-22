@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
 module RecordingStudioOauth
-  class WordpressRelaysController < ApplicationController
+  class CentralRelaysController < ApplicationController
     layout "recording_studio_oauth/authorization"
 
     def start
-      result = Services::StartWordPressRelay.call(**start_args)
+      result = Services::StartCentralRelay.call(**start_args)
       return render_oauth_error(result.error) if result.failure?
 
       redirect_to authorize_location(result.value)
     end
 
     def callback
-      result = Services::FinishWordPressRelay.call(
+      result = Services::FinishCentralRelay.call(
         state: params[:state],
         code: params[:code],
         error: params[:error],
@@ -40,9 +40,9 @@ module RecordingStudioOauth
 
     def relay_callback_url
       origin = RecordingStudioOauth.configuration.public_origin
-      return RecordingStudioOauth.wordpress_relay_callback_url(base_url: origin) if origin.present?
+      return RecordingStudioOauth.central_relay_callback_url(base_url: origin) if origin.present?
 
-      wordpress_oauth_callback_url
+      central_oauth_callback_url
     end
 
     def authorize_location(payload)

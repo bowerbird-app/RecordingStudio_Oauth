@@ -1,0 +1,82 @@
+<% show_secret = local_assigns.fetch(:show_secret, false) %>
+<% relay_hint = "When this is on, Connect uses the fixed callback on this host. After the person approves, we only send them to a return address that matches a pattern or an exact URL below." %>
+
+<%= form_with url: form_url, method: form_method, class: "space-y-6" do %>
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[name]",
+    label: "Name",
+    value: @oauth_client.name,
+    required: true,
+    error: @oauth_client.errors[:name].to_sentence.presence
+  ) %>
+
+  <%= render FlatPack::TextArea::Component.new(
+    name: "oauth_client[redirect_uris]",
+    label: "Redirect URLs",
+    value: Array(@oauth_client.redirect_uris).join("\n"),
+    rows: 4,
+    required: true,
+    help_text: "One http or https address per line, like https://example.com/callback.",
+    error: @oauth_client.errors[:redirect_uris].to_sentence.presence
+  ) %>
+
+  <% if show_secret %>
+    <%= render FlatPack::Select::Component.new(
+      name: "oauth_client[secret]",
+      label: "Secret",
+      options: RecordingStudioOauth::Services::CreateOauthClient::SECRET_CHOICES,
+      value: @secret_choice,
+      placeholder: nil,
+      searchable: false,
+      required: true
+    ) %>
+  <% end %>
+
+  <%= hidden_field_tag "oauth_client[use_central_relay]", "0" %>
+  <%= render FlatPack::Tooltip::Component.new(text: relay_hint, placement: :top) do %>
+    <%= render FlatPack::Checkbox::Component.new(
+      name: "oauth_client[use_central_relay]",
+      label: "Use central relay",
+      value: "1",
+      checked: @oauth_client.use_central_relay?,
+      error: @oauth_client.errors[:use_central_relay].to_sentence.presence
+    ) %>
+  <% end %>
+
+  <div id="central_relay_rules"<% unless @oauth_client.use_central_relay? %> hidden<% end %>>
+    <%= render FlatPack::TextArea::Component.new(
+      name: "oauth_client[allowed_return_patterns]",
+      label: "Allowed return patterns",
+      value: Array(@oauth_client.allowed_return_patterns).join("\n"),
+      rows: 4,
+      help_text: "One pattern per line. A star stands in for any text. Not a regular expression. Example: https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback",
+      error: @oauth_client.errors[:allowed_return_patterns].to_sentence.presence
+    ) %>
+
+    <%= render FlatPack::TextArea::Component.new(
+      name: "oauth_client[exact_return_urls]",
+      label: "Exact return URLs",
+      value: Array(@oauth_client.exact_return_urls).join("\n"),
+      rows: 4,
+      help_text: "One full address per line.",
+      error: @oauth_client.errors[:exact_return_urls].to_sentence.presence
+    ) %>
+  </div>
+
+  <%= render FlatPack::Button::Component.new(
+    text: submit_text,
+    style: :primary,
+    type: "submit"
+  ) %>
+<% end %>
+
+<script>
+  (function () {
+    var box = document.querySelector("[name='oauth_client[use_central_relay]'][type='checkbox']")
+    var rules = document.getElementById("central_relay_rules")
+    if (!box || !rules) return
+    var sync = function () { rules.hidden = !box.checked }
+    box.addEventListener("change", sync)
+    sync()
+  })()
+</script>

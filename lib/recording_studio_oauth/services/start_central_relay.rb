@@ -2,7 +2,12 @@
 
 module RecordingStudioOauth
   module Services
-    class StartWordPressRelay < RecordingStudio::Services::BaseService
+    class StartCentralRelay < RecordingStudio::Services::BaseService
+      NOT_REGISTERED = "This app is not registered."
+      RELAY_OFF = "This app is not set up for the central relay."
+      RETURN_REJECTED = "That return address is not allowed."
+      NEEDS_PROOF = "Connect needs a proof key."
+
       def initialize(
         client_id:,
         return_to:,
@@ -37,14 +42,13 @@ module RecordingStudioOauth
 
         client = lookup_client
         return client if client.is_a?(Result)
+        return oauth_failure("invalid_request", RELAY_OFF) unless client.use_central_relay?
+        return oauth_failure("invalid_request", RETURN_REJECTED) unless client.allows_return_to?(return_to)
+        return oauth_failure("invalid_request", RELAY_OFF) unless client.redirect_uri_allowed?(relay_callback_url)
+        return oauth_failure("invalid_request", NEEDS_PROOF) unless pkce_allowed?
 
-        callback = WordPressCallbackUrl.parse(return_to)
-        return oauth_failure("invalid_request", "That WordPress return address is not allowed.") if callback.nil?
-        return oauth_failure("invalid_request", "This app is not set up for WordPress Connect.") unless client.redirect_uri_allowed?(relay_callback_url)
-        return oauth_failure("invalid_request", "Connect needs a proof key.") unless pkce_allowed?
-
-        state = WordPressRelayState.new(
-          return_to: callback.to_s,
+        state = CentralRelayState.new(
+          return_to: return_to,
           client_id: client.client_id,
           code_challenge: code_challenge,
           site_state: site_state
@@ -62,10 +66,10 @@ module RecordingStudioOauth
       end
 
       def lookup_client
-        return oauth_failure("invalid_client", "This app is not registered.") if client_id.blank?
+        return oauth_failure("invalid_client", NOT_REGISTERED) if client_id.blank?
 
         client = resolve_client ? resolve_client.call(client_id) : OauthClient.find_by(client_id: client_id)
-        return oauth_failure("invalid_client", "This app is not registered.") if client.nil? || client.revoked?
+        return oauth_failure("invalid_client", NOT_REGISTERED) if client.nil? || client.revoked?
 
         client
       end

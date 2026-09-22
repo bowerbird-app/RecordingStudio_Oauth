@@ -99,29 +99,31 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 `test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
-## WordPress Connect relay
+## Central Connect relay
 
-Many WordPress sites share one Registered App and one fixed redirect on the host that mounts this engine.
+A Registered App can use one fixed redirect on the host that mounts this engine. Staff turn on Use central relay and list the return addresses that app may use. Other apps keep a normal redirect URI list.
 
-Staff register one public WordPress app. The only redirect URI is the host relay:
+The redirect URI is:
 
-`https://<host>/recording_studio_oauth/wordpress/callback`
+`https://<host>/recording_studio_oauth/callback`
 
-WordPress sends the person to start Connect. That request encodes the site's own callback. After Connect, the relay returns the authorization code only to that same callback.
+The app sends the person to:
 
 ```text
-GET /recording_studio_oauth/wordpress/connect
+GET /recording_studio_oauth/connect
   client_id
-  return_to          WordPress admin-post callback
-  state              WordPress CSRF
+  return_to
+  state
   code_challenge
   code_challenge_method=S256
 ```
 
-`return_to` must be `https://<wordpress-origin>/wp-admin/admin-post.php?action=recording_studio_oauth_callback`. A subdirectory install may insert a path before `/wp-admin/`. Token exchange uses the relay URL as `redirect_uri`, not the WordPress callback. The code verifier stays on the WordPress site.
+`return_to` must match one of that app's patterns or exact URLs. A star in a pattern matches any text. It is not a regular expression. Token exchange sends the fixed callback as `redirect_uri`. The code verifier stays with the app.
 
-See `docs/wordpress-connect-relay.md`.
+A WordPress site can use `https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback`. The WordPress plugin still calls the old `/wordpress/` paths until its own update.
+
+See `docs/central-connect-relay.md`.
 
 ## Version
 
-0.3.0
+0.4.0

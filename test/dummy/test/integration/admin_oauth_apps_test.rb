@@ -74,6 +74,12 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Redirect URLs"
     assert_includes response.body, "Secret"
     assert_includes response.body, "Create app"
+    assert_includes response.body, "Use central relay"
+    assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
+    assert_includes response.body, "Allowed return patterns"
+    assert_includes response.body, "Exact return URLs"
+    rules = css_select("#central_relay_rules").first
+    assert rules["hidden"], "return rules stay hidden until Use central relay is on"
     refute_includes response.body, "max-w-sm"
   end
 
@@ -198,6 +204,77 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert row.css('[role="tooltip"]').any? { |element|
       element.text == "Cannot hide a password. No secret. Uses PKCE."
     }
+  end
+
+  test "staff can save central relay rules and edit them later" do
+    pattern = "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    exact = "https://shop.example.com/oauth/done"
+
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Relay Staff App",
+        redirect_uris: "http://www.example.com/recording_studio_oauth/callback",
+        secret: "public",
+        use_central_relay: "1",
+        allowed_return_patterns: pattern,
+        exact_return_urls: exact
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Relay Staff App")
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert client.use_central_relay?
+    assert_equal [pattern], client.allowed_return_patterns
+    assert_equal [exact], client.exact_return_urls
+
+    follow_redirect!
+    assert_includes response.body, "Edit app"
+
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+    assert_response :success
+    assert_includes response.body, "Allowed return patterns"
+    rules = css_select("#central_relay_rules").first
+    assert_nil rules["hidden"]
+
+    patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
+      oauth_client: {
+        name: "Relay Staff App",
+        redirect_uris: "http://www.example.com/recording_studio_oauth/callback",
+        use_central_relay: "0",
+        allowed_return_patterns: pattern,
+        exact_return_urls: exact
+      }
+    }
+
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    client.reload
+    refute client.use_central_relay?
+    assert_equal [pattern], client.allowed_return_patterns
+  end
+
+  test "central relay on requires a return pattern or an exact URL" do
+    assert_no_difference -> { RecordingStudioOauth::OauthClient.count } do
+      post "/recording_studio_oauth/admin/oauth_clients", params: {
+        oauth_client: {
+          name: "Empty Relay",
+          redirect_uris: "http://127.0.0.1/callback",
+          secret: "public",
+          use_central_relay: "1",
+          allowed_return_patterns: "",
+          exact_return_urls: ""
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "needs a return pattern or an exact URL"
+  end
+
+  test "staff registered apps table links to edit" do
+    get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
+
+    assert_response :success
+    assert_includes response.body, "Edit"
   end
 
   test "create is forbidden without admin access" do
