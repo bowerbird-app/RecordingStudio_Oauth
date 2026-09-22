@@ -277,6 +277,19 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Edit"
   end
 
+  test "submit sits on its own row under use central relay" do
+    get "/recording_studio_oauth/admin/oauth_clients/new"
+
+    assert_response :success
+    assert_submit_on_its_own_row("Create app")
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Seed Demo App")
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+
+    assert_response :success
+    assert_submit_on_its_own_row("Save")
+  end
+
   test "create is forbidden without admin access" do
     outsider = create_user
     create_access_recording_for(user: outsider)
@@ -297,5 +310,19 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :forbidden
+  end
+
+  private
+
+  def assert_submit_on_its_own_row(label)
+    form = css_select("form").first
+    button = form.at_css("button[type=submit]")
+    rules = form.at_css("#central_relay_rules")
+
+    assert_equal label, button.text.strip
+    assert_equal "div", button.parent.name
+    assert_equal rules, button.parent.previous_element
+    parent_class = button.parent["class"].to_s
+    refute_match(/inline|flex/, parent_class)
   end
 end
