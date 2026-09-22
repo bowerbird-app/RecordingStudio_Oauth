@@ -63,11 +63,13 @@
     ) %>
   </div>
 
-  <%= render FlatPack::Button::Component.new(
-    text: submit_text,
-    style: :primary,
-    type: "submit"
-  ) %>
+  <div>
+    <%= render FlatPack::Button::Component.new(
+      text: submit_text,
+      style: :primary,
+      type: "submit"
+    ) %>
+  </div>
 <% end %>
 
 <script>

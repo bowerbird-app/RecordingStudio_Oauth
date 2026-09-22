@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.4.1
+
+No host steps. On the Registered App create and edit forms, **Create app** and **Save** sit under **Use central relay**.
+
 ## 0.4.0
 
 `/recording_studio_oauth/wordpress/connect` and `/recording_studio_oauth/wordpress/callback` are gone. Nothing redirects from them.
