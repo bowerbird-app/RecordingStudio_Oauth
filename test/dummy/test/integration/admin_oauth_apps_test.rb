@@ -290,6 +290,19 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_submit_on_its_own_row("Save")
   end
 
+  test "exact return urls uses the same stack gap as the rest of the form" do
+    get "/recording_studio_oauth/admin/oauth_clients/new"
+
+    assert_response :success
+    assert_exact_return_urls_share_the_form_stack
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Seed Demo App")
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+
+    assert_response :success
+    assert_exact_return_urls_share_the_form_stack
+  end
+
   test "create is forbidden without admin access" do
     outsider = create_user
     create_access_recording_for(user: outsider)
@@ -324,5 +337,18 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_equal rules, button.parent.previous_element
     parent_class = button.parent["class"].to_s
     refute_match(/inline|flex/, parent_class)
+  end
+
+  def assert_exact_return_urls_share_the_form_stack
+    form = css_select("form").first
+    rules = form.at_css("#central_relay_rules")
+    stack = form["class"].to_s.split
+
+    assert_includes stack, "space-y-6"
+    assert_includes rules["class"].to_s.split, "space-y-6"
+
+    wrappers = rules.element_children.select { |child| child["class"].to_s.include?("flat-pack-input-wrapper") }
+
+    assert_equal ["Allowed return patterns", "Exact return URLs"], wrappers.map { |wrapper| wrapper.at_css("label").text.strip }
   end
 end
