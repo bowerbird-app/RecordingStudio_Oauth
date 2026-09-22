@@ -43,7 +43,7 @@
     ) %>
   <% end %>
 
-  <div id="central_relay_rules"<% unless @oauth_client.use_central_relay? %> hidden<% end %>>
+  <div id="central_relay_rules" class="space-y-6"<% unless @oauth_client.use_central_relay? %> hidden<% end %>>
     <%= render FlatPack::TextArea::Component.new(
       name: "oauth_client[allowed_return_patterns]",
       label: "Allowed return patterns",
