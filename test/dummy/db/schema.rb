@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_03_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_22_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -310,15 +310,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_000006) do
   end
 
   create_table "recording_studio_oauth_clients", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.jsonb "allowed_return_patterns", default: [], null: false
     t.string "api_key", default: "public", null: false
     t.string "client_id", null: false
     t.string "client_secret_digest"
     t.boolean "confidential", default: true, null: false
     t.datetime "created_at", null: false
+    t.jsonb "exact_return_urls", default: [], null: false
     t.string "name", null: false
     t.jsonb "redirect_uris", default: [], null: false
     t.datetime "revoked_at"
     t.datetime "updated_at", null: false
+    t.boolean "use_central_relay", default: false, null: false
     t.index ["api_key"], name: "index_recording_studio_oauth_clients_on_api_key"
     t.index ["client_id"], name: "index_recording_studio_oauth_clients_on_client_id", unique: true
   end

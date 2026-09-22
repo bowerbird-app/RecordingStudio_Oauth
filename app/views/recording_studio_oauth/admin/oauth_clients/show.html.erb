@@ -42,6 +42,12 @@
   <% end %>
 
   <%= render FlatPack::Button::Component.new(
+    text: "Edit app",
+    style: :secondary,
+    href: edit_admin_oauth_client_path(@oauth_client)
+  ) %>
+
+  <%= render FlatPack::Button::Component.new(
     text: "Done",
     style: :primary,
     href: oauth_clients_admin_screen_path

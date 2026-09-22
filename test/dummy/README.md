@@ -37,8 +37,8 @@ Page-only review shots live in `doc/review/`.
 
 - `/` dummy home
 - `/recording_studio_oauth/oauth/authorize` Connect
-- `/recording_studio_oauth/wordpress/connect` WordPress Connect start
-- `/recording_studio_oauth/wordpress/callback` WordPress Connect relay
+- `/recording_studio_oauth/connect` central Connect relay start
+- `/recording_studio_oauth/callback` central Connect relay callback
 - `/recording_studio_oauth/connected_apps` connected apps
 - `/admin` staff admin (switch the dummy to the Admin root first)
 - `/recording_studio_api/oauth/token` API token URL

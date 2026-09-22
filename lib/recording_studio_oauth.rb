@@ -4,9 +4,9 @@ require "recording_studio_oauth/version"
 require "recording_studio_oauth/configuration"
 require "recording_studio_oauth/protected_resource"
 require "recording_studio_oauth/protected_resource_registry"
-require "recording_studio_oauth/wordpress_callback_url"
-require "recording_studio_oauth/wordpress_relay_state"
-require "recording_studio_oauth/wordpress_relay"
+require "recording_studio_oauth/return_url_rules"
+require "recording_studio_oauth/central_relay_state"
+require "recording_studio_oauth/central_relay"
 
 module RecordingStudioOauth
   class << self
@@ -23,12 +23,12 @@ module RecordingStudioOauth
       ProtectedResourceRegistry.build(configuration: configuration, api_key: api_key)
     end
 
-    def wordpress_relay_connect_url(base_url:)
-      WordPressRelay.connect_url(base_url: base_url)
+    def central_relay_connect_url(base_url:)
+      CentralRelay.connect_url(base_url: base_url)
     end
 
-    def wordpress_relay_callback_url(base_url:)
-      WordPressRelay.callback_url(base_url: base_url)
+    def central_relay_callback_url(base_url:)
+      CentralRelay.callback_url(base_url: base_url)
     end
   end
 end

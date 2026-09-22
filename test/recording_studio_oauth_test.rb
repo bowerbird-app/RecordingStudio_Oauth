@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.3.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.4.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -108,8 +108,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"
     assert_includes readme, "api_key=public"
-    assert_includes readme, "/recording_studio_oauth/wordpress/callback"
-    assert_includes readme, "/recording_studio_oauth/wordpress/connect"
+    assert_includes readme, "/recording_studio_oauth/callback"
+    assert_includes readme, "/recording_studio_oauth/connect"
+    refute_includes readme, "/recording_studio_oauth/wordpress/"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"
   end

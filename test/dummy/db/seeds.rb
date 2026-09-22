@@ -57,9 +57,14 @@ oauth_client.save!
 
 wordpress_client = RecordingStudioOauth::OauthClient.find_or_initialize_by(name: "WordPress")
 wordpress_client.redirect_uris = [
-  RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://localhost:3000"),
-  RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://127.0.0.1:3000")
+  RecordingStudioOauth.central_relay_callback_url(base_url: "http://localhost:3000"),
+  RecordingStudioOauth.central_relay_callback_url(base_url: "http://127.0.0.1:3000")
 ]
+wordpress_client.use_central_relay = true
+wordpress_client.allowed_return_patterns = [
+  "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+]
+wordpress_client.exact_return_urls = []
 wordpress_client.confidential = false
 wordpress_client.api_key = "public"
 wordpress_client.save!

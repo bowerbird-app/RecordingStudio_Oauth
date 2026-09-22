@@ -1,5 +1,28 @@
 # Upgrading
 
+## 0.4.0
+
+`/recording_studio_oauth/wordpress/connect` and `/recording_studio_oauth/wordpress/callback` are gone. Nothing redirects from them.
+
+`RecordingStudioOauth.wordpress_relay_connect_url` and `wordpress_relay_callback_url` are gone. Use `central_relay_connect_url(base_url:)` and `central_relay_callback_url(base_url:)`.
+
+To keep a WordPress app on the central relay:
+
+1. Set the Registered App redirect URI to `https://<your-host>/recording_studio_oauth/callback`.
+2. Turn on Use central relay.
+3. Add this allowed return pattern, one line:
+
+```text
+https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback
+```
+
+4. Point the client at `https://<your-host>/recording_studio_oauth/connect` with `client_id`, `return_to`, `state`, and PKCE S256.
+5. On token exchange, send the fixed callback as `redirect_uri`.
+
+Existing apps stay off the relay, so their current redirect URI list still works. The WordPress plugin template still calls the old paths until that repo is updated. This gem does not change it.
+
+See `docs/central-connect-relay.md`.
+
 ## 0.3.0
 
 No change for hosts that do not run WordPress Connect.
@@ -13,7 +36,7 @@ To share one WordPress Registered App across many sites:
 
 `return_to` must be the site's `admin-post.php?action=recording_studio_oauth_callback` URL. Extra query keys are rejected. The plugin Settings UI and ZIP client id stay in the WordPress plugin repo.
 
-See `docs/wordpress-connect-relay.md`.
+0.4.0 removes these paths. Follow the 0.4.0 section.
 
 ## 0.2.2
 

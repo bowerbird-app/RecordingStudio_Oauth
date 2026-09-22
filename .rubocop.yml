@@ -24,6 +24,8 @@ Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
+    - 'app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb'
+    - 'app/models/recording_studio_oauth/oauth_client.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
 
@@ -35,7 +37,7 @@ Metrics/MethodLength:
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
     - 'app/controllers/recording_studio_oauth/connected_apps_controller.rb'
     - 'app/controllers/recording_studio_oauth/oauth_discoveries_controller.rb'
-    - 'app/controllers/recording_studio_oauth/wordpress_relays_controller.rb'
+    - 'app/controllers/recording_studio_oauth/central_relays_controller.rb'
     - 'lib/recording_studio_oauth/configuration.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
@@ -45,7 +47,7 @@ Metrics/AbcSize:
     - 'test/**/*'
     - 'lib/generators/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
-    - 'app/controllers/recording_studio_oauth/wordpress_relays_controller.rb'
+    - 'app/controllers/recording_studio_oauth/central_relays_controller.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
 

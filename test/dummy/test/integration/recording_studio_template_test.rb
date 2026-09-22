@@ -55,7 +55,9 @@ class DummyHostTest < ActiveSupport::TestCase
     assert_equal root_recording, page_recording.root_recording
     refute oauth_client.confidential?
     refute wordpress_client.confidential?
-    assert_includes wordpress_client.redirect_uris, RecordingStudioOauth.wordpress_relay_callback_url(base_url: "http://localhost:3000")
+    assert_includes wordpress_client.redirect_uris, RecordingStudioOauth.central_relay_callback_url(base_url: "http://localhost:3000")
+    assert wordpress_client.use_central_relay?
+    assert_includes wordpress_client.allowed_return_patterns, "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
     assert_equal 2, Workspace.where(name: ["Studio Workspace", "Docs Workspace"]).count
 
     assert_no_difference -> { User.count } do

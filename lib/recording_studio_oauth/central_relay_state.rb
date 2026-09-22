@@ -4,8 +4,8 @@ require "active_support/message_verifier"
 require "json"
 
 module RecordingStudioOauth
-  class WordPressRelayState
-    PURPOSE = "recording_studio_oauth.wordpress_relay"
+  class CentralRelayState
+    PURPOSE = "recording_studio_oauth.central_relay"
 
     attr_reader :return_to, :site_state, :client_id, :code_challenge
 
@@ -37,12 +37,12 @@ module RecordingStudioOauth
     private_class_method :verified_payload
 
     def self.from_payload(data)
-      return_to = WordPressCallbackUrl.parse(data["return_to"])
-      return if return_to.nil?
+      return_to = data["return_to"].to_s
+      return if ReturnUrlRules.safe_http_url(return_to).nil?
       return if data["client_id"].to_s.blank? || data["code_challenge"].to_s.blank?
 
       new(
-        return_to: return_to.to_s,
+        return_to: return_to,
         client_id: data["client_id"],
         code_challenge: data["code_challenge"],
         site_state: data["site_state"]
@@ -56,7 +56,7 @@ module RecordingStudioOauth
     end
 
     def self.default_secret
-      raise "secret_key_base is required to sign WordPress relay state" unless rails_secret?
+      raise "secret_key_base is required to sign central relay state" unless rails_secret?
 
       Rails.application.secret_key_base.to_s
     end

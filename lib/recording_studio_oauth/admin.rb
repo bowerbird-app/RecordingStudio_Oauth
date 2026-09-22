@@ -20,6 +20,10 @@ module RecordingStudioOauth
       Engine.routes.url_helpers.admin_oauth_client_path(client, script_name: engine_mount_path)
     end
 
+    def edit_oauth_client_path(client)
+      Engine.routes.url_helpers.edit_admin_oauth_client_path(client, script_name: engine_mount_path)
+    end
+
     def revoke_oauth_client_path(client)
       Engine.routes.url_helpers.admin_revoke_oauth_client_path(client, script_name: engine_mount_path)
     end
@@ -66,6 +70,12 @@ module RecordingStudioOauth
              text: "New app",
              method: :post,
              url: ->(_row, _context) { RecordingStudioOauth::Admin.oauth_clients_path },
+             required_role: :view
+
+      action :update,
+             text: "Save app",
+             method: :patch,
+             url: ->(row, _context) { RecordingStudioOauth::Admin.oauth_client_path(row) },
              required_role: :view
     end
 
@@ -132,6 +142,9 @@ module RecordingStudioOauth
                  cell = RecordingStudioOauth::Admin.status_cell(row)
                  { text: cell[:label], style: cell[:style], size: :sm }
                }
+        action :edit,
+               text: "Edit",
+               url: ->(row, _context) { RecordingStudioOauth::Admin.edit_oauth_client_path(row) }
         action :revoke,
                text: "Revoke",
                url: ->(row, _context) { RecordingStudioOauth::Admin.revoke_oauth_client_path(row) },
