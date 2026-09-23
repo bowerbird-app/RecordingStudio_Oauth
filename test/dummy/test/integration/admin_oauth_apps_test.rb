@@ -292,6 +292,19 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_submit_on_its_own_row("Save")
   end
 
+  test "allow registration stacks above use central relay" do
+    get "/recording_studio_oauth/admin/oauth_clients/new"
+
+    assert_response :success
+    assert_registration_stacks_above_central_relay
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Seed Demo App")
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+
+    assert_response :success
+    assert_registration_stacks_above_central_relay
+  end
+
   test "exact return urls uses the same stack gap as the rest of the form" do
     get "/recording_studio_oauth/admin/oauth_clients/new"
 
@@ -389,6 +402,26 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_equal rules, button.parent.previous_element
     parent_class = button.parent["class"].to_s
     refute_match(/inline|flex/, parent_class)
+  end
+
+  def assert_registration_stacks_above_central_relay
+    form = css_select("form").first
+    allow_row = form_row_for(form, "input[name='oauth_client[allow_registration]'][type=checkbox]")
+    relay_row = form_row_for(form, "input[name='oauth_client[use_central_relay]'][type=checkbox]")
+
+    assert_equal "div", allow_row.name
+    assert_equal "div", relay_row.name
+    refute_equal allow_row, relay_row
+    assert_equal relay_row, allow_row.next_element
+    assert_includes form["class"].to_s.split, "space-y-6"
+    refute_includes allow_row["class"].to_s.split, "inline-flex"
+    refute_includes relay_row["class"].to_s.split, "inline-flex"
+  end
+
+  def form_row_for(form, selector)
+    node = form.at_css(selector)
+    node = node.parent until node.parent == form
+    node
   end
 
   def assert_exact_return_urls_share_the_form_stack

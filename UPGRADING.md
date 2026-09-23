@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.5.2
+
+No host steps. The create and edit forms put Allow registration above Use central relay with the same gap as the other fields.
+
 ## 0.5.1
 
 Set the starting value for a new app in `config/initializers/recording_studio_oauth.rb`:

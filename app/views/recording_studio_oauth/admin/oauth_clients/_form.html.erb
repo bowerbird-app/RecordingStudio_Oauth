@@ -32,30 +32,34 @@
     ) %>
   <% end %>
 
-  <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
-  <%= render FlatPack::Tooltip::Component.new(
-    text: "This app decides whether people can sign up.",
-    placement: :top
-  ) do %>
-    <%= render FlatPack::Checkbox::Component.new(
-      name: "oauth_client[allow_registration]",
-      label: "Allow registration",
-      value: "1",
-      checked: @oauth_client.allow_registration?,
-      error: @oauth_client.errors[:allow_registration].to_sentence.presence
-    ) %>
-  <% end %>
+  <div>
+    <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
+    <%= render FlatPack::Tooltip::Component.new(
+      text: "This app decides whether people can sign up.",
+      placement: :top
+    ) do %>
+      <%= render FlatPack::Checkbox::Component.new(
+        name: "oauth_client[allow_registration]",
+        label: "Allow registration",
+        value: "1",
+        checked: @oauth_client.allow_registration?,
+        error: @oauth_client.errors[:allow_registration].to_sentence.presence
+      ) %>
+    <% end %>
+  </div>
 
-  <%= hidden_field_tag "oauth_client[use_central_relay]", "0" %>
-  <%= render FlatPack::Tooltip::Component.new(text: relay_hint, placement: :top) do %>
-    <%= render FlatPack::Checkbox::Component.new(
-      name: "oauth_client[use_central_relay]",
-      label: "Use central relay",
-      value: "1",
-      checked: @oauth_client.use_central_relay?,
-      error: @oauth_client.errors[:use_central_relay].to_sentence.presence
-    ) %>
-  <% end %>
+  <div>
+    <%= hidden_field_tag "oauth_client[use_central_relay]", "0" %>
+    <%= render FlatPack::Tooltip::Component.new(text: relay_hint, placement: :top) do %>
+      <%= render FlatPack::Checkbox::Component.new(
+        name: "oauth_client[use_central_relay]",
+        label: "Use central relay",
+        value: "1",
+        checked: @oauth_client.use_central_relay?,
+        error: @oauth_client.errors[:use_central_relay].to_sentence.presence
+      ) %>
+    <% end %>
+  </div>
 
   <div id="central_relay_rules" class="space-y-6"<% unless @oauth_client.use_central_relay? %> hidden<% end %>>
     <%= render FlatPack::TextArea::Component.new(
