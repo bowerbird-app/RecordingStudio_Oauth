@@ -21,6 +21,9 @@ RecordingStudioOauth::Engine.routes.draw do
   get "/connect",
       to: "central_relays#start",
       as: :central_oauth_connect
+  get "/connect/options",
+      to: "connect_options#show",
+      as: :connect_options
   get "/callback",
       to: "central_relays#callback",
       as: :central_oauth_callback
@@ -28,6 +31,7 @@ RecordingStudioOauth::Engine.routes.draw do
   resources :connected_apps, only: %i[index destroy]
 
   namespace :admin do
+    resource :registration_setting, only: %i[show update], controller: "registration_settings"
     resources :oauth_clients, only: %i[new create show edit update]
     post "oauth_clients/:id/revoke", to: "oauth_clients#revoke", as: :revoke_oauth_client
   end

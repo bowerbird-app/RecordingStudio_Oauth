@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_22_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -310,6 +310,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_22_000001) do
   end
 
   create_table "recording_studio_oauth_clients", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "allow_registration", default: false, null: false
     t.jsonb "allowed_return_patterns", default: [], null: false
     t.string "api_key", default: "public", null: false
     t.string "client_id", null: false
@@ -339,6 +340,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_22_000001) do
     t.index ["oauth_authorization_id"], name: "idx_on_oauth_authorization_id_a1e93340c5"
     t.index ["replaced_by_id"], name: "index_recording_studio_oauth_refresh_tokens_on_replaced_by_id"
     t.index ["token_digest"], name: "index_recording_studio_oauth_refresh_tokens_on_token_digest", unique: true
+  end
+
+  create_table "recording_studio_oauth_registration_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "allow_registration", default: false, null: false
+    t.datetime "created_at", null: false
+    t.integer "singleton_key", default: 1, null: false
+    t.datetime "updated_at", null: false
+    t.index ["singleton_key"], name: "index_rs_oauth_registration_settings_on_singleton_key", unique: true
   end
 
   create_table "recording_studio_recordings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

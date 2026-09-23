@@ -86,6 +86,7 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes form, 'label: "Redirect URLs"'
     assert_includes form, 'label: "Secret"'
     assert_includes form, 'label: "Use central relay"'
+    assert_includes form, 'label: "Allow registration"'
     refute_includes form, "Card::Component"
     refute_includes form, "max-w-sm"
     refute_includes new_view, "Card::Component"

@@ -16,6 +16,7 @@ module RecordingStudioOauth
                   :register_origin_as_protected_resource,
                   :extra_protected_resource_paths,
                   :public_origin,
+                  :registration_path,
                   :layout_name
     attr_reader :hooks
 
@@ -32,6 +33,7 @@ module RecordingStudioOauth
       @register_origin_as_protected_resource = false
       @extra_protected_resource_paths = []
       @public_origin = nil
+      @registration_path = "/users/sign_up"
       @layout_name = "recording_studio/default_layout"
       @hooks = RecordingStudio::Hooks.new
     end
@@ -50,6 +52,7 @@ module RecordingStudioOauth
         register_origin_as_protected_resource: register_origin_as_protected_resource,
         extra_protected_resource_paths: extra_protected_resource_paths,
         public_origin: public_origin,
+        registration_path: registration_path,
         layout_name: layout_name,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
       }

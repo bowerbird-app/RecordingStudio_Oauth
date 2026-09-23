@@ -28,6 +28,10 @@ module RecordingStudioOauth
       Engine.routes.url_helpers.admin_revoke_oauth_client_path(client, script_name: engine_mount_path)
     end
 
+    def registration_setting_path
+      Engine.routes.url_helpers.admin_registration_setting_path(script_name: engine_mount_path)
+    end
+
     ActiveAppsWidget = RecordingStudioAdmin::Widget.new("oauth.active_apps") do
       type :number
       title "Registered apps"
@@ -58,6 +62,7 @@ module RecordingStudioOauth
       widget "oauth.active_apps"
       widget "oauth.active_connections"
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
+      link :registration, text: "Registration", url: ->(_context) { RecordingStudioOauth::Admin.registration_setting_path }
     end
 
     class OauthClientsResource < RecordingStudioAdmin::Resource
@@ -76,6 +81,19 @@ module RecordingStudioOauth
              text: "Save app",
              method: :patch,
              url: ->(row, _context) { RecordingStudioOauth::Admin.oauth_client_path(row) },
+             required_role: :view
+    end
+
+    class OauthRegistrationResource < RecordingStudioAdmin::Resource
+      key "oauth_registration"
+      section "oauth_apps"
+      title "Registration"
+      blast_radius :site
+
+      action :update,
+             text: "Save",
+             method: :patch,
+             url: ->(_row, _context) { RecordingStudioOauth::Admin.registration_setting_path },
              required_role: :view
     end
 
@@ -123,6 +141,10 @@ module RecordingStudioOauth
              style: :primary,
              url: ->(_context) { RecordingStudioOauth::Admin.new_oauth_client_path }
 
+      button :registration,
+             text: "Registration",
+             url: ->(_context) { RecordingStudioOauth::Admin.registration_setting_path }
+
       table do
         column :name
         column :confidential,
@@ -163,6 +185,7 @@ module RecordingStudioOauth
       RecordingStudioAdmin.register_widget(ActiveConnectionsWidget)
       RecordingStudioAdmin.register_section(OauthAppsSection)
       RecordingStudioAdmin.register_resource(OauthClientsResource)
+      RecordingStudioAdmin.register_resource(OauthRegistrationResource)
       RecordingStudioAdmin.register_screen(OauthClientsScreen)
       @registered = true
     end

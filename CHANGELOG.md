@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-23
+
+Staff can allow registration for the site, and turn it on or off for each Registered App. The app choice is the one a public Connect options request returns.
+
+### Added
+- Site registration choice in Admin, on Registered apps, under Registration. New apps start with that choice. The choice starts off.
+- Allow registration on the Registered App create and edit forms.
+- `GET /recording_studio_oauth/connect/options?client_id=`. The JSON is `{ "registration": true, "registration_url": "https://<host>/users/sign_up" }` when that app allows registration. Otherwise `{ "registration": false }`. An unknown client id is closed.
+- `RecordingStudioOauth.registration_allowed?(client_id:)` and `registration_url(base_url:)`.
+- `config.registration_path`, default `/users/sign_up`. `config.public_origin` is used in the absolute URL when it is set.
+
+### Notes
+- Existing Registered Apps stay off until staff turn Allow registration on for that app.
+- Changing the site choice does not change apps that already exist.
+- The WordPress plugin is unchanged in this release. It can fetch Connect options with the same client id it stores as `RECORDING_STUDIO_CLIENT_ID`.
+- Signup stays on the host Users page. This release does not resume Connect after signup.
+
 ## [0.4.2] - 2026-09-22
 
 ### Fixed
@@ -119,6 +136,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.5.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.3.0...v0.4.0

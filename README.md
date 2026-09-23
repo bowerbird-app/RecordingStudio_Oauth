@@ -124,6 +124,26 @@ A WordPress site can use `https://*/wp-admin/admin-post.php?action=recording_stu
 
 See `docs/central-connect-relay.md`.
 
+## Registration
+
+Staff choose whether new apps start with registration allowed. Admin, Registered apps, Registration. Each Registered App has its own Allow registration checkbox. The app checkbox wins. The site choice only fills in a new app.
+
+WordPress, or any other client, can read that choice without logging in:
+
+```text
+GET /recording_studio_oauth/connect/options?client_id=<client id>
+```
+
+```json
+{ "registration": true, "registration_url": "https://<host>/users/sign_up" }
+```
+
+`registration` is false for an app that disallows it, and for an unknown client id. `registration_url` is omitted in that case. The path defaults to `/users/sign_up`. Set `config.registration_path` when the host mounts Users somewhere else. Set `config.public_origin` when the absolute URL should use a public origin.
+
+Signup is the host Users page. This gem does not resume Connect after signup.
+
+See `docs/connect-options.md`.
+
 ## Version
 
-0.4.2
+0.5.0

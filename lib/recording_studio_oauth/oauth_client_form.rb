@@ -9,7 +9,8 @@ module RecordingStudioOauth
         :secret,
         :use_central_relay,
         :allowed_return_patterns,
-        :exact_return_urls
+        :exact_return_urls,
+        :allow_registration
       )
     end
 
@@ -19,12 +20,16 @@ module RecordingStudioOauth
 
     def create_args
       shared_args.merge(
-        confidential: Services::CreateOauthClient.confidential?(secret_choice)
+        confidential: Services::CreateOauthClient.confidential?(secret_choice),
+        allow_registration: allow_registration_for_create
       )
     end
 
     def update_args(client)
-      shared_args.merge(client: client)
+      shared_args.merge(
+        client: client,
+        allow_registration: allow_registration_for_update(client)
+      )
     end
 
     private
@@ -48,6 +53,18 @@ module RecordingStudioOauth
     def relay_flag
       value = params[:use_central_relay]
       value.is_a?(Array) ? value.last : value
+    end
+
+    def allow_registration_for_create
+      return RegistrationSetting.allow_registration? unless params.key?(:allow_registration)
+
+      RegistrationPolicy.flag(params[:allow_registration])
+    end
+
+    def allow_registration_for_update(client)
+      return client.allow_registration? unless params.key?(:allow_registration)
+
+      RegistrationPolicy.flag(params[:allow_registration])
     end
   end
 end
