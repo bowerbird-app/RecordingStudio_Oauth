@@ -1,6 +1,6 @@
 # Upgrading
 
-## Unreleased
+## 0.5.1
 
 Set the starting value for a new app in `config/initializers/recording_studio_oauth.rb`:
 
