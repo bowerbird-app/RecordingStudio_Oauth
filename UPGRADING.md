@@ -1,5 +1,42 @@
 # Upgrading
 
+## 0.5.0
+
+Run the new migration after you pull this version.
+
+```bash
+bin/rails generate recording_studio_oauth:migrations
+bin/rails db:migrate
+```
+
+Existing Registered Apps get Allow registration off. The site choice also starts off, so a new app stays off until staff turn the site choice on or check the box on that app.
+
+In Admin, open Registered apps and choose Registration. That checkbox is the starting value for the next app you create. Each app still has its own Allow registration checkbox. Connect options uses the app checkbox.
+
+A WordPress plugin can ask this host, with no login:
+
+```text
+GET /recording_studio_oauth/connect/options?client_id=<RECORDING_STUDIO_CLIENT_ID>
+```
+
+When that app allows registration the body is:
+
+```json
+{ "registration": true, "registration_url": "https://<host>/users/sign_up" }
+```
+
+When it does not, or the client id is unknown, the body is:
+
+```json
+{ "registration": false }
+```
+
+`registration_url` is left out when `registration` is false. The default path is `/users/sign_up`, the Users signup page this dummy mounts with Devise. If your host mounts signup somewhere else, set `config.registration_path`. If the public host differs from the request host, set `config.public_origin` and the absolute URL uses that origin.
+
+This gem does not change the WordPress plugin, and it does not send someone from signup back into Connect.
+
+See `docs/connect-options.md`.
+
 ## 0.4.2
 
 No host steps. On the Registered App create and edit forms, **Exact return URLs** sits below **Allowed return patterns** with the same gap as the other fields.

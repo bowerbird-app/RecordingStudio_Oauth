@@ -32,6 +32,20 @@
     ) %>
   <% end %>
 
+  <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
+  <%= render FlatPack::Tooltip::Component.new(
+    text: "This app decides. A new app starts from the site choice.",
+    placement: :top
+  ) do %>
+    <%= render FlatPack::Checkbox::Component.new(
+      name: "oauth_client[allow_registration]",
+      label: "Allow registration",
+      value: "1",
+      checked: @oauth_client.allow_registration?,
+      error: @oauth_client.errors[:allow_registration].to_sentence.presence
+    ) %>
+  <% end %>
+
   <%= hidden_field_tag "oauth_client[use_central_relay]", "0" %>
   <%= render FlatPack::Tooltip::Component.new(text: relay_hint, placement: :top) do %>
     <%= render FlatPack::Checkbox::Component.new(

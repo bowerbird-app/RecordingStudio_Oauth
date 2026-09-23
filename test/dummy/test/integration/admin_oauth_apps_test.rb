@@ -75,6 +75,8 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Secret"
     assert_includes response.body, "Create app"
     assert_includes response.body, "Use central relay"
+    assert_includes response.body, "Allow registration"
+    assert_includes response.body, "This app decides."
     assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
     assert_includes response.body, "Allowed return patterns"
     assert_includes response.body, "Exact return URLs"
@@ -303,12 +305,66 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_exact_return_urls_share_the_form_stack
   end
 
+  test "staff can set site registration and override it on an app" do
+    get "/admin/screens/oauth_clients"
+
+    assert_response :success
+    assert_includes response.body, "Registration"
+
+    get "/recording_studio_oauth/admin/registration_setting"
+
+    assert_response :success
+    assert_includes response.body, "Registration"
+    assert_includes response.body, "New apps start with this choice."
+    assert_includes response.body, "Allow registration"
+    assert_includes response.body, "Each app can still choose for itself."
+
+    patch "/recording_studio_oauth/admin/registration_setting", params: {
+      registration_setting: { allow_registration: "1" }
+    }
+
+    assert_redirected_to "/recording_studio_oauth/admin/registration_setting"
+    assert RecordingStudioOauth::RegistrationSetting.allow_registration?
+
+    get "/recording_studio_oauth/admin/oauth_clients/new"
+
+    checkbox = css_select("input[name='oauth_client[allow_registration]'][type=checkbox]").first
+    assert_equal "checked", checkbox["checked"]
+
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Opt Out App",
+        redirect_uris: "https://example.com/callback",
+        secret: "public",
+        allow_registration: "0"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Opt Out App")
+    refute client.allow_registration?
+
+    patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
+      oauth_client: {
+        name: "Opt Out App",
+        redirect_uris: "https://example.com/callback",
+        allow_registration: "1"
+      }
+    }
+
+    assert client.reload.allow_registration?
+    assert RecordingStudioOauth::RegistrationSetting.allow_registration?
+  end
+
   test "create is forbidden without admin access" do
     outsider = create_user
     create_access_recording_for(user: outsider)
     sign_in outsider
 
     get "/recording_studio_oauth/admin/oauth_clients/new"
+
+    assert_response :forbidden
+
+    get "/recording_studio_oauth/admin/registration_setting"
 
     assert_response :forbidden
 

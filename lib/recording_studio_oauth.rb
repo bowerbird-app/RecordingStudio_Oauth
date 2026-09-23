@@ -7,6 +7,7 @@ require "recording_studio_oauth/protected_resource_registry"
 require "recording_studio_oauth/return_url_rules"
 require "recording_studio_oauth/central_relay_state"
 require "recording_studio_oauth/central_relay"
+require "recording_studio_oauth/registration_policy"
 
 module RecordingStudioOauth
   class << self
@@ -29,6 +30,20 @@ module RecordingStudioOauth
 
     def central_relay_callback_url(base_url:)
       CentralRelay.callback_url(base_url: base_url)
+    end
+
+    def registration_allowed?(client_id:)
+      client = OauthClient.find_by(client_id: client_id.to_s)
+      RegistrationPolicy.allowed?(client)
+    end
+
+    def registration_options(client_id:, base_url:)
+      client = OauthClient.find_by(client_id: client_id.to_s)
+      RegistrationPolicy.payload(client, base_url: base_url)
+    end
+
+    def registration_url(base_url:)
+      RegistrationPolicy.registration_url(base_url: base_url)
     end
   end
 end

@@ -18,6 +18,22 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert_nil result.value[:client_secret]
     assert_nil client.client_secret_digest
     assert_match(/\Arsoauth_oc_/, client.client_id)
+    refute client.allow_registration?
+  end
+
+  test "copies the host registration choice when the caller omits it" do
+    RecordingStudioOauth::RegistrationSetting.current.update!(allow_registration: true)
+
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Copied Registration App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false
+    )
+
+    assert result.success?
+    assert result.value.fetch(:client).allow_registration?
+  ensure
+    RecordingStudioOauth::RegistrationSetting.current.update!(allow_registration: false)
   end
 
   test "creates a confidential client with a digest and one-time secret" do

@@ -91,7 +91,7 @@ module OauthDummyHelpers
     [root_recording, folder_recording, result.value]
   end
 
-  def create_oauth_client(name: "Demo App", confidential: false, redirect_uris: ["http://127.0.0.1/callback"], api: "public", use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [])
+  def create_oauth_client(name: "Demo App", confidential: false, redirect_uris: ["http://127.0.0.1/callback"], api: "public", use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: false)
     attrs = {
       name: name,
       confidential: confidential,
@@ -99,7 +99,8 @@ module OauthDummyHelpers
       api_key: api.to_s,
       use_central_relay: use_central_relay,
       allowed_return_patterns: allowed_return_patterns,
-      exact_return_urls: exact_return_urls
+      exact_return_urls: exact_return_urls,
+      allow_registration: allow_registration
     }
     secret_token = nil
     if confidential

@@ -17,6 +17,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal false, @configuration.register_origin_as_protected_resource
     assert_equal [], @configuration.extra_protected_resource_paths
     assert_nil @configuration.public_origin
+    assert_equal "/users/sign_up", @configuration.registration_path
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
   end
 
@@ -61,6 +62,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal false, result.fetch(:register_origin_as_protected_resource)
     assert_equal [], result.fetch(:extra_protected_resource_paths)
     assert_nil result.fetch(:public_origin)
+    assert_equal "/users/sign_up", result.fetch(:registration_path)
   end
 
   def test_configure_without_block_is_safe
