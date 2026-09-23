@@ -146,4 +146,4 @@ See `docs/connect-options.md`.
 
 ## Version
 
-0.5.0
+0.5.1
