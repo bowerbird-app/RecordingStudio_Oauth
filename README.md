@@ -126,7 +126,7 @@ See `docs/central-connect-relay.md`.
 
 ## Registration
 
-Staff choose whether new apps start with registration allowed. Admin, Registered apps, Registration. Each Registered App has its own Allow registration checkbox. The app checkbox wins. The site choice only fills in a new app.
+Staff choose whether new apps start with registration allowed. Set `config.allow_registration` in `config/initializers/recording_studio_oauth.rb`. It starts off. Each Registered App has its own Allow registration checkbox. The app checkbox wins. The site choice only fills in a new app.
 
 WordPress, or any other client, can read that choice without logging in:
 

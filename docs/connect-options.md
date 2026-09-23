@@ -30,7 +30,7 @@ When that app does not, or the client id is missing or unknown:
 
 ## What the booleans mean
 
-The site choice lives on Registration in Admin, under Registered apps. It is the starting value for a new Registered App. It starts off.
+The site choice is `config.allow_registration` in `config/initializers/recording_studio_oauth.rb`. It is the starting value for a new Registered App. It starts off.
 
 Allow registration on the app form is the value Connect options returns. An app that is on stays on after staff turn the site choice off. An app that is off stays off after staff turn the site choice on.
 

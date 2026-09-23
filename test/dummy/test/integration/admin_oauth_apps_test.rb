@@ -76,7 +76,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Create app"
     assert_includes response.body, "Use central relay"
     assert_includes response.body, "Allow registration"
-    assert_includes response.body, "This app decides."
+    assert_includes response.body, "This app decides whether people can sign up."
     assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
     assert_includes response.body, "Allowed return patterns"
     assert_includes response.body, "Exact return URLs"
@@ -305,26 +305,21 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_exact_return_urls_share_the_form_stack
   end
 
-  test "staff can set site registration and override it on an app" do
+  test "a new app starts from the initializer and the list has no site registration control" do
+    previous = RecordingStudioOauth.configuration.allow_registration?
+    RecordingStudioOauth.configuration.allow_registration = true
+
     get "/admin/screens/oauth_clients"
 
     assert_response :success
-    assert_includes response.body, "Registration"
+    assert_includes response.body, "Registered apps"
+    assert_includes response.body, "New app"
+    refute_includes response.body, "/recording_studio_oauth/admin/registration_setting"
+    refute_includes response.body, "Allow registration"
 
     get "/recording_studio_oauth/admin/registration_setting"
 
-    assert_response :success
-    assert_includes response.body, "Registration"
-    assert_includes response.body, "New apps start with this choice."
-    assert_includes response.body, "Allow registration"
-    assert_includes response.body, "Each app can still choose for itself."
-
-    patch "/recording_studio_oauth/admin/registration_setting", params: {
-      registration_setting: { allow_registration: "1" }
-    }
-
-    assert_redirected_to "/recording_studio_oauth/admin/registration_setting"
-    assert RecordingStudioOauth::RegistrationSetting.allow_registration?
+    assert_response :not_found
 
     get "/recording_studio_oauth/admin/oauth_clients/new"
 
@@ -352,7 +347,12 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     }
 
     assert client.reload.allow_registration?
-    assert RecordingStudioOauth::RegistrationSetting.allow_registration?
+
+    RecordingStudioOauth.configuration.allow_registration = false
+    assert client.reload.allow_registration?
+    assert RecordingStudioOauth.configuration.allow_registration? == false
+  ensure
+    RecordingStudioOauth.configuration.allow_registration = previous
   end
 
   test "create is forbidden without admin access" do
@@ -361,10 +361,6 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     sign_in outsider
 
     get "/recording_studio_oauth/admin/oauth_clients/new"
-
-    assert_response :forbidden
-
-    get "/recording_studio_oauth/admin/registration_setting"
 
     assert_response :forbidden
 

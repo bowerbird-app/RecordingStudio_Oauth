@@ -2,7 +2,7 @@ RecordingStudioOauth install complete.
 
 Next steps:
 
-1. Review config/initializers/recording_studio_oauth.rb and set any required options.
+1. Review config/initializers/recording_studio_oauth.rb and set any required options. `config.allow_registration` is the starting value for a new app. It starts off.
 2. If you use environment-specific settings, create config/recording_studio_oauth.yml.
 3. Install the engine migrations with `bin/rails generate recording_studio_oauth:migrations`.
 4. Apply the migrations with `bin/rails db:migrate`.

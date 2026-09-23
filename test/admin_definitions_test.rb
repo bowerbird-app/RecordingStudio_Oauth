@@ -10,6 +10,10 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, 'text: "New app"'
     assert_includes admin, "style: :primary"
     assert_includes admin, "new_oauth_client_path"
+    refute_includes admin, "button :registration"
+    refute_includes admin, "class ConfigSection"
+    refute_includes admin, "registration_setting"
+    refute_includes admin, "RegistrationSetting"
     assert_includes admin, "class OauthClientsResource"
     assert_includes admin, "action :create"
     assert_includes admin, "register_resource(OauthClientsResource)"
@@ -68,6 +72,7 @@ class AdminDefinitionsTest < Minitest::Test
     refute_includes controller, "Doorkeeper"
     refute_includes controller, "layout \"recording_studio_oauth/authorization\""
     assert_includes routes, "resources :oauth_clients, only: %i[new create show edit update]"
+    refute_includes routes, "registration_setting"
     assert_includes engine, "create_oauth_client"
   end
 

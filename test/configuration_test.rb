@@ -18,7 +18,22 @@ class ConfigurationTest < Minitest::Test
     assert_equal [], @configuration.extra_protected_resource_paths
     assert_nil @configuration.public_origin
     assert_equal "/users/sign_up", @configuration.registration_path
+    refute @configuration.allow_registration?
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
+  end
+
+  def test_allow_registration_casts_boolean_values
+    @configuration.allow_registration = "false"
+    refute @configuration.allow_registration?
+
+    @configuration.allow_registration = "1"
+    assert @configuration.allow_registration?
+
+    @configuration.merge!("allow_registration" => "0")
+    refute @configuration.allow_registration?
+
+    @configuration.merge!(allow_registration: true)
+    assert @configuration.allow_registration?
   end
 
   def test_merge_updates_known_attributes
@@ -63,6 +78,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal [], result.fetch(:extra_protected_resource_paths)
     assert_nil result.fetch(:public_origin)
     assert_equal "/users/sign_up", result.fetch(:registration_path)
+    assert_equal false, result.fetch(:allow_registration)
   end
 
   def test_configure_without_block_is_safe

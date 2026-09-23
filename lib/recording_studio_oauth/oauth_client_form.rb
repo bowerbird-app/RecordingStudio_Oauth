@@ -21,14 +21,14 @@ module RecordingStudioOauth
     def create_args
       shared_args.merge(
         confidential: Services::CreateOauthClient.confidential?(secret_choice),
-        allow_registration: allow_registration_for_create
+        allow_registration: allow_registration_for_create?
       )
     end
 
     def update_args(client)
       shared_args.merge(
         client: client,
-        allow_registration: allow_registration_for_update(client)
+        allow_registration: allow_registration_for_update?(client)
       )
     end
 
@@ -55,16 +55,16 @@ module RecordingStudioOauth
       value.is_a?(Array) ? value.last : value
     end
 
-    def allow_registration_for_create
-      return RegistrationSetting.allow_registration? unless params.key?(:allow_registration)
+    def allow_registration_for_create?
+      return RecordingStudioOauth.configuration.allow_registration? unless params.key?(:allow_registration)
 
-      RegistrationPolicy.flag(params[:allow_registration])
+      RegistrationPolicy.flag?(params[:allow_registration])
     end
 
-    def allow_registration_for_update(client)
+    def allow_registration_for_update?(client)
       return client.allow_registration? unless params.key?(:allow_registration)
 
-      RegistrationPolicy.flag(params[:allow_registration])
+      RegistrationPolicy.flag?(params[:allow_registration])
     end
   end
 end

@@ -11,10 +11,10 @@ module RecordingStudioOauth
         @allowed_return_patterns = Array(allowed_return_patterns)
         @exact_return_urls = Array(exact_return_urls)
         @allow_registration = if allow_registration.nil?
-          client.allow_registration?
-        else
-          ActiveModel::Type::Boolean.new.cast(allow_registration) == true
-        end
+                                client.allow_registration?
+                              else
+                                ActiveModel::Type::Boolean.new.cast(allow_registration) == true
+                              end
       end
 
       private
