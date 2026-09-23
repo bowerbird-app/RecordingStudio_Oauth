@@ -22,7 +22,8 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
   end
 
   test "copies the host registration choice when the caller omits it" do
-    RecordingStudioOauth::RegistrationSetting.current.update!(allow_registration: true)
+    previous = RecordingStudioOauth.configuration.allow_registration?
+    RecordingStudioOauth.configuration.allow_registration = true
 
     result = RecordingStudioOauth::Services::CreateOauthClient.call(
       name: "Copied Registration App",
@@ -33,7 +34,24 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert result.success?
     assert result.value.fetch(:client).allow_registration?
   ensure
-    RecordingStudioOauth::RegistrationSetting.current.update!(allow_registration: false)
+    RecordingStudioOauth.configuration.allow_registration = previous
+  end
+
+  test "an explicit false does not copy the host registration choice" do
+    previous = RecordingStudioOauth.configuration.allow_registration?
+    RecordingStudioOauth.configuration.allow_registration = true
+
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Explicit Closed App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      allow_registration: false
+    )
+
+    assert result.success?
+    refute result.value.fetch(:client).allow_registration?
+  ensure
+    RecordingStudioOauth.configuration.allow_registration = previous
   end
 
   test "creates a confidential client with a digest and one-time secret" do

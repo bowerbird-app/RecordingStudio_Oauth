@@ -1,5 +1,28 @@
 # Upgrading
 
+## Unreleased
+
+Set the starting value for a new app in `config/initializers/recording_studio_oauth.rb`:
+
+```ruby
+RecordingStudioOauth.configure do |config|
+  config.allow_registration = false
+end
+```
+
+`false` keeps the next app closed. `true` checks Allow registration on the next app you create. Apps that already exist keep the flag they have. Changing this setting does not rewrite them.
+
+Each app still has its own Allow registration checkbox. Connect options still uses that checkbox.
+
+The Registration page and the Registration button on Registered apps are gone.
+
+Run the migration that drops `recording_studio_oauth_registration_settings`:
+
+```bash
+bin/rails generate recording_studio_oauth:migrations
+bin/rails db:migrate
+```
+
 ## 0.5.0
 
 Run the new migration after you pull this version.

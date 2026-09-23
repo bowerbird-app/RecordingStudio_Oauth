@@ -34,7 +34,7 @@
 
   <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
   <%= render FlatPack::Tooltip::Component.new(
-    text: "This app decides. A new app starts from the site choice.",
+    text: "This app decides whether people can sign up.",
     placement: :top
   ) do %>
     <%= render FlatPack::Checkbox::Component.new(

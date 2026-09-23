@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+The site registration choice lives in `config/initializers/recording_studio_oauth.rb`. Registered apps no longer shows that control.
+
+### Changed
+- `config.allow_registration` is the starting value for a new Registered App. It defaults to false. Connect options still read each app's Allow registration flag.
+
+### Removed
+- The Registration button on Registered apps, the Admin Registration page, and `RegistrationSetting`. The migration drops `recording_studio_oauth_registration_settings`. Existing apps keep their own flag.
+
 ## [0.5.0] - 2026-09-23
 
 Staff can allow registration for the site, and turn it on or off for each Registered App. The app choice is the one a public Connect options request returns.

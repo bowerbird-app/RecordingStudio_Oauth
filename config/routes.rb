@@ -31,7 +31,6 @@ RecordingStudioOauth::Engine.routes.draw do
   resources :connected_apps, only: %i[index destroy]
 
   namespace :admin do
-    resource :registration_setting, only: %i[show update], controller: "registration_settings"
     resources :oauth_clients, only: %i[new create show edit update]
     post "oauth_clients/:id/revoke", to: "oauth_clients#revoke", as: :revoke_oauth_client
   end

@@ -6,8 +6,8 @@ class ConnectOptionsTest < ActionDispatch::IntegrationTest
   include OauthDummyHelpers
 
   setup do
-    @host_setting = RecordingStudioOauth::RegistrationSetting.current
-    @host_setting.update!(allow_registration: false)
+    @allow_registration = RecordingStudioOauth.configuration.allow_registration?
+    RecordingStudioOauth.configuration.allow_registration = false
     @public_origin = RecordingStudioOauth.configuration.public_origin
     @registration_path = RecordingStudioOauth.configuration.registration_path
     RecordingStudioOauth.configuration.public_origin = nil
@@ -17,12 +17,12 @@ class ConnectOptionsTest < ActionDispatch::IntegrationTest
   teardown do
     RecordingStudioOauth.configuration.public_origin = @public_origin
     RecordingStudioOauth.configuration.registration_path = @registration_path
-    @host_setting.update!(allow_registration: false)
+    RecordingStudioOauth.configuration.allow_registration = @allow_registration
   end
 
   test "global off and app on allows registration for that client" do
     client, = create_oauth_client(name: "Open App", allow_registration: true)
-    @host_setting.update!(allow_registration: false)
+    RecordingStudioOauth.configuration.allow_registration = false
 
     get "/recording_studio_oauth/connect/options", params: { client_id: client.client_id }
 
@@ -38,7 +38,7 @@ class ConnectOptionsTest < ActionDispatch::IntegrationTest
 
   test "global on and app off does not allow registration for that client" do
     client, = create_oauth_client(name: "Closed App", allow_registration: false)
-    @host_setting.update!(allow_registration: true)
+    RecordingStudioOauth.configuration.allow_registration = true
 
     get "/recording_studio_oauth/connect/options", params: { client_id: client.client_id }
 
@@ -62,7 +62,7 @@ class ConnectOptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "a new app copies the host choice and a later host change leaves that app alone" do
-    @host_setting.update!(allow_registration: true)
+    RecordingStudioOauth.configuration.allow_registration = true
 
     created = RecordingStudioOauth::Services::CreateOauthClient.call(
       name: "Copied App",
@@ -74,7 +74,7 @@ class ConnectOptionsTest < ActionDispatch::IntegrationTest
     client = created.value.fetch(:client)
     assert client.allow_registration?
 
-    @host_setting.update!(allow_registration: false)
+    RecordingStudioOauth.configuration.allow_registration = false
     client.reload
     assert client.allow_registration?
 

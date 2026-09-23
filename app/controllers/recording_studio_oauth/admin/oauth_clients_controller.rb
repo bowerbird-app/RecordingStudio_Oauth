@@ -22,7 +22,7 @@ module RecordingStudioOauth
           confidential: false,
           api_key: Services::CreateOauthClient::DEFAULT_API_KEY,
           use_central_relay: false,
-          allow_registration: RegistrationSetting.allow_registration?
+          allow_registration: RecordingStudioOauth.configuration.allow_registration?
         )
         @secret_choice = Services::CreateOauthClient::PUBLIC_SECRET_CHOICE
       end

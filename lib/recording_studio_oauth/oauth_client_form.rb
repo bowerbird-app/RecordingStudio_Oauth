@@ -56,7 +56,7 @@ module RecordingStudioOauth
     end
 
     def allow_registration_for_create
-      return RegistrationSetting.allow_registration? unless params.key?(:allow_registration)
+      return RecordingStudioOauth.configuration.allow_registration? unless params.key?(:allow_registration)
 
       RegistrationPolicy.flag(params[:allow_registration])
     end

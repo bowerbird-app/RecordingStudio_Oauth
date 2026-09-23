@@ -18,7 +18,7 @@ module RecordingStudioOauth
                   :public_origin,
                   :registration_path,
                   :layout_name
-    attr_reader :hooks
+    attr_reader :allow_registration, :hooks
 
     def initialize
       @authentication_method = :authenticate_user!
@@ -35,7 +35,16 @@ module RecordingStudioOauth
       @public_origin = nil
       @registration_path = "/users/sign_up"
       @layout_name = "recording_studio/default_layout"
+      @allow_registration = false
       @hooks = RecordingStudio::Hooks.new
+    end
+
+    def allow_registration=(value)
+      @allow_registration = ActiveModel::Type::Boolean.new.cast(value) == true
+    end
+
+    def allow_registration?
+      allow_registration == true
     end
 
     def to_h
@@ -53,6 +62,7 @@ module RecordingStudioOauth
         extra_protected_resource_paths: extra_protected_resource_paths,
         public_origin: public_origin,
         registration_path: registration_path,
+        allow_registration: allow_registration?,
         layout_name: layout_name,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
       }
