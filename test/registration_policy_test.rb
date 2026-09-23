@@ -56,7 +56,7 @@ class RegistrationPolicyTest < Minitest::Test
   end
 
   def test_checkbox_flag_uses_the_last_submitted_value
-    assert_equal true, RecordingStudioOauth::RegistrationPolicy.flag(["0", "1"])
+    assert_equal true, RecordingStudioOauth::RegistrationPolicy.flag(%w[0 1])
     assert_equal false, RecordingStudioOauth::RegistrationPolicy.flag("0")
     assert_equal false, RecordingStudioOauth::RegistrationPolicy.flag(nil)
   end

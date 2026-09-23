@@ -26,11 +26,10 @@ module RecordingStudioOauth
         @use_central_relay = ActiveModel::Type::Boolean.new.cast(use_central_relay) == true
         @allowed_return_patterns = Array(allowed_return_patterns)
         @exact_return_urls = Array(exact_return_urls)
-        @allow_registration = if allow_registration.nil?
-          RegistrationSetting.allow_registration?
-        else
-          ActiveModel::Type::Boolean.new.cast(allow_registration) == true
-        end
+        @allow_registration = RegistrationPolicy.stored_flag(
+          allow_registration,
+          fallback: RegistrationSetting.allow_registration?
+        )
       end
 
       private

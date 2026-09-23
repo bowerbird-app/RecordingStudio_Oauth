@@ -12,7 +12,13 @@ module RecordingStudioOauth
 
     def flag(value)
       value = value.last if value.is_a?(Array)
-      ActiveModel::Type::Boolean.new.cast(value) == true
+      ActiveModel::Type::Boolean.new.cast(value) || false
+    end
+
+    def stored_flag(explicit, fallback:)
+      return fallback if explicit.nil?
+
+      flag(explicit)
     end
 
     def registration_url(base_url:)

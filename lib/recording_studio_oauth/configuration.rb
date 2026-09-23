@@ -3,6 +3,22 @@
 module RecordingStudioOauth
   class Configuration
     ACCESS_ROLE_RANKS = { view: 0, edit: 1, admin: 2 }.freeze
+    SETTING_KEYS = %i[
+      authentication_method
+      current_actor_method
+      admin_root_recordable_type_names
+      authorization_code_ttl
+      access_token_ttl
+      refresh_token_ttl
+      api_mount_path
+      engine_mount_path
+      mcp_mount_path
+      register_origin_as_protected_resource
+      extra_protected_resource_paths
+      public_origin
+      registration_path
+      layout_name
+    ].freeze
 
     attr_accessor :authentication_method,
                   :current_actor_method,
@@ -39,23 +55,9 @@ module RecordingStudioOauth
     end
 
     def to_h
-      {
-        authentication_method: authentication_method,
-        current_actor_method: current_actor_method,
-        admin_root_recordable_type_names: admin_root_recordable_type_names,
-        authorization_code_ttl: authorization_code_ttl,
-        access_token_ttl: access_token_ttl,
-        refresh_token_ttl: refresh_token_ttl,
-        api_mount_path: api_mount_path,
-        engine_mount_path: engine_mount_path,
-        mcp_mount_path: mcp_mount_path,
-        register_origin_as_protected_resource: register_origin_as_protected_resource,
-        extra_protected_resource_paths: extra_protected_resource_paths,
-        public_origin: public_origin,
-        registration_path: registration_path,
-        layout_name: layout_name,
+      SETTING_KEYS.index_with { |key| public_send(key) }.merge(
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
-      }
+      )
     end
 
     def merge!(hash)

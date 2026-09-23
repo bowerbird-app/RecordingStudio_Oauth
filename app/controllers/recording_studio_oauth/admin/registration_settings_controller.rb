@@ -14,8 +14,7 @@ module RecordingStudioOauth
 
       SAVED_NOTICE = "Registration saved."
 
-      def show
-      end
+      def show; end
 
       def update
         return render :show, status: :unprocessable_entity unless registration_setting_saved?
@@ -67,9 +66,7 @@ module RecordingStudioOauth
 
       def save_registration_setting
         @registration_setting.allow_registration = registration_flag
-        return true if @registration_setting.save
-
-        false
+        @registration_setting.save
       end
 
       def registration_flag
