@@ -48,24 +48,7 @@ module RecordingStudioOauth
     end
 
     def to_h
-      {
-        authentication_method: authentication_method,
-        current_actor_method: current_actor_method,
-        admin_root_recordable_type_names: admin_root_recordable_type_names,
-        authorization_code_ttl: authorization_code_ttl,
-        access_token_ttl: access_token_ttl,
-        refresh_token_ttl: refresh_token_ttl,
-        api_mount_path: api_mount_path,
-        engine_mount_path: engine_mount_path,
-        mcp_mount_path: mcp_mount_path,
-        register_origin_as_protected_resource: register_origin_as_protected_resource,
-        extra_protected_resource_paths: extra_protected_resource_paths,
-        public_origin: public_origin,
-        registration_path: registration_path,
-        allow_registration: allow_registration?,
-        layout_name: layout_name,
-        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
-      }
+      connection_settings.merge(mount_settings, registration_settings, hooks_registered: registered_hook_counts)
     end
 
     def merge!(hash)
@@ -76,6 +59,42 @@ module RecordingStudioOauth
         setter = "#{key}="
         public_send(setter, v) if respond_to?(setter)
       end
+    end
+
+    private
+
+    def connection_settings
+      {
+        authentication_method: authentication_method,
+        current_actor_method: current_actor_method,
+        admin_root_recordable_type_names: admin_root_recordable_type_names,
+        authorization_code_ttl: authorization_code_ttl,
+        access_token_ttl: access_token_ttl,
+        refresh_token_ttl: refresh_token_ttl,
+        layout_name: layout_name
+      }
+    end
+
+    def mount_settings
+      {
+        api_mount_path: api_mount_path,
+        engine_mount_path: engine_mount_path,
+        mcp_mount_path: mcp_mount_path,
+        register_origin_as_protected_resource: register_origin_as_protected_resource,
+        extra_protected_resource_paths: extra_protected_resource_paths
+      }
+    end
+
+    def registration_settings
+      {
+        public_origin: public_origin,
+        registration_path: registration_path,
+        allow_registration: allow_registration?
+      }
+    end
+
+    def registered_hook_counts
+      hooks.instance_variable_get(:@registry).transform_values(&:size)
     end
   end
 end

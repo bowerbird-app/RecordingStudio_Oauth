@@ -10,7 +10,7 @@ module RecordingStudioOauth
       client.allow_registration? == true
     end
 
-    def flag(value)
+    def flag?(value)
       value = value.last if value.is_a?(Array)
       ActiveModel::Type::Boolean.new.cast(value) == true
     end
