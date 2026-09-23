@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.4.2
+
+No host steps. On the Registered App create and edit forms, **Exact return URLs** sits below **Allowed return patterns** with the same gap as the other fields.
+
 ## 0.4.1
 
 No host steps. On the Registered App create and edit forms, **Create app** and **Save** sit under **Use central relay**.
