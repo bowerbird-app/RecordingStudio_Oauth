@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.1", ::RecordingStudioOauth::VERSION
+    assert_equal "0.5.2", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
