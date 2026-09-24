@@ -10,34 +10,34 @@ class RecordExternalInstallTest < ActiveSupport::TestCase
     @root_recording, = create_access_recording_for(user: @user)
     @client, = create_oauth_client(
       name: "Channel App",
-      session_token_provider: "shopify"
+      session_token_provider: "channel"
     )
   end
 
   test "creates an install without a workspace" do
     result = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     assert result.success?
     install = result.value
-    assert_equal "shopify", install.provider
-    assert_equal "exampleshop.myshopify.com", install.external_id
+    assert_equal "channel", install.provider
+    assert_equal "store-123", install.external_id
     assert_equal @client.id, install.oauth_client_id
     refute install.connected?
     assert_nil install.workspace
     assert_nil install.connected_by
   end
 
-  test "a second verify upserts the same row" do
+  test "a second upsert keeps the same row" do
     first = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "ExampleShop.myshopify.com"
+      external_id: "Store-123"
     )
     second = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     assert first.success?
@@ -49,12 +49,12 @@ class RecordExternalInstallTest < ActiveSupport::TestCase
   test "connect binds a workspace without treating install as login" do
     RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     result = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com",
+      external_id: "store-123",
       root_recording: @root_recording,
       connected_by: @user
     )
@@ -70,14 +70,14 @@ class RecordExternalInstallTest < ActiveSupport::TestCase
   test "a later upsert does not clear a bound workspace" do
     RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com",
+      external_id: "store-123",
       root_recording: @root_recording,
       connected_by: @user
     )
 
     result = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     install = result.value.reload
@@ -85,16 +85,16 @@ class RecordExternalInstallTest < ActiveSupport::TestCase
     assert_equal @user, install.connected_by
   end
 
-  test "the same shop can exist on two registered apps" do
-    other, = create_oauth_client(name: "Other Channel", session_token_provider: "shopify")
+  test "the same external id can exist on two registered apps" do
+    other, = create_oauth_client(name: "Other Channel", session_token_provider: "channel")
 
     first = RecordingStudioOauth.record_external_install(
       client: @client,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
     second = RecordingStudioOauth.record_external_install(
       client: other,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     refute_equal first.value.id, second.value.id
@@ -105,7 +105,7 @@ class RecordExternalInstallTest < ActiveSupport::TestCase
 
     result = RecordingStudioOauth.record_external_install(
       client: bare,
-      external_id: "exampleshop.myshopify.com"
+      external_id: "store-123"
     )
 
     assert result.failure?

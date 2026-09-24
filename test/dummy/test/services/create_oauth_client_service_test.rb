@@ -76,16 +76,16 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
       name: "Channel App",
       redirect_uris: ["https://example.com/callback"],
       confidential: false,
-      session_token_provider: "Shopify",
+      session_token_provider: "channel",
       session_token_audience: "partner-client-id",
-      session_token_secret: "shopify-api-secret"
+      session_token_secret: "channel-api-secret"
     )
 
     assert result.success?
     client = result.value.fetch(:client)
-    assert_equal "shopify", client.session_token_provider
+    assert_equal "channel", client.session_token_provider
     assert_equal "partner-client-id", client.session_token_audience
-    assert_equal "shopify-api-secret", client.session_token_secret
+    assert_equal "channel-api-secret", client.session_token_secret
     assert client.session_token_verify_ready?
   end
 

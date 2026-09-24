@@ -146,9 +146,9 @@ See `docs/connect-options.md`.
 
 ## Session tokens and external installs
 
-A channel host can prove an App Bridge session token with HS256, then map that install to a workspace. Shopify columns do not go on users or workspaces.
+A channel host can prove a session JWT with HS256, then map that install to a workspace. Oauth checks signature, audience, `exp`, and `nbf`. The host reads claims and chooses `external_id`. Channel columns do not go on users or workspaces.
 
-Who the token is for is the channel's Partner app id (`aud`). The Registered App id `rsoauth_oc_…` is merchant Connect only. Installed is not Connected.
+Who the token is for is the channel's own app id (`aud`). The Registered App id `rsoauth_oc_…` is merchant Connect only. Installed is not Connected.
 
 ```ruby
 result = RecordingStudioOauth.verify_session_token(
@@ -157,7 +157,8 @@ result = RecordingStudioOauth.verify_session_token(
 )
 RecordingStudioOauth.record_external_install(
   client: result.value.fetch(:client),
-  external_id: result.value.fetch(:external_id)
+  provider: "channel",
+  external_id: host_computed_id
 )
 ```
 

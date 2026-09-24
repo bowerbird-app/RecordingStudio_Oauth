@@ -260,39 +260,39 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
   test "staff can save session token verify fields" do
     post "/recording_studio_oauth/admin/oauth_clients", params: {
       oauth_client: {
-        name: "Shopify Channel App",
+        name: "Channel Verify App",
         redirect_uris: "http://127.0.0.1/callback",
         secret: "public",
-        session_token_provider: "shopify",
+        session_token_provider: "channel",
         session_token_audience: "partner-client-id",
-        session_token_secret: "shopify-api-secret"
+        session_token_secret: "channel-api-secret"
       }
     }
 
-    client = RecordingStudioOauth::OauthClient.find_by!(name: "Shopify Channel App")
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Channel Verify App")
     assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
-    assert_equal "shopify", client.session_token_provider
+    assert_equal "channel", client.session_token_provider
     assert_equal "partner-client-id", client.session_token_audience
-    assert_equal "shopify-api-secret", client.session_token_secret
-    refute_equal "shopify-api-secret", client.session_token_secret_ciphertext
+    assert_equal "channel-api-secret", client.session_token_secret
+    refute_equal "channel-api-secret", client.session_token_secret_ciphertext
     refute_includes client.client_id, "partner-client-id"
 
     get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
     assert_response :success
-    refute_includes response.body, "shopify-api-secret"
+    refute_includes response.body, "channel-api-secret"
 
     patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
       oauth_client: {
-        name: "Shopify Channel App",
+        name: "Channel Verify App",
         redirect_uris: "http://127.0.0.1/callback",
-        session_token_provider: "shopify",
+        session_token_provider: "channel",
         session_token_audience: "partner-client-id",
         session_token_secret: ""
       }
     }
 
     assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
-    assert_equal "shopify-api-secret", client.reload.session_token_secret
+    assert_equal "channel-api-secret", client.reload.session_token_secret
   end
 
   test "central relay on requires a return pattern or an exact URL" do

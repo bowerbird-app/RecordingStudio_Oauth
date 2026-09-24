@@ -20,7 +20,7 @@ class Hs256JwtTest < Minitest::Test
 
     assert_equal :ok, status
     assert_equal AUDIENCE, claims["aud"]
-    assert_equal "https://exampleshop.myshopify.com", claims["dest"]
+    assert_equal "42", claims["sub"]
   end
 
   def test_rejects_a_forged_signature
@@ -91,15 +91,12 @@ class Hs256JwtTest < Minitest::Test
 
   def valid_payload(now: Time.now.to_i, exp: nil, nbf: nil)
     {
-      "iss" => "https://exampleshop.myshopify.com/admin",
-      "dest" => "https://exampleshop.myshopify.com",
       "aud" => AUDIENCE,
       "sub" => "42",
       "exp" => exp || (now + 60),
       "nbf" => nbf || (now - 5),
       "iat" => now,
-      "jti" => "jti-1",
-      "sid" => "sid-1"
+      "jti" => "jti-1"
     }
   end
 end

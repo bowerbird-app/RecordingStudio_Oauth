@@ -6,19 +6,19 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   include OauthDummyHelpers
 
   setup do
-    @secret = "shopify-api-secret"
-    @audience = "shopify-partner-client-id"
+    @secret = "channel-signing-secret"
+    @audience = "channel-partner-client-id"
     @client, = create_oauth_client(
       name: "Channel App",
-      session_token_provider: "shopify",
+      session_token_provider: "channel",
       session_token_audience: @audience,
       session_token_secret: @secret
     )
     @now = Time.zone.parse("2026-09-24 12:00:00 UTC").to_i
   end
 
-  test "accepts a shopify session token and returns the shop" do
-    token = shopify_session_token
+  test "accepts a valid token and returns raw claims" do
+    token = session_token
 
     result = RecordingStudioOauth.verify_session_token(
       client_id: @client.client_id,
@@ -28,9 +28,9 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
 
     assert result.success?
     assert_equal @client.id, result.value.fetch(:client).id
-    assert_equal "exampleshop.myshopify.com", result.value.fetch(:external_id)
-    assert_equal "shopify", result.value.fetch(:provider)
     assert_equal "42", result.value.fetch(:claims)["sub"]
+    refute result.value.key?(:external_id)
+    refute result.value.key?(:provider)
   end
 
   test "the registered app id is not the token audience" do
@@ -39,11 +39,9 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   end
 
   test "rejects a bad signature" do
-    token = shopify_session_token
-
     result = RecordingStudioOauth.verify_session_token(
       client: @client,
-      token: token,
+      token: session_token,
       secret: "wrong-secret",
       now: @now
     )
@@ -54,9 +52,7 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   end
 
   test "rejects the wrong audience" do
-    token = shopify_session_token(aud: "other-app")
-
-    result = RecordingStudioOauth.verify_session_token(client: @client, token: token, now: @now)
+    result = RecordingStudioOauth.verify_session_token(client: @client, token: session_token(aud: "other-app"), now: @now)
 
     assert result.failure?
     assert_equal "wrong audience", result.error
@@ -64,9 +60,7 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   end
 
   test "rejects an expired token" do
-    token = shopify_session_token(exp: @now - 30)
-
-    result = RecordingStudioOauth.verify_session_token(client: @client, token: token, now: @now)
+    result = RecordingStudioOauth.verify_session_token(client: @client, token: session_token(exp: @now - 30), now: @now)
 
     assert result.failure?
     assert_equal "expired", result.error
@@ -74,38 +68,45 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   end
 
   test "rejects when nbf is in the future" do
-    token = shopify_session_token(nbf: @now + 30)
-
-    result = RecordingStudioOauth.verify_session_token(client: @client, token: token, now: @now)
+    result = RecordingStudioOauth.verify_session_token(client: @client, token: session_token(nbf: @now + 30), now: @now)
 
     assert result.failure?
     assert_equal "not yet valid", result.error
     assert_equal [:not_yet_valid], result.errors
   end
 
-  test "rejects issuer and dest host mismatch" do
-    token = shopify_session_token(iss: "https://othershop.myshopify.com/admin")
+  test "does not interpret extra claims" do
+    token = session_token("iss" => "https://one.example/admin", "dest" => "https://two.example")
 
     result = RecordingStudioOauth.verify_session_token(client: @client, token: token, now: @now)
 
-    assert result.failure?
-    assert_equal "issuer and destination do not match", result.error
-    assert_equal [:iss_mismatch], result.errors
+    assert result.success?
+    assert_equal "https://one.example/admin", result.value.fetch(:claims)["iss"]
+    assert_equal "https://two.example", result.value.fetch(:claims)["dest"]
   end
 
-  test "rejects an expected shop that does not match dest" do
-    token = shopify_session_token
+  test "optional expected_external_id compares host-supplied strings" do
+    token = session_token
 
-    result = RecordingStudioOauth.verify_session_token(
+    matched = RecordingStudioOauth.verify_session_token(
       client: @client,
       token: token,
-      expected_external_id: "othershop.myshopify.com",
+      external_id: "Store-123",
+      expected_external_id: "store-123",
+      now: @now
+    )
+    mismatched = RecordingStudioOauth.verify_session_token(
+      client: @client,
+      token: token,
+      external_id: "store-123",
+      expected_external_id: "other-store",
       now: @now
     )
 
-    assert result.failure?
-    assert_equal "shop does not match", result.error
-    assert_equal [:external_id_mismatch], result.errors
+    assert matched.success?
+    assert mismatched.failure?
+    assert_equal "external id does not match", mismatched.error
+    assert_equal [:external_id_mismatch], mismatched.errors
   end
 
   test "fails closed when audience or secret is missing" do
@@ -113,7 +114,7 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
 
     result = RecordingStudioOauth.verify_session_token(
       client: bare,
-      token: shopify_session_token,
+      token: session_token,
       now: @now
     )
 
@@ -125,7 +126,7 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   test "unknown client id fails" do
     result = RecordingStudioOauth.verify_session_token(
       client_id: "rsoauth_oc_missing",
-      token: shopify_session_token,
+      token: session_token,
       now: @now
     )
 
@@ -137,7 +138,7 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
   test "revoked client fails" do
     @client.revoke!
 
-    result = RecordingStudioOauth.verify_session_token(client: @client, token: shopify_session_token, now: @now)
+    result = RecordingStudioOauth.verify_session_token(client: @client, token: session_token, now: @now)
 
     assert result.failure?
     assert_equal "client is revoked", result.error
@@ -146,17 +147,14 @@ class VerifySessionTokenTest < ActiveSupport::TestCase
 
   private
 
-  def shopify_session_token(aud: @audience, shop: "exampleshop.myshopify.com", **claims)
+  def session_token(aud: @audience, **claims)
     payload = {
-      "iss" => "https://#{shop}/admin",
-      "dest" => "https://#{shop}",
       "aud" => aud,
       "sub" => "42",
       "exp" => @now + 60,
       "nbf" => @now - 5,
       "iat" => @now,
-      "jti" => "jti-1",
-      "sid" => "sid-1"
+      "jti" => "jti-1"
     }.merge(claims.stringify_keys)
 
     RecordingStudioOauth::Hs256Jwt.encode(payload, @secret)

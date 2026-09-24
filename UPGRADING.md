@@ -9,9 +9,9 @@ bin/rails generate recording_studio_oauth:migrations
 bin/rails db:migrate
 ```
 
-On each Registered App that should check App Bridge (or another channel session token), set Channel, Who the token is for, and Session token secret. Who the token is for is the channel's own app id. It is not the `rsoauth_oc_…` Registered App id.
+On each Registered App that should check a channel session token, set Channel, Who the token is for, and Session token secret. Who the token is for is the channel's own app id. It is not the `rsoauth_oc_…` Registered App id.
 
-Hosts call `RecordingStudioOauth.verify_session_token` then `RecordingStudioOauth.record_external_install`. An install row can exist before merchant Connect. Bind `root_recording` and `connected_by` only when Connect finishes.
+Hosts call `RecordingStudioOauth.verify_session_token`, read claims themselves, then call `RecordingStudioOauth.record_external_install` with `provider` and `external_id`. An install row can exist before merchant Connect. Bind `root_recording` and `connected_by` only when Connect finishes.
 
 See `docs/session-tokens.md`.
 
