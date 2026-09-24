@@ -25,8 +25,8 @@ module RecordingStudioOauth
 
         install = upsert_install(normalized_provider, normalized_external_id)
         success(install)
-      rescue ActiveRecord::RecordInvalid => error
-        failure(error.record.errors.full_messages.to_sentence, errors: [error.record])
+      rescue ActiveRecord::RecordInvalid => e
+        failure(e.record.errors.full_messages.to_sentence, errors: [e.record])
       end
 
       def upsert_install(normalized_provider, normalized_external_id)

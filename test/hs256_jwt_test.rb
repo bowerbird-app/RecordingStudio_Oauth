@@ -95,8 +95,8 @@ class Hs256JwtTest < Minitest::Test
       "dest" => "https://exampleshop.myshopify.com",
       "aud" => AUDIENCE,
       "sub" => "42",
-      "exp" => exp || now + 60,
-      "nbf" => nbf || now - 5,
+      "exp" => exp || (now + 60),
+      "nbf" => nbf || (now - 5),
       "iat" => now,
       "jti" => "jti-1",
       "sid" => "sid-1"

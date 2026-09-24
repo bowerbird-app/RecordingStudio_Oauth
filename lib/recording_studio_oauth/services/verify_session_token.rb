@@ -37,9 +37,7 @@ module RecordingStudioOauth
         session_token = SessionToken.new(claims: claims, provider: client.session_token_provider)
         shopify_error = shopify_error_for(session_token)
         return fail_with(message_for(shopify_error), shopify_error) if shopify_error
-        unless session_token.matches_external_id?(expected_external_id)
-          return fail_with(message_for(:external_id_mismatch), :external_id_mismatch)
-        end
+        return fail_with(message_for(:external_id_mismatch), :external_id_mismatch) unless session_token.matches_external_id?(expected_external_id)
         return fail_with("invalid token", :invalid_token) if session_token.external_id.blank?
 
         success(

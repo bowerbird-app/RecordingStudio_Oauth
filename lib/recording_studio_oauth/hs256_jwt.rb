@@ -20,25 +20,42 @@ module RecordingStudioOauth
     end
 
     def decode(token, secret, now: Time.now.to_i, audience: nil, leeway: LEEWAY_SECONDS)
-      parts = token.to_s.split(".", 3)
-      return [:invalid_token, nil] unless parts.length == 3
+      parts = split_token(token)
+      return [:invalid_token, nil] unless parts
 
       encoded_header, encoded_payload, encoded_signature = parts
-      header = decode_json(encoded_header)
-      payload = decode_json(encoded_payload)
-      return [:invalid_token, nil] if header.nil? || payload.nil?
+      payload = parse_header_and_payload(encoded_header, encoded_payload)
+      return [:invalid_token, nil] unless payload
 
-      alg = header["alg"].to_s
-      return [:invalid_token, nil] unless alg == ALGORITHM
-
-      expected = sign("#{encoded_header}.#{encoded_payload}", secret)
-      actual = decode_bytes(encoded_signature)
-      return [:bad_signature, nil] unless actual && secure_bytes?(expected, actual)
+      signature_status = signature_status(encoded_header, encoded_payload, encoded_signature, secret)
+      return [signature_status, nil] if signature_status
 
       claim_error = claim_error_for(payload, now: now, audience: audience, leeway: leeway)
       return [claim_error, nil] if claim_error
 
       [:ok, payload]
+    end
+
+    def split_token(token)
+      parts = token.to_s.split(".", 3)
+      parts.length == 3 ? parts : nil
+    end
+
+    def parse_header_and_payload(encoded_header, encoded_payload)
+      header = decode_json(encoded_header)
+      payload = decode_json(encoded_payload)
+      return nil if header.nil? || payload.nil?
+      return nil unless header["alg"].to_s == ALGORITHM
+
+      payload
+    end
+
+    def signature_status(encoded_header, encoded_payload, encoded_signature, secret)
+      expected = sign("#{encoded_header}.#{encoded_payload}", secret)
+      actual = decode_bytes(encoded_signature)
+      return :bad_signature unless actual && secure_bytes?(expected, actual)
+
+      nil
     end
 
     def encode_json(value)

@@ -2,19 +2,21 @@
 
 module RecordingStudioOauth
   class OauthClientForm
+    PERMITTED_PARAMS = %i[
+      name
+      redirect_uris
+      secret
+      use_central_relay
+      allowed_return_patterns
+      exact_return_urls
+      allow_registration
+      session_token_provider
+      session_token_audience
+      session_token_secret
+    ].freeze
+
     def initialize(params)
-      @params = params.fetch(:oauth_client, {}).permit(
-        :name,
-        :redirect_uris,
-        :secret,
-        :use_central_relay,
-        :allowed_return_patterns,
-        :exact_return_urls,
-        :allow_registration,
-        :session_token_provider,
-        :session_token_audience,
-        :session_token_secret
-      )
+      @params = params.fetch(:oauth_client, {}).permit(*PERMITTED_PARAMS)
     end
 
     def secret_choice
@@ -40,12 +42,21 @@ module RecordingStudioOauth
     attr_reader :params
 
     def shared_args
+      redirect_and_relay_args.merge(session_token_args)
+    end
+
+    def redirect_and_relay_args
       {
         name: params[:name],
         redirect_uris: lines(params[:redirect_uris]),
         use_central_relay: relay_flag,
         allowed_return_patterns: lines(params[:allowed_return_patterns]),
-        exact_return_urls: lines(params[:exact_return_urls]),
+        exact_return_urls: lines(params[:exact_return_urls])
+      }
+    end
+
+    def session_token_args
+      {
         session_token_provider: params[:session_token_provider],
         session_token_audience: params[:session_token_audience],
         session_token_secret: params[:session_token_secret]
