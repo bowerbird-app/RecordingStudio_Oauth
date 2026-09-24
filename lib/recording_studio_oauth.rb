@@ -45,6 +45,14 @@ module RecordingStudioOauth
     def registration_url(base_url:)
       RegistrationPolicy.registration_url(base_url: base_url)
     end
+
+    def verify_session_token(**)
+      Services::VerifySessionToken.call(**)
+    end
+
+    def record_external_install(**)
+      Services::RecordExternalInstall.call(**)
+    end
   end
 end
 

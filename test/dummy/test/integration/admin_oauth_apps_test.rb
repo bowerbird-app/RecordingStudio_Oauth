@@ -76,12 +76,21 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Create app"
     assert_includes response.body, "Use central relay"
     assert_includes response.body, "Allow registration"
+    assert_includes response.body, "Token verification"
+    assert_includes response.body, "Channel"
+    assert_includes response.body, "Who the token is for"
+    assert_includes response.body, "Session token secret"
     assert_includes response.body, "This app decides whether people can sign up."
     assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
+    assert_includes response.body, "When this is on, this host can prove a channel session token with the fields below."
     assert_includes response.body, "Allowed return patterns"
     assert_includes response.body, "Exact return URLs"
     rules = css_select("#central_relay_rules").first
     assert rules["hidden"], "return rules stay hidden until Use central relay is on"
+    token_box = css_select("input[name='oauth_client[token_verification]'][type=checkbox]").first
+    refute token_box["checked"], "Token verification stays off on a new app"
+    token_fields = css_select("#token_verification_fields").first
+    assert token_fields["hidden"], "session token fields stay hidden until Token verification is on"
     refute_includes response.body, "max-w-sm"
   end
 
@@ -252,6 +261,107 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     client.reload
     refute client.use_central_relay?
     assert_equal [pattern], client.allowed_return_patterns
+  end
+
+  test "staff can save session token verify fields" do
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Channel Verify App",
+        redirect_uris: "http://127.0.0.1/callback",
+        secret: "public",
+        token_verification: "1",
+        session_token_provider: "channel",
+        session_token_audience: "partner-client-id",
+        session_token_secret: "channel-api-secret"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Channel Verify App")
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_equal "channel", client.session_token_provider
+    assert_equal "partner-client-id", client.session_token_audience
+    assert_equal "channel-api-secret", client.session_token_secret
+    refute_equal "channel-api-secret", client.session_token_secret_ciphertext
+    refute_includes client.client_id, "partner-client-id"
+
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+    assert_response :success
+    refute_includes response.body, "channel-api-secret"
+    token_box = css_select("input[name='oauth_client[token_verification]'][type=checkbox]").first
+    assert_equal "checked", token_box["checked"]
+    token_fields = css_select("#token_verification_fields").first
+    assert_nil token_fields["hidden"]
+
+    patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
+      oauth_client: {
+        name: "Channel Verify App",
+        redirect_uris: "http://127.0.0.1/callback",
+        token_verification: "1",
+        session_token_provider: "channel",
+        session_token_audience: "partner-client-id",
+        session_token_secret: ""
+      }
+    }
+
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_equal "channel-api-secret", client.reload.session_token_secret
+  end
+
+  test "session token fields posted while Token verification is off are ignored" do
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "No Token App",
+        redirect_uris: "http://127.0.0.1/callback",
+        secret: "public",
+        token_verification: "0",
+        session_token_provider: "channel",
+        session_token_audience: "partner-client-id",
+        session_token_secret: "channel-api-secret"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "No Token App")
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_nil client.session_token_provider
+    assert_nil client.session_token_audience
+    assert_nil client.session_token_secret
+    assert_nil client.session_token_secret_ciphertext
+  end
+
+  test "turning Token verification off clears stored session token config" do
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Clear Token App",
+        redirect_uris: "http://127.0.0.1/callback",
+        secret: "public",
+        token_verification: "1",
+        session_token_provider: "channel",
+        session_token_audience: "partner-client-id",
+        session_token_secret: "channel-api-secret"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Clear Token App")
+    assert client.session_token_verify_ready?
+
+    patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
+      oauth_client: {
+        name: "Clear Token App",
+        redirect_uris: "http://127.0.0.1/callback",
+        token_verification: "0",
+        session_token_provider: "channel",
+        session_token_audience: "partner-client-id",
+        session_token_secret: "channel-api-secret"
+      }
+    }
+
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    client.reload
+    assert_nil client.session_token_provider
+    assert_nil client.session_token_audience
+    assert_nil client.session_token_secret
+    assert_nil client.session_token_secret_ciphertext
+    refute client.session_token_configured?
   end
 
   test "central relay on requires a return pattern or an exact URL" do

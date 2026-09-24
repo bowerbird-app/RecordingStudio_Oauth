@@ -45,6 +45,7 @@ Metrics/MethodLength:
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
+    - 'db/migrate/**/*'
     - 'lib/generators/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
     - 'app/controllers/recording_studio_oauth/central_relays_controller.rb'

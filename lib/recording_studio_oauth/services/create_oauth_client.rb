@@ -19,7 +19,7 @@ module RecordingStudioOauth
         secret_choice.to_s == HAS_SECRET_CHOICE
       end
 
-      def initialize(name:, redirect_uris:, confidential:, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil)
+      def initialize(name:, redirect_uris:, confidential:, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
         @name = name.to_s
         @redirect_uris = Array(redirect_uris)
         @confidential = ActiveModel::Type::Boolean.new.cast(confidential)
@@ -31,11 +31,14 @@ module RecordingStudioOauth
                               else
                                 ActiveModel::Type::Boolean.new.cast(allow_registration) == true
                               end
+        @session_token_provider = session_token_provider.to_s.presence
+        @session_token_audience = session_token_audience.to_s.presence
+        @session_token_secret = session_token_secret
       end
 
       private
 
-      attr_reader :name, :redirect_uris, :confidential, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration
+      attr_reader :name, :redirect_uris, :confidential, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :session_token_provider, :session_token_audience, :session_token_secret
 
       def perform
         secret_token = nil
@@ -47,7 +50,10 @@ module RecordingStudioOauth
           use_central_relay: use_central_relay,
           allowed_return_patterns: allowed_return_patterns,
           exact_return_urls: exact_return_urls,
-          allow_registration: allow_registration
+          allow_registration: allow_registration,
+          session_token_provider: session_token_provider,
+          session_token_audience: session_token_audience,
+          session_token_secret: session_token_secret
         )
 
         if confidential

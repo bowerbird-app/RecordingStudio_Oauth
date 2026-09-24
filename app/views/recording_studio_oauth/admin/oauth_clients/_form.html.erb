@@ -1,5 +1,11 @@
 <% show_secret = local_assigns.fetch(:show_secret, false) %>
 <% relay_hint = "When this is on, Connect uses the fixed callback on this host. After the person approves, we only send them to a return address that matches a pattern or an exact URL below." %>
+<% token_hint = "When this is on, this host can prove a channel session token with the fields below. Leave it off if this app does not check them." %>
+<% token_verification_on = if params[:oauth_client]&.key?(:token_verification)
+                             RecordingStudioOauth::RegistrationPolicy.flag?(params[:oauth_client][:token_verification])
+                           else
+                             @oauth_client.session_token_configured?
+                           end %>
 
 <%= form_with url: form_url, method: form_method, class: "space-y-6" do %>
   <%= render FlatPack::TextInput::Component.new(
@@ -31,6 +37,46 @@
       required: true
     ) %>
   <% end %>
+
+  <div>
+    <%= hidden_field_tag "oauth_client[token_verification]", "0" %>
+    <%= render FlatPack::Tooltip::Component.new(text: token_hint, placement: :top) do %>
+      <%= render FlatPack::Checkbox::Component.new(
+        name: "oauth_client[token_verification]",
+        label: "Token verification",
+        value: "1",
+        checked: token_verification_on,
+        error: @oauth_client.errors[:token_verification].to_sentence.presence
+      ) %>
+    <% end %>
+  </div>
+
+  <div id="token_verification_fields" class="space-y-6"<% unless token_verification_on %> hidden<% end %>>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "oauth_client[session_token_provider]",
+      label: "Channel",
+      value: @oauth_client.session_token_provider,
+      help_text: "A short label stored on the install. Leave blank if this app does not check session tokens.",
+      error: @oauth_client.errors[:session_token_provider].to_sentence.presence
+    ) %>
+
+    <%= render FlatPack::TextInput::Component.new(
+      name: "oauth_client[session_token_audience]",
+      label: "Who the token is for",
+      value: @oauth_client.session_token_audience,
+      help_text: "The channel's own app id. Not the Registered App id we mint.",
+      error: @oauth_client.errors[:session_token_audience].to_sentence.presence
+    ) %>
+
+    <%= render FlatPack::TextInput::Component.new(
+      name: "oauth_client[session_token_secret]",
+      label: "Session token secret",
+      value: nil,
+      autocomplete: "off",
+      help_text: @oauth_client.session_token_secret_ciphertext.present? ? "Leave blank to keep the secret already stored." : "The channel's signing secret. Not the Connect secret we show once.",
+      error: @oauth_client.errors[:session_token_secret].to_sentence.presence
+    ) %>
+  </div>
 
   <div>
     <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
@@ -92,11 +138,20 @@
 
 <script>
   (function () {
-    var box = document.querySelector("[name='oauth_client[use_central_relay]'][type='checkbox']")
-    var rules = document.getElementById("central_relay_rules")
-    if (!box || !rules) return
-    var sync = function () { rules.hidden = !box.checked }
-    box.addEventListener("change", sync)
-    sync()
+    var relayBox = document.querySelector("[name='oauth_client[use_central_relay]'][type='checkbox']")
+    var relayRules = document.getElementById("central_relay_rules")
+    if (relayBox && relayRules) {
+      var syncRelay = function () { relayRules.hidden = !relayBox.checked }
+      relayBox.addEventListener("change", syncRelay)
+      syncRelay()
+    }
+
+    var tokenBox = document.querySelector("[name='oauth_client[token_verification]'][type='checkbox']")
+    var tokenFields = document.getElementById("token_verification_fields")
+    if (tokenBox && tokenFields) {
+      var syncToken = function () { tokenFields.hidden = !tokenBox.checked }
+      tokenBox.addEventListener("change", syncToken)
+      syncToken()
+    }
   })()
 </script>

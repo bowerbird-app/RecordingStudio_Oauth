@@ -8,8 +8,13 @@ module RecordingStudioOauth
              class_name: "RecordingStudioOauth::OauthAuthorization",
              dependent: :destroy,
              inverse_of: :oauth_client
+    has_many :external_installs,
+             class_name: "RecordingStudioOauth::ExternalInstall",
+             dependent: :destroy,
+             inverse_of: :oauth_client
 
     before_validation :assign_client_id, on: :create
+    before_validation :normalize_session_token_fields
 
     validates :name, presence: true
     validates :client_id, presence: true, uniqueness: true
@@ -66,6 +71,27 @@ module RecordingStudioOauth
       TokenDigest.matches?(client_secret_digest, secret)
     end
 
+    def session_token_secret
+      SecretBox.decrypt(session_token_secret_ciphertext)
+    end
+
+    def session_token_secret=(plain)
+      return if plain.nil?
+
+      stripped = plain.to_s
+      return if stripped.empty?
+
+      self.session_token_secret_ciphertext = SecretBox.encrypt(stripped)
+    end
+
+    def session_token_verify_ready?
+      session_token_provider.present? && session_token_audience.present? && session_token_secret.present?
+    end
+
+    def session_token_configured?
+      session_token_provider.present? || session_token_audience.present? || session_token_secret_ciphertext.present?
+    end
+
     def revoke!(time: Time.current)
       update!(revoked_at: time) if revoked_at.nil?
     end
@@ -74,6 +100,11 @@ module RecordingStudioOauth
 
     def assign_client_id
       self.client_id = OauthClientSecret.generate_client_id if client_id.blank?
+    end
+
+    def normalize_session_token_fields
+      self.session_token_provider = session_token_provider.to_s.strip.downcase.presence
+      self.session_token_audience = session_token_audience.to_s.strip.presence
     end
 
     def redirect_uris_must_be_absolute

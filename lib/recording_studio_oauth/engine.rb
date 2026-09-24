@@ -9,6 +9,8 @@ require "recording_studio_site_settings"
 require "flat_pack"
 require "recording_studio_oauth/connect_handshake"
 require "recording_studio_oauth/token_digest"
+require "recording_studio_oauth/secret_box"
+require "recording_studio_oauth/hs256_jwt"
 require "recording_studio_oauth/pkce"
 require "recording_studio_oauth/authorization_code"
 require "recording_studio_oauth/refresh_token"
@@ -31,6 +33,8 @@ require "recording_studio_oauth/services/issue_delegated_access_token"
 require "recording_studio_oauth/services/start_central_relay"
 require "recording_studio_oauth/services/finish_central_relay"
 require "recording_studio_oauth/services/update_oauth_client"
+require "recording_studio_oauth/services/verify_session_token"
+require "recording_studio_oauth/services/record_external_install"
 require "recording_studio_oauth/oauth_client_form"
 require "recording_studio_oauth/admin"
 
@@ -86,7 +90,7 @@ module RecordingStudioOauth
     end
 
     initializer "recording_studio_oauth.filter_parameters" do |app|
-      app.config.filter_parameters += %i[code_verifier oauth_client_secret]
+      app.config.filter_parameters += %i[code_verifier oauth_client_secret session_token_secret]
     end
 
     initializer "recording_studio_oauth.append_migrations" do |app|
