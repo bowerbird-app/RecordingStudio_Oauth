@@ -92,6 +92,7 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes form, 'label: "Secret"'
     assert_includes form, 'label: "Use central relay"'
     assert_includes form, 'label: "Allow registration"'
+    assert_includes form, 'label: "Token verification"'
     assert_includes form, 'label: "Channel"'
     assert_includes form, 'label: "Who the token is for"'
     assert_includes form, 'label: "Session token secret"'

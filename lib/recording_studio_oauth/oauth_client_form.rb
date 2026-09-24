@@ -13,6 +13,7 @@ module RecordingStudioOauth
       session_token_provider
       session_token_audience
       session_token_secret
+      token_verification
     ].freeze
 
     def initialize(params)
@@ -33,7 +34,8 @@ module RecordingStudioOauth
     def update_args(client)
       shared_args.merge(
         client: client,
-        allow_registration: allow_registration_for_update?(client)
+        allow_registration: allow_registration_for_update?(client),
+        clear_session_token_secret: !token_verification_on?
       )
     end
 
@@ -56,10 +58,20 @@ module RecordingStudioOauth
     end
 
     def session_token_args
+      return cleared_session_token_args unless token_verification_on?
+
       {
         session_token_provider: params[:session_token_provider],
         session_token_audience: params[:session_token_audience],
         session_token_secret: params[:session_token_secret]
+      }
+    end
+
+    def cleared_session_token_args
+      {
+        session_token_provider: nil,
+        session_token_audience: nil,
+        session_token_secret: nil
       }
     end
 
@@ -70,6 +82,12 @@ module RecordingStudioOauth
     def relay_flag
       value = params[:use_central_relay]
       value.is_a?(Array) ? value.last : value
+    end
+
+    def token_verification_on?
+      return false unless params.key?(:token_verification)
+
+      RegistrationPolicy.flag?(params[:token_verification])
     end
 
     def allow_registration_for_create?

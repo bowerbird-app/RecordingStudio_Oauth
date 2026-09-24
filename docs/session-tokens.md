@@ -13,11 +13,13 @@ Keep these distinct.
 
 ## What staff set on the Registered App
 
-On create or edit:
+On create or edit, turn on **Token verification**. Leave it off if this app does not check session tokens. When it is on, staff set:
 
-- **Channel.** A short label stored on the install row. Leave blank if this app does not check session tokens.
+- **Channel.** A short label stored on the install row.
 - **Who the token is for.** The channel app id (`aud`).
 - **Session token secret.** The channel signing secret. This is not the Connect secret the form shows once. Leave the field blank on edit to keep the stored secret.
+
+Turning Token verification off clears Channel, Who the token is for, and the stored session token secret. The checkbox itself is not a database column. Edit checks it when any of those three is already stored.
 
 The Connect secret stays a digest. HMAC needs the real signing secret, so this gem stores the session token secret encrypted with `secret_key_base`.
 
@@ -116,7 +118,7 @@ The workspace is `install.root_recording.recordable` when Connect has bound a ro
 This gem does not change a channel plugin template. After you tag this version, a Shopify Admin iframe host still needs to:
 
 1. Create a Registered App for merchant Connect (`rsoauth_oc_…`).
-2. Set Channel, Who the token is for, and Session token secret from the Partner app.
+2. Turn on Token verification. Set Channel, Who the token is for, and Session token secret from the Partner app.
 3. On iframe load, call `verify_session_token` with the App Bridge session token.
 4. Read claims in the host. Check `iss` and `dest` there. Choose `external_id`.
 5. Upsert `ExternalInstall` with `provider` and that id.

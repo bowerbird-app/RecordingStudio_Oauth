@@ -88,6 +88,10 @@ module RecordingStudioOauth
       session_token_provider.present? && session_token_audience.present? && session_token_secret.present?
     end
 
+    def session_token_configured?
+      session_token_provider.present? || session_token_audience.present? || session_token_secret_ciphertext.present?
+    end
+
     def revoke!(time: Time.current)
       update!(revoked_at: time) if revoked_at.nil?
     end
