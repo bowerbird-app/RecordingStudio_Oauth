@@ -144,6 +144,25 @@ Signup is the host Users page. This gem does not resume Connect after signup.
 
 See `docs/connect-options.md`.
 
+## Session tokens and external installs
+
+A channel host can prove an App Bridge session token with HS256, then map that install to a workspace. Shopify columns do not go on users or workspaces.
+
+Who the token is for is the channel's Partner app id (`aud`). The Registered App id `rsoauth_oc_…` is merchant Connect only. Installed is not Connected.
+
+```ruby
+result = RecordingStudioOauth.verify_session_token(
+  client_id: registered_app.client_id,
+  token: session_token
+)
+RecordingStudioOauth.record_external_install(
+  client: result.value.fetch(:client),
+  external_id: result.value.fetch(:external_id)
+)
+```
+
+See `docs/session-tokens.md`.
+
 ## Version
 
-0.5.2
+0.5.3

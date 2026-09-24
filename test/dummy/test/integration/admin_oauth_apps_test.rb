@@ -76,6 +76,9 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Create app"
     assert_includes response.body, "Use central relay"
     assert_includes response.body, "Allow registration"
+    assert_includes response.body, "Channel"
+    assert_includes response.body, "Who the token is for"
+    assert_includes response.body, "Session token secret"
     assert_includes response.body, "This app decides whether people can sign up."
     assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
     assert_includes response.body, "Allowed return patterns"
@@ -252,6 +255,44 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     client.reload
     refute client.use_central_relay?
     assert_equal [pattern], client.allowed_return_patterns
+  end
+
+  test "staff can save session token verify fields" do
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Shopify Channel App",
+        redirect_uris: "http://127.0.0.1/callback",
+        secret: "public",
+        session_token_provider: "shopify",
+        session_token_audience: "partner-client-id",
+        session_token_secret: "shopify-api-secret"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Shopify Channel App")
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_equal "shopify", client.session_token_provider
+    assert_equal "partner-client-id", client.session_token_audience
+    assert_equal "shopify-api-secret", client.session_token_secret
+    refute_equal "shopify-api-secret", client.session_token_secret_ciphertext
+    refute_includes client.client_id, "partner-client-id"
+
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+    assert_response :success
+    refute_includes response.body, "shopify-api-secret"
+
+    patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
+      oauth_client: {
+        name: "Shopify Channel App",
+        redirect_uris: "http://127.0.0.1/callback",
+        session_token_provider: "shopify",
+        session_token_audience: "partner-client-id",
+        session_token_secret: ""
+      }
+    }
+
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_equal "shopify-api-secret", client.reload.session_token_secret
   end
 
   test "central relay on requires a return pattern or an exact URL" do

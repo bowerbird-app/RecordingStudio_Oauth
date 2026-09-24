@@ -1,5 +1,20 @@
 # Upgrading
 
+## 0.5.3
+
+Run the new migration after you pull this version.
+
+```bash
+bin/rails generate recording_studio_oauth:migrations
+bin/rails db:migrate
+```
+
+On each Registered App that should check App Bridge (or another channel session token), set Channel, Who the token is for, and Session token secret. Who the token is for is the channel's own app id. It is not the `rsoauth_oc_…` Registered App id.
+
+Hosts call `RecordingStudioOauth.verify_session_token` then `RecordingStudioOauth.record_external_install`. An install row can exist before merchant Connect. Bind `root_recording` and `connected_by` only when Connect finishes.
+
+See `docs/session-tokens.md`.
+
 ## 0.5.2
 
 No host steps. The create and edit forms put Allow registration above Use central relay with the same gap as the other fields.

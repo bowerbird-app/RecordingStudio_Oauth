@@ -71,6 +71,24 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert client.authenticate_secret?(secret)
   end
 
+  test "stores session token verify fields on create" do
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Channel App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      session_token_provider: "Shopify",
+      session_token_audience: "partner-client-id",
+      session_token_secret: "shopify-api-secret"
+    )
+
+    assert result.success?
+    client = result.value.fetch(:client)
+    assert_equal "shopify", client.session_token_provider
+    assert_equal "partner-client-id", client.session_token_audience
+    assert_equal "shopify-api-secret", client.session_token_secret
+    assert client.session_token_verify_ready?
+  end
+
   test "rejects a redirect URI with a fragment" do
     result = RecordingStudioOauth::Services::CreateOauthClient.call(
       name: "Bad Redirect",

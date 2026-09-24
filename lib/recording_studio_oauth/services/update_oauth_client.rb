@@ -3,7 +3,7 @@
 module RecordingStudioOauth
   module Services
     class UpdateOauthClient < RecordingStudio::Services::BaseService
-      def initialize(client:, name:, redirect_uris:, use_central_relay:, allowed_return_patterns:, exact_return_urls:, allow_registration: nil)
+      def initialize(client:, name:, redirect_uris:, use_central_relay:, allowed_return_patterns:, exact_return_urls:, allow_registration: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
         @client = client
         @name = name.to_s
         @redirect_uris = Array(redirect_uris)
@@ -15,11 +15,14 @@ module RecordingStudioOauth
                               else
                                 ActiveModel::Type::Boolean.new.cast(allow_registration) == true
                               end
+        @session_token_provider = session_token_provider
+        @session_token_audience = session_token_audience
+        @session_token_secret = session_token_secret
       end
 
       private
 
-      attr_reader :client, :name, :redirect_uris, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration
+      attr_reader :client, :name, :redirect_uris, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :session_token_provider, :session_token_audience, :session_token_secret
 
       def perform
         client.assign_attributes(
@@ -28,8 +31,11 @@ module RecordingStudioOauth
           use_central_relay: use_central_relay,
           allowed_return_patterns: allowed_return_patterns,
           exact_return_urls: exact_return_urls,
-          allow_registration: allow_registration
+          allow_registration: allow_registration,
+          session_token_provider: session_token_provider,
+          session_token_audience: session_token_audience
         )
+        client.session_token_secret = session_token_secret unless session_token_secret.nil?
 
         if client.save
           success(client)

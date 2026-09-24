@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -321,10 +321,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
     t.string "name", null: false
     t.jsonb "redirect_uris", default: [], null: false
     t.datetime "revoked_at"
+    t.string "session_token_audience"
+    t.string "session_token_provider"
+    t.text "session_token_secret_ciphertext"
     t.datetime "updated_at", null: false
     t.boolean "use_central_relay", default: false, null: false
     t.index ["api_key"], name: "index_recording_studio_oauth_clients_on_api_key"
     t.index ["client_id"], name: "index_recording_studio_oauth_clients_on_client_id", unique: true
+  end
+
+  create_table "recording_studio_oauth_external_installs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "connected_by_id"
+    t.string "connected_by_type"
+    t.datetime "created_at", null: false
+    t.string "external_id", null: false
+    t.uuid "oauth_client_id", null: false
+    t.string "provider", null: false
+    t.uuid "root_recording_id"
+    t.datetime "updated_at", null: false
+    t.index ["connected_by_type", "connected_by_id"], name: "index_rs_oauth_external_installs_on_connected_by"
+    t.index ["oauth_client_id", "provider", "external_id"], name: "index_rs_oauth_external_installs_on_client_provider_external", unique: true
+    t.index ["provider", "external_id"], name: "index_rs_oauth_external_installs_on_provider_external"
+    t.index ["root_recording_id"], name: "idx_on_root_recording_id_efcab19ee0"
   end
 
   create_table "recording_studio_oauth_refresh_tokens", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -411,6 +429,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
   add_foreign_key "recording_studio_oauth_access_tokens", "recording_studio_oauth_authorizations", column: "oauth_authorization_id"
   add_foreign_key "recording_studio_oauth_authorization_codes", "recording_studio_oauth_authorizations", column: "oauth_authorization_id"
   add_foreign_key "recording_studio_oauth_authorizations", "recording_studio_oauth_clients", column: "oauth_client_id"
+  add_foreign_key "recording_studio_oauth_external_installs", "recording_studio_oauth_clients", column: "oauth_client_id"
+  add_foreign_key "recording_studio_oauth_external_installs", "recording_studio_recordings", column: "root_recording_id"
   add_foreign_key "recording_studio_oauth_refresh_tokens", "recording_studio_oauth_authorizations", column: "oauth_authorization_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "parent_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"

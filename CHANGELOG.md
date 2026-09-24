@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-09-24
+
+Channel hosts can prove an App Bridge session token and map that install to a workspace without Shopify columns on users or workspaces.
+
+### Added
+- `RecordingStudioOauth.verify_session_token` checks HS256 session tokens with the Registered App signing secret and Who the token is for (`aud`). Shopify Channel also checks `exp`, `nbf`, and matching `iss` / `dest` hosts.
+- `recording_studio_oauth_external_installs` maps `provider` + `external_id` + Registered App to an optional root recording and `connected_by`. `RecordingStudioOauth.record_external_install` upserts that row.
+- Registered App create and edit take Channel, Who the token is for, and Session token secret.
+
+### Notes
+- Installed is not Connected. A verify upsert can exist before merchant Connect binds a workspace.
+- The Partner app client id is the token `aud`. The Registered App id `rsoauth_oc_…` is Connect login only.
+- Session token secret is stored encrypted. The Connect secret stays a digest and is not reused for HMAC.
+
 ## [0.5.2] - 2026-09-23
 
 ### Fixed
@@ -151,6 +165,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.5.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.4.2...v0.5.0

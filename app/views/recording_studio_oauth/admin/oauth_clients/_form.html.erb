@@ -32,6 +32,31 @@
     ) %>
   <% end %>
 
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[session_token_provider]",
+    label: "Channel",
+    value: @oauth_client.session_token_provider,
+    help_text: "shopify for Shopify Admin. Leave blank if this app does not check session tokens.",
+    error: @oauth_client.errors[:session_token_provider].to_sentence.presence
+  ) %>
+
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[session_token_audience]",
+    label: "Who the token is for",
+    value: @oauth_client.session_token_audience,
+    help_text: "The channel's own app id. Not the Registered App id we mint.",
+    error: @oauth_client.errors[:session_token_audience].to_sentence.presence
+  ) %>
+
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[session_token_secret]",
+    label: "Session token secret",
+    value: nil,
+    autocomplete: "off",
+    help_text: @oauth_client.session_token_secret_ciphertext.present? ? "Leave blank to keep the secret already stored." : "The channel's signing secret. Not the Connect secret we show once.",
+    error: @oauth_client.errors[:session_token_secret].to_sentence.presence
+  ) %>
+
   <div>
     <%= hidden_field_tag "oauth_client[allow_registration]", "0" %>
     <%= render FlatPack::Tooltip::Component.new(
