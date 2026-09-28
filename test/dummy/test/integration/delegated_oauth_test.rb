@@ -36,7 +36,9 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params
 
     assert_response :success
-    assert_select "body[data-theme='rounded']", count: 1
+    assert_select "html[data-theme='rounded']", count: 1
+    assert_select "body[data-theme]", count: 0
+    assert_includes response.body, "flat_pack/application"
     refute_includes response.body, "data-recording-studio-default-layout"
     assert_includes response.body, "min-h-dvh"
     assert_includes response.body, "max-w-sm"
@@ -71,7 +73,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     end
     assert_match(/\bConnect\b/, css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.text)
     folder_button = css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.at_css("a")
-    assert_includes folder_button["class"], "--button-default-background-color"
+    assert_includes folder_button["class"], "--button-primary-background-color"
     assert_select "[role='tooltip']", count: 0
     assert_select "[data-controller='flat-pack--tooltip']", count: 0
     refute_equal @root_recording.id, folder_recording.id
@@ -135,6 +137,10 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "You can view"
     assert_select "button[name='decision'][value='connect']"
     assert_select "button[name='decision'][value='cancel']"
+    connect_cta = css_select("button[name='decision'][value='connect']").first
+    cancel_cta = css_select("button[name='decision'][value='cancel']").first
+    assert_includes connect_cta["class"], "--button-primary-background-color"
+    assert_includes cancel_cta["class"], "--button-secondary-background-color"
     assert_select ".flat-pack-page-nav", count: 1
     assert_select "form[action=?][method=post][data-turbo=false]", authorize_path
     assert_select "form[data-turbo=false] button[name='decision'][value='connect']"

@@ -5,7 +5,7 @@ module RecordingStudioOauth
     include Concerns::HostAuthentication
 
     CONNECT_BUTTON_STYLE = {
-      "Connect" => :default,
+      "Connect" => :primary,
       "Reconnect" => :danger,
       "Connected" => :success
     }.freeze

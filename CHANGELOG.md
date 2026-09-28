@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-09-28
+
+Connect and permissions CTAs use Flatpack primary, with brand `--button-primary-*` tokens on the authorize layout.
+
+### Fixed
+- Workspace-list Connect is Flatpack `style: :primary`. Reconnect stays danger. Connected stays success.
+- The authorize layout loads `flat_pack/application` and sets `data-theme` on `html` so primary tokens resolve the same way as other Recording Studio auth pages.
+
+### Notes
+- Pin this release on Shopify plugin and other channel hosts before Connect screenshots. No host CSS fork.
+
 ## [0.5.3] - 2026-09-24
 
 Channel hosts can prove a session JWT and map that install to a workspace without channel columns on users or workspaces.
@@ -165,6 +176,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.5.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.0...v0.5.1

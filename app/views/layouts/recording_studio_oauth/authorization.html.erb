@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="<%= content_for(:body_theme).presence || 'rounded' %>">
   <head>
     <% rs_config = RecordingStudio.configuration %>
     <% app_name = (rs_config.respond_to?(:app_name) ? rs_config.app_name : nil) || "Connect" %>
@@ -12,11 +12,12 @@
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "flat_pack/variables", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/application", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "flat_pack/rich_text", "data-turbo-track": "reload" %>
     <%= yield :head %>
     <%= javascript_importmap_tags if respond_to?(:javascript_importmap_tags) %>
   </head>
-  <body class="bg-(--surface-page-background-color) text-(--surface-content-color)" data-theme="<%= content_for(:body_theme).presence || 'rounded' %>">
+  <body class="bg-(--surface-page-background-color) text-(--surface-content-color)">
     <main class="flex min-h-dvh items-center justify-center p-6">
       <div class="w-full max-w-sm space-y-6">
         <% unless content_for?(:skip_connect_page_nav) %>

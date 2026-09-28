@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.5.4
+
+Pin `recording_studio_oauth` to `0.5.4`. Shopify plugin and other channel hosts pick this up next for Connect screenshots.
+
+No migration. No host stylesheet for primary Connect buttons. The authorize layout loads Flatpack application CSS and puts `data-theme` on `html`. Workspace Connect uses Flatpack primary. Reconnect and Connected keep their styles.
+
 ## 0.5.3
 
 Run the new migration after you pull this version.
