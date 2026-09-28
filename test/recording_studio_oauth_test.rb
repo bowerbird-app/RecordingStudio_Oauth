@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.3", ::RecordingStudioOauth::VERSION
+    assert_equal "0.5.4", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -153,6 +153,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes layout, "max-w-sm"
     assert_includes layout, "FlatPack::PageNav::Component"
     assert_includes layout, "skip_connect_page_nav"
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes layout, "<html data-theme="
+    refute_includes layout, "body class=\"bg-(--surface-page-background-color) text-(--surface-content-color)\" data-theme"
     refute_includes layout, "max-w-6xl"
   end
 
@@ -169,10 +172,10 @@ class RecordingStudioOauthTest < Minitest::Test
     controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
     consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
 
-    assert_includes controller, '"Connect" => :default'
+    assert_includes controller, '"Connect" => :primary'
     assert_includes controller, '"Reconnect" => :danger'
     assert_includes controller, '"Connected" => :success'
-    refute_includes controller, '"Connect" => :primary'
+    refute_includes controller, '"Connect" => :default'
     refute_includes controller, '"Reconnect" => :primary'
     refute_includes controller, '"Connected" => :secondary'
     assert_includes consent, "style: :primary"
