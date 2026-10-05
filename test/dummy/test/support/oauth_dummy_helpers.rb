@@ -43,13 +43,36 @@ module OauthDummyHelpers
     Current.actor = user
     workspace = Workspace.create!(name: workspace_name)
     root_recording = RecordingStudio.root_recording_for(workspace)
-    access_recording = grant_or_bootstrap_access!(
-      recording: root_recording,
-      actor: user,
-      role: role
-    )
+    access_recording = if role.to_s == "admin"
+                         grant_or_bootstrap_access!(
+                           recording: root_recording,
+                           actor: user,
+                           role: :admin
+                         )
+                       else
+                         grant_view_or_edit_on_new_workspace!(
+                           recording: root_recording,
+                           actor: user,
+                           role: role
+                         )
+                       end
 
     [root_recording, access_recording]
+  end
+
+  def grant_view_or_edit_on_new_workspace!(recording:, actor:, role:)
+    owner = create_user(email: "workspace-owner-#{SecureRandom.hex(4)}@example.com")
+    grant_or_bootstrap_access!(recording: recording, actor: owner, role: :admin)
+    Current.actor = owner
+    result = RecordingStudioAccessible.grant_access(
+      recording: recording,
+      actor: actor,
+      role: role,
+      manager_actor: owner
+    )
+    raise result.error unless result.success?
+
+    result.value
   end
 
   def create_folder_access_for(user:, folder_name: "Folder #{SecureRandom.hex(4)}", role: :admin, workspace_name: nil)
