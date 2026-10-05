@@ -97,7 +97,7 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Central Connect relay
 
