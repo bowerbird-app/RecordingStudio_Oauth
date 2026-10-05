@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.5.5
+
+No host code change. Recording Studio API may be 0.5.2 through 0.6. Pin `>= 0.5.2, < 0.7`. Dummy uses `v0.6.0`. Connect, token exchange, and grant hooks stay the same. API 0.6's optional `progress_reporter` is unused here.
+
 ## 0.5.3
 
 Run the new migration after you pull this version.
