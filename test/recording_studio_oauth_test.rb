@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.3", ::RecordingStudioOauth::VERSION
+    assert_equal "0.5.5", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -16,7 +16,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.5.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.7"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.144"'
     refute_includes gemspec, "recording_studio_users"
@@ -52,7 +52,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.11.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.5.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.4"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.7.1"'
@@ -103,7 +103,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "TokenAuthenticator"
-    assert_includes readme, "~> 0.5.2"
+    assert_includes readme, ">= 0.5.2, < 0.7"
     assert_includes readme, "name_for"
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"

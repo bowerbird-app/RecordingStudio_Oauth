@@ -16,6 +16,16 @@ Development and dummy pins climb Recording Studio addons to current layer 0–2 
 - Dummy grants go through Accessible services. API 0.5.2 still gets a dummy-only `Access.roles` map so it can authorize.
 - Recording Studio stays on `v4.2.2`. API stays on `v0.5.2`. Flatpack stays on `v0.1.144`.
 
+## [0.5.5] - 2026-10-05
+
+Hosts can use Recording Studio API 0.6. Connect and token exchange stay the same.
+
+### Changed
+- Recording Studio API is now `>= 0.5.2, < 0.7`. Dummy and development pin `v0.6.0`.
+
+### Notes
+- API 0.6 adds an optional `progress_reporter` on handler contexts. REST still leaves it `nil`. This gem does not use that field.
+
 ## [0.5.3] - 2026-09-24
 
 Channel hosts can prove a session JWT and map that install to a workspace without channel columns on users or workspaces.
@@ -176,6 +186,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.5.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.4...v0.5.5
 [0.5.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.0...v0.5.1
