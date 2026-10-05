@@ -4,7 +4,7 @@
 
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
-- Recording Studio `~> 4.2` (dummy tag `v4.2.0`)
+- Recording Studio `~> 4.2` (dummy tag `v4.2.2`)
 - Accessible `~> 0.9` (dummy tag `v0.9.1`)
 - API `~> 0.5.2` (dummy tag `v0.5.2`)
 - Admin `~> 2.0` (dummy tag `v2.0.2`)
