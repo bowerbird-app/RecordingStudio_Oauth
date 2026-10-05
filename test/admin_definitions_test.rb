@@ -10,6 +10,7 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, 'text: "New app"'
     assert_includes admin, "style: :primary"
     assert_includes admin, "new_oauth_client_path"
+    assert_includes admin, "column :self_registered"
     refute_includes admin, "button :registration"
     refute_includes admin, "class ConfigSection"
     refute_includes admin, "registration_setting"
@@ -37,6 +38,25 @@ class AdminDefinitionsTest < Minitest::Test
     assert_equal "Has a secret", column.cell(secret_row, nil)
     assert_equal({ text: "Has a secret", style: :info, size: :sm }, column.display_options_for(secret_row, nil, "Has a secret"))
     assert_equal "Lives on a server. Proves itself with a secret.", column.tooltip_for(secret_row, nil)
+  end
+
+  def test_source_column_marks_self_registered_apps
+    column = RecordingStudioOauth::Admin::OauthClientsScreen.table_value.columns.find { |item| item.key == :self_registered }
+
+    assert_equal :badge, column.display
+    assert_equal "Source", column.title
+
+    staff_row = client_row(self_registered: false)
+
+    assert_equal "Staff", column.cell(staff_row, nil)
+    assert_equal({ text: "Staff", style: :default, size: :sm }, column.display_options_for(staff_row, nil, "Staff"))
+    assert_equal "Someone on staff added this app.", column.tooltip_for(staff_row, nil)
+
+    self_registered_row = client_row(self_registered: true)
+
+    assert_equal "Self-registered", column.cell(self_registered_row, nil)
+    assert_equal({ text: "Self-registered", style: :info, size: :sm }, column.display_options_for(self_registered_row, nil, "Self-registered"))
+    assert_equal "This app signed itself up. Connecting still needs a person.", column.tooltip_for(self_registered_row, nil)
   end
 
   def test_status_column_uses_admin_badge_without_tooltip
@@ -108,10 +128,11 @@ class AdminDefinitionsTest < Minitest::Test
 
   private
 
-  def client_row(confidential: false, revoked: false)
+  def client_row(confidential: false, revoked: false, self_registered: false)
     Object.new.tap do |row|
       row.define_singleton_method(:confidential?) { confidential }
       row.define_singleton_method(:revoked?) { revoked }
+      row.define_singleton_method(:self_registered?) { self_registered }
     end
   end
 end

@@ -11,9 +11,6 @@ Rails.application.routes.draw do
   mount RecordingStudioSiteSettings::Engine, at: "/recording_studio_site_settings"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
 
-  get "/.well-known/oauth-authorization-server",
-      to: "recording_studio_oauth/oauth_discoveries#authorization_server",
-      defaults: { api_key: "public" }
   RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)
 
   recording_studio_admin_for :admin, at: "/admin", root_section: :root

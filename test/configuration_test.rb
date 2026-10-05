@@ -19,6 +19,8 @@ class ConfigurationTest < Minitest::Test
     assert_nil @configuration.public_origin
     assert_equal "/users/sign_up", @configuration.registration_path
     refute @configuration.allow_registration?
+    refute @configuration.allow_self_registered_apps?
+    assert_equal 10, @configuration.self_registered_apps_per_minute
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
   end
 
@@ -34,6 +36,12 @@ class ConfigurationTest < Minitest::Test
 
     @configuration.merge!(allow_registration: true)
     assert @configuration.allow_registration?
+
+    @configuration.allow_self_registered_apps = "false"
+    refute @configuration.allow_self_registered_apps?
+
+    @configuration.merge!(allow_self_registered_apps: true)
+    assert @configuration.allow_self_registered_apps?
   end
 
   def test_merge_updates_known_attributes
@@ -79,6 +87,8 @@ class ConfigurationTest < Minitest::Test
     assert_nil result.fetch(:public_origin)
     assert_equal "/users/sign_up", result.fetch(:registration_path)
     assert_equal false, result.fetch(:allow_registration)
+    assert_equal false, result.fetch(:allow_self_registered_apps)
+    assert_equal 10, result.fetch(:self_registered_apps_per_minute)
   end
 
   def test_configure_without_block_is_safe

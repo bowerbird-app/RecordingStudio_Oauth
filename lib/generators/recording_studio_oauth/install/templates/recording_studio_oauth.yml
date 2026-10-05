@@ -4,6 +4,8 @@ development:
   mcp_mount_path: "/recording_studio_mcp"
   register_origin_as_protected_resource: false
   allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10
 
 production:
   api_mount_path: "/recording_studio_api"
@@ -11,3 +13,5 @@ production:
   mcp_mount_path: "/recording_studio_mcp"
   register_origin_as_protected_resource: false
   allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10

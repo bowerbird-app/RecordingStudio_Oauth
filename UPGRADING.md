@@ -1,5 +1,30 @@
 # Upgrading
 
+## 0.6.0
+
+Run the new migration after you pull this version.
+
+```bash
+bin/rails generate recording_studio_oauth:migrations
+bin/rails db:migrate
+```
+
+Hosts that already call `ProtectedResourceRegistry.draw_origin_well_known(self)` get RFC 8414 path insertion on the next boot. `GET /.well-known/oauth-authorization-server/recording_studio_oauth` returns metadata whose `issuer` is `https://<host>/recording_studio_oauth`. Keep that helper. Do not add OpenID Connect discovery.
+
+Self-registered apps stay off. MCP Inspector and similar clients need:
+
+```ruby
+RecordingStudioOauth.configure do |config|
+  config.allow_self_registered_apps = true
+end
+```
+
+That advertises `registration_endpoint` and accepts `POST /recording_studio_oauth/register`. Dummy sets this on. `config.allow_registration` is still only the starting signup flag on a new app.
+
+Optional: `config.self_registered_apps_per_minute` (default 10) rate-limits `/register` per IP. Set `0` to turn the limit off.
+
+Registration does not grant access. People still Connect. Staff revoke a self-registered app from Registered apps.
+
 ## 0.5.6
 
 No host code change. Recording Studio API may be 0.5.2 through 0.6. Pin `>= 0.5.2, < 0.7`. Dummy uses `v0.6.0`. Connect, token exchange, and grant hooks stay the same. API 0.6's optional `progress_reporter` is unused here.

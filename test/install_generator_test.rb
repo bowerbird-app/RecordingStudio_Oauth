@@ -150,6 +150,7 @@ class InstallGeneratorTest < Minitest::Test
       )
     )
     assert_includes initializer, "config.allow_registration = false"
+    assert_includes initializer, "config.allow_self_registered_apps = false"
     assert_includes install_guide, "bin/rails db:migrate"
     assert_includes install_guide, "auth, layout, and current actor integration"
     assert_includes install_guide, "recording_studio_recordable"

@@ -4,7 +4,7 @@ This gem is the **authorization server**. Third-party apps register once. People
 
 [Recording Studio API](https://github.com/bowerbird-app/RecordingStudio_api) is the **resource server**. Token URL stays `/recording_studio_api/oauth/token`. Machine API keys stay there too. This gem does not fork a second token endpoint.
 
-It is not Users. It is not Doorkeeper. It is not Dynamic Client Registration. It is not OIDC or SAML. It is not OAuth scopes. The app does not act as the person.
+It is not Users. It is not Doorkeeper. It is not OIDC or SAML. It is not OAuth scopes. The app does not act as the person. Dynamic Client Registration is optional and off for hosts.
 
 ## What you get
 
@@ -14,7 +14,7 @@ It is not Users. It is not Doorkeeper. It is not Dynamic Client Registration. It
 
 Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code or a rotated refresh token voids the grant. Disconnect and reconnect drop unused codes so they cannot void a later grant.
 
-RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount.
+RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount. Path-inserted metadata is at `/.well-known/oauth-authorization-server/recording_studio_oauth`. `issuer` is the mount URL. This gem is not an OpenID Connect provider, so `openid-configuration` stays 404.
 
 ## Protected resources
 
@@ -27,7 +27,7 @@ This gem is one authorization server. It advertises more than one protected-reso
 
 The engine URL `/recording_studio_oauth/.well-known/oauth-protected-resource` still serves the API identifier. Origin unsuffixed `/.well-known/oauth-protected-resource` is 404 unless you set `register_origin_as_protected_resource = true`.
 
-Draw origin path-inserted well-known in the host:
+Draw origin well-known in the host (authorization-server path insertion and protected-resource path insertion):
 
 ```ruby
 mount RecordingStudioOauth::Engine, at: "/recording_studio_oauth"
@@ -144,6 +144,32 @@ Signup is the host Users page. This gem does not resume Connect after signup.
 
 See `docs/connect-options.md`.
 
+## Self-registered apps
+
+MCP Inspector and other MCP clients can register without a staff-created app. That is RFC 7591 Dynamic Client Registration. It is off for hosts.
+
+```ruby
+RecordingStudioOauth.configure do |config|
+  config.allow_self_registered_apps = true
+end
+```
+
+When it is on, authorization-server metadata includes `registration_endpoint`, and `POST /recording_studio_oauth/register` creates an OauthClient. Dummy turns this on.
+
+Defaults:
+
+- Public client, `token_endpoint_auth_method` `none`, PKCE S256 required
+- `client_secret_basic` or `client_secret_post` when requested; the secret is returned once and `client_secret_expires_at` is `0`
+- Redirect URIs must be https, or http on localhost, 127.0.0.1, or `[::1]`, with any port. Fragments and wildcard hosts are rejected
+- `/register` is limited to `config.self_registered_apps_per_minute` (default 10) per IP
+- The app shows in Admin Registered apps as Self-registered. Staff can revoke it. Registration does not Connect
+
+`config.allow_registration` is still the starting signup flag on a new app. It does not turn self-registered apps on.
+
+MCP 2025-11-25 prefers Client ID Metadata Documents. This gem ships DCR, which Inspector v2.9.0 uses. CIMD is not implemented.
+
+See `docs/self-registered-apps.md`.
+
 ## Session tokens and external installs
 
 A channel host can prove a session JWT with HS256, then map that install to a workspace. Oauth checks signature, audience, `exp`, and `nbf`. The host reads claims and chooses `external_id`. Channel columns do not go on users or workspaces.
@@ -166,4 +192,4 @@ See `docs/session-tokens.md`.
 
 ## Version
 
-0.5.5
+0.6.0
