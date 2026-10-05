@@ -12,7 +12,7 @@ It is not Users. It is not Doorkeeper. It is not OIDC or SAML. It is not OAuth s
 
 **OauthAuthorization** is an Accessible actor. Connect grants Access on the parent of the Access the person clicked, `depends_on:` that Access. The app's Access is a sibling of theirs. Same app and same node reconnects. Asking for more than they have, or a missing Access, rejects. Nothing is silently clamped.
 
-Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code or a rotated refresh token voids the grant. Disconnect and reconnect drop unused codes so they cannot void a later grant.
+Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code or a **rotated** refresh token voids the grant. Re-consent for the same app keeps live tokens. A refresh token revoked for any other reason returns `invalid_grant` and leaves the rest of the grant alone. Disconnect still voids the grant. Re-consent drops unused codes so they cannot void a later grant.
 
 RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount. Path-inserted metadata is at `/.well-known/oauth-authorization-server/recording_studio_oauth`. `issuer` is the mount URL. This gem is not an OpenID Connect provider, so `openid-configuration` stays 404.
 

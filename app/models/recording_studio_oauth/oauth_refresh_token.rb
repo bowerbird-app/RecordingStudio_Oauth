@@ -35,5 +35,17 @@ module RecordingStudioOauth
     def revoke!(time: Time.current)
       update_columns(revoked_at: time, updated_at: time) if revoked_at.nil?
     end
+
+    def rotated?
+      replaced_by_id.present?
+    end
+
+    def rotate_to!(successor, time: Time.current)
+      update_columns(
+        revoked_at: revoked_at || time,
+        replaced_by_id: successor.id,
+        updated_at: time
+      )
+    end
   end
 end

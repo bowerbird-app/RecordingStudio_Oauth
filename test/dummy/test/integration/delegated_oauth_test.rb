@@ -228,9 +228,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, authorizations.count
     assert_equal first.fetch(:authorization).id, authorizations.first.id
-    assert_not_nil RecordingStudio::Recording.unscoped.find(first_granted_id).trashed_at
-    assert_not_nil authorizations.first.access_recording
-    refute_equal first_granted_id, authorizations.first.access_recording_id
+    assert_equal first_granted_id, authorizations.first.access_recording_id
     assert_nil authorizations.first.access_recording.trashed_at
     assert_equal @access_recording.id, authorizations.first.access_recording.recordable.depends_on_recording_id
   end
@@ -655,6 +653,15 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_response :success
     rotated = JSON.parse(response.body)
     refute_equal first.fetch("access_token"), rotated.fetch("access_token")
+    old_refresh = RecordingStudioOauth::OauthRefreshToken.find_by!(
+      token_digest: RecordingStudioOauth::TokenDigest.digest(first.fetch("refresh_token"))
+    )
+    new_refresh = RecordingStudioOauth::OauthRefreshToken.find_by!(
+      token_digest: RecordingStudioOauth::TokenDigest.digest(rotated.fetch("refresh_token"))
+    )
+    assert old_refresh.revoked?
+    assert old_refresh.rotated?
+    assert_equal new_refresh.id, old_refresh.replaced_by_id
 
     post api_token_path, params: {
       grant_type: "refresh_token",

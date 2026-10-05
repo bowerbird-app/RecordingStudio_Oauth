@@ -15,6 +15,7 @@ MCP Inspector and other standards MCP clients can discover this authorization se
 
 ### Changed
 - Dummy turns self-registered apps on so the local MCP flow works.
+- Re-consent for the same app keeps live access and refresh tokens. Refresh-token reuse voids the grant only when that token was rotated (`replaced_by_id`). A refresh token revoked any other way returns `invalid_grant` and leaves the grant standing.
 
 ### Notes
 - Self-registered apps are off for hosts. Set `config.allow_self_registered_apps = true` to allow them. `config.allow_registration` is still the starting value for signup on a new app, not this switch.
