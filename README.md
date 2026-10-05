@@ -84,7 +84,7 @@ People can see and remove connected apps. Staff can register an app from Admin, 
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.9`, Admin `~> 2.0`, API `~> 0.5.2`, Site Settings `~> 0.1`, Flatpack `~> 0.1.144`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `~> 0.5.2`, Site Settings `~> 0.1`, Flatpack `~> 0.1.144`.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.

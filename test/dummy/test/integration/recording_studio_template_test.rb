@@ -20,7 +20,11 @@ class DummyHostTest < ActiveSupport::TestCase
     connection = ActiveRecord::Base.connection
 
     assert connection.column_exists?(:recording_studio_recordings, :root_recording_id)
+    role_column = connection.columns(:recording_studio_accesses).find { |column| column.name == "role" }
+
     assert connection.table_exists?(:recording_studio_accesses)
+    assert connection.table_exists?(:recording_studio_access_invitations)
+    assert_equal :string, role_column.type
     assert connection.table_exists?(:recording_studio_oauth_clients)
     assert connection.table_exists?(:recording_studio_oauth_authorizations)
     refute connection.table_exists?(:recording_studio_access_boundaries)

@@ -30,27 +30,13 @@ module OauthDummyHelpers
     )
     return result.value if result.success?
 
-    if role.to_s == "admin"
-      bootstrap = RecordingStudioAccessible.bootstrap_owner_access!(
-        recording: recording,
-        actor: actor
-      )
-      return bootstrap.value if bootstrap.success?
-    end
+    bootstrap = RecordingStudioAccessible.bootstrap_owner_access!(
+      recording: recording,
+      actor: actor
+    )
+    return bootstrap.value if bootstrap.success?
 
-    create_access_without_manager!(recording: recording, actor: actor, role: role)
-  end
-
-  def create_access_without_manager!(recording:, actor:, role:)
-    RecordingStudioAccessible::AccessCreationContext.allow do
-      access = RecordingStudio::Access.create!(actor: actor, role: role)
-      RecordingStudio.record!(
-        action: "created",
-        recordable: access,
-        root_recording: recording.root_recording || recording,
-        parent_recording: recording
-      ).recording
-    end
+    raise result.error
   end
 
   def create_access_recording_for(user:, workspace_name: "Workspace #{SecureRandom.hex(4)}", role: :admin)
