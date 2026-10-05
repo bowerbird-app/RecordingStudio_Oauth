@@ -1,8 +1,12 @@
 # Upgrading
 
-## 0.5.5
+## 0.5.6
 
 No host code change. Recording Studio API may be 0.5.2 through 0.6. Pin `>= 0.5.2, < 0.7`. Dummy uses `v0.6.0`. Connect, token exchange, and grant hooks stay the same. API 0.6's optional `progress_reporter` is unused here.
+
+## 0.5.5
+
+Pin Accessible `~> 0.11` and match dummy tags for Admin, Attachable, Site Settings, and Root Switchable as in `MIGRATION_NOTES.md`. Run new Accessible and Attachable dummy migrations on hosts that copy engine migrations into the app. Access roles are strings (`view`, `edit`, `admin`). Dummy grants go through Accessible services.
 
 ## 0.5.3
 
