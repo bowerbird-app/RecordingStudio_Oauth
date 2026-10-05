@@ -278,11 +278,14 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       role: "admin",
       pkce: @pkce
     )
-    RecordingStudioAccessible::AccessCreationContext.allow do
-      RecordingStudio.root_recording_or_self(@access_recording).revise(@access_recording, actor: @user) do |access|
-        access.role = :view
-      end
-    end
+    update = RecordingStudioAccessible::Services::UpdateRecordingAccess.call(
+      recording: @root_recording,
+      access_recording: @access_recording,
+      role: "view",
+      manager_actor: @user
+    )
+    raise update.error unless update.success?
+    @access_recording.reload
 
     assert_no_difference -> { RecordingStudioOauth::OauthAuthorization.where(oauth_client: @oauth_client, manager_actor: @user).count } do
       post authorize_path, params: authorize_params.merge(

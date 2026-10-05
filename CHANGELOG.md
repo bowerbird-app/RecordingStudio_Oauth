@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Development and dummy pins climb Recording Studio addons to current layer 0–2 tags. This gem's version is unchanged.
+
+### Changed
+- Gemspec Accessible constraint is `~> 0.11` so hosts match Accessible 0.11 string roles.
+- Dummy and development pins: Accessible `v0.11.1`, Admin `v2.0.4`, Attachable `v0.7.1`, Site Settings `v0.1.3`. Dummy also pins Root Switchable `v0.5.3`.
+- Dummy Accessible schema stores access roles as strings and adds access invitations. Attachable dummy schema adds presentation fields and `root_recording_id`.
+- Dummy grants go through Accessible services. API 0.5.2 still gets a dummy-only `Access.roles` map so it can authorize.
+- Recording Studio stays on `v4.2.2`. API stays on `v0.5.2`. Flatpack stays on `v0.1.144`.
+
 ## [0.5.3] - 2026-09-24
 
 Channel hosts can prove a session JWT and map that install to a workspace without channel columns on users or workspaces.

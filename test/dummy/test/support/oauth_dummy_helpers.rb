@@ -22,14 +22,6 @@ module OauthDummyHelpers
     ).first
     return existing if existing.present? && existing.recordable.role.to_s == role.to_s
 
-    result = RecordingStudioAccessible.grant_access(
-      recording: recording,
-      actor: actor,
-      role: role,
-      manager_actor: actor
-    )
-    return result.value if result.success?
-
     if role.to_s == "admin"
       bootstrap = RecordingStudioAccessible.bootstrap_owner_access!(
         recording: recording,
@@ -38,32 +30,75 @@ module OauthDummyHelpers
       return bootstrap.value if bootstrap.success?
     end
 
-    create_access_without_manager!(recording: recording, actor: actor, role: role)
+    result = RecordingStudioAccessible.grant_access(
+      recording: recording,
+      actor: actor,
+      role: role,
+      manager_actor: actor
+    )
+    return result.value if result.success?
+
+    manager = existing_admin_actor_for(recording)
+    if manager && manager != actor
+      granted = RecordingStudioAccessible.grant_access(
+        recording: recording,
+        actor: actor,
+        role: role,
+        manager_actor: manager
+      )
+      return granted.value if granted.success?
+
+      raise granted.error
+    end
+
+    raise result.error
   end
 
-  def create_access_without_manager!(recording:, actor:, role:)
-    RecordingStudioAccessible::AccessCreationContext.allow do
-      access = RecordingStudio::Access.create!(actor: actor, role: role)
-      RecordingStudio.record!(
-        action: "created",
-        recordable: access,
-        root_recording: recording.root_recording || recording,
-        parent_recording: recording
-      ).recording
+  def existing_admin_actor_for(recording)
+    RecordingStudioAccessible.access_recordings_for(recording).each do |access_recording|
+      access = access_recording.recordable
+      next unless access.respond_to?(:role) && access.role.to_s == "admin"
+      next unless access.respond_to?(:actor)
+
+      return access.actor
     end
+    nil
   end
 
   def create_access_recording_for(user:, workspace_name: "Workspace #{SecureRandom.hex(4)}", role: :admin)
     Current.actor = user
     workspace = Workspace.create!(name: workspace_name)
     root_recording = RecordingStudio.root_recording_for(workspace)
-    access_recording = grant_or_bootstrap_access!(
-      recording: root_recording,
-      actor: user,
-      role: role
-    )
+    access_recording = if role.to_s == "admin"
+                         grant_or_bootstrap_access!(
+                           recording: root_recording,
+                           actor: user,
+                           role: :admin
+                         )
+                       else
+                         grant_view_or_edit_on_new_workspace!(
+                           recording: root_recording,
+                           actor: user,
+                           role: role
+                         )
+                       end
 
     [root_recording, access_recording]
+  end
+
+  def grant_view_or_edit_on_new_workspace!(recording:, actor:, role:)
+    owner = create_user(email: "workspace-owner-#{SecureRandom.hex(4)}@example.com")
+    grant_or_bootstrap_access!(recording: recording, actor: owner, role: :admin)
+    Current.actor = owner
+    result = RecordingStudioAccessible.grant_access(
+      recording: recording,
+      actor: actor,
+      role: role,
+      manager_actor: owner
+    )
+    raise result.error unless result.success?
+
+    result.value
   end
 
   def create_folder_access_for(user:, folder_name: "Folder #{SecureRandom.hex(4)}", role: :admin, workspace_name: nil)

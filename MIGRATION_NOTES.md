@@ -5,11 +5,12 @@
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
 - Recording Studio `~> 4.2` (dummy tag `v4.2.2`)
-- Accessible `~> 0.9` (dummy tag `v0.9.1`)
-- API `~> 0.5.2` (dummy tag `v0.5.2`)
-- Admin `~> 2.0` (dummy tag `v2.0.2`)
-- Site Settings `~> 0.1` (dummy tag `v0.1.0`)
-- Attachable `~> 0.5` (dummy tag `v0.5.1`, required by Site Settings)
+- Accessible `~> 0.11` (dummy tag `v0.11.1`). Access roles are strings (`view`, `edit`, `admin`). Dummy also has access invitations.
+- API `~> 0.5.2` (dummy tag `v0.5.2`). Dummy shims `RecordingStudio::Access.roles` for this pin.
+- Admin `~> 2.0` (dummy tag `v2.0.4`)
+- Site Settings `~> 0.1` (dummy tag `v0.1.3`)
+- Attachable `~> 0.5` (dummy tag `v0.7.1`, required by Site Settings)
+- Root Switchable dummy tag `v0.5.3`
 - Flatpack `~> 0.1.144` (dummy tag `v0.1.144`)
 
 Do not depend on Users.
