@@ -22,6 +22,14 @@ module OauthDummyHelpers
     ).first
     return existing if existing.present? && existing.recordable.role.to_s == role.to_s
 
+    if role.to_s == "admin"
+      bootstrap = RecordingStudioAccessible.bootstrap_owner_access!(
+        recording: recording,
+        actor: actor
+      )
+      return bootstrap.value if bootstrap.success?
+    end
+
     result = RecordingStudioAccessible.grant_access(
       recording: recording,
       actor: actor,
@@ -30,13 +38,31 @@ module OauthDummyHelpers
     )
     return result.value if result.success?
 
-    bootstrap = RecordingStudioAccessible.bootstrap_owner_access!(
-      recording: recording,
-      actor: actor
-    )
-    return bootstrap.value if bootstrap.success?
+    manager = existing_admin_actor_for(recording)
+    if manager && manager != actor
+      granted = RecordingStudioAccessible.grant_access(
+        recording: recording,
+        actor: actor,
+        role: role,
+        manager_actor: manager
+      )
+      return granted.value if granted.success?
+
+      raise granted.error
+    end
 
     raise result.error
+  end
+
+  def existing_admin_actor_for(recording)
+    RecordingStudioAccessible.access_recordings_for(recording).each do |access_recording|
+      access = access_recording.recordable
+      next unless access.respond_to?(:role) && access.role.to_s == "admin"
+      next unless access.respond_to?(:actor)
+
+      return access.actor
+    end
+    nil
   end
 
   def create_access_recording_for(user:, workspace_name: "Workspace #{SecureRandom.hex(4)}", role: :admin)
