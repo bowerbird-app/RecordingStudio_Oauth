@@ -71,7 +71,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     end
     assert_match(/\bConnect\b/, css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.text)
     folder_button = css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.at_css("a")
-    assert_includes folder_button["class"], "--button-default-background-color"
+    assert_equal "default", folder_button["data-fp-style"]
     assert_select "[role='tooltip']", count: 0
     assert_select "[data-controller='flat-pack--tooltip']", count: 0
     refute_equal @root_recording.id, folder_recording.id
@@ -360,8 +360,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     reconnect_button = css_select("[role='listitem']").find { |item| item.text.include?("Reconnect workspace") }.at_css("a")
     assert_equal "Connected", connected_button.text.strip
     assert_equal "Reconnect", reconnect_button.text.strip
-    assert_includes connected_button["class"], "--button-success-background-color"
-    assert_includes reconnect_button["class"], "--button-danger-background-color"
+    assert_equal "success", connected_button["data-fp-style"]
+    assert_equal "danger", reconnect_button["data-fp-style"]
     reconnect_item = css_select("[role='listitem']").find { |item| item.text.include?("Reconnect workspace") }
     connected_item = css_select("[role='listitem']").find { |item| item.text.include?(@root_recording.recordable.name) }
     assert reconnect_item.at_css("[data-controller='flat-pack--tooltip']")
