@@ -18,9 +18,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.7"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.144"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.198"'
     refute_includes gemspec, "recording_studio_users"
-    refute_includes gemspec, "~> 0.1.143"
+    refute_includes gemspec, "~> 0.1.144"
   end
 
   def test_gemspec_excludes_cursor_config
@@ -56,9 +56,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.4"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.7.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.144"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.198"'
     refute_includes gemfile, "recording_studio_users"
-    refute_includes gemfile, 'tag: "v0.1.143"'
+    refute_includes gemfile, 'tag: "v0.1.144"'
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service
