@@ -1,5 +1,7 @@
 <% credentials_subtitle = if @client_secret.present?
      nil
+   elsif @oauth_client.self_registered?
+     "This app signed itself up. Connecting still needs a person."
    elsif @oauth_client.confidential?
      "The secret was shown once."
    else

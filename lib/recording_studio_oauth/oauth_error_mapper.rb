@@ -12,6 +12,8 @@ module RecordingStudioOauth
       "unsupported_response_type" => :bad_request,
       "unauthorized_client" => :bad_request,
       "invalid_client" => :unauthorized,
+      "invalid_redirect_uri" => :bad_request,
+      "invalid_client_metadata" => :bad_request,
       "access_denied" => :forbidden,
       "server_error" => :internal_server_error,
       "temporarily_unavailable" => :service_unavailable

@@ -104,13 +104,13 @@ module RecordingStudioOauth
         return oauth_failure("invalid_grant", "refresh token is expired") if stored.expired?
 
         authorization = stored.oauth_authorization
-        if stored.revoked?
-          VoidOauthAuthorization.call(authorization: authorization)
-          return oauth_failure("invalid_grant", "refresh token is revoked")
-        end
+        revoked_refresh = handle_revoked_refresh(stored, authorization)
+        return revoked_refresh if revoked_refresh
+
         return oauth_failure("invalid_grant", "authorization is inactive") unless authorization.active?
 
-        reused = false
+        rotated_replay = false
+        revoked_without_rotation = false
         inactive = false
         payload = nil
         OauthRefreshToken.transaction do
@@ -118,7 +118,11 @@ module RecordingStudioOauth
           stored.reload
           authorization.reload
           if stored.revoked?
-            reused = true
+            if stored.rotated?
+              rotated_replay = true
+            else
+              revoked_without_rotation = true
+            end
             raise ActiveRecord::Rollback
           end
           unless authorization.active?
@@ -126,16 +130,24 @@ module RecordingStudioOauth
             raise ActiveRecord::Rollback
           end
 
-          stored.revoke!
           payload = issue_token_pair!(authorization, replaced_refresh: stored)
         end
-        if reused
+        if rotated_replay
           VoidOauthAuthorization.call(authorization: authorization)
           return oauth_failure("invalid_grant", "refresh token is revoked")
         end
+        return oauth_failure("invalid_grant", "refresh token is revoked") if revoked_without_rotation
         return oauth_failure("invalid_grant", "authorization is inactive") if inactive || payload.nil?
 
         success(payload)
+      end
+
+      def handle_revoked_refresh(stored, authorization)
+        return unless stored.revoked?
+        return oauth_failure("invalid_grant", "refresh token is revoked") unless stored.rotated?
+
+        VoidOauthAuthorization.call(authorization: authorization)
+        oauth_failure("invalid_grant", "refresh token is revoked")
       end
 
       def authenticate_client
@@ -172,7 +184,7 @@ module RecordingStudioOauth
           token_prefix: refresh_data.fetch(:prefix),
           expires_at: now + refresh_token_ttl
         )
-        replaced_refresh&.update_columns(replaced_by_id: refresh.id, updated_at: now)
+        replaced_refresh&.rotate_to!(refresh, time: now)
 
         {
           access_token: access_data.fetch(:token),

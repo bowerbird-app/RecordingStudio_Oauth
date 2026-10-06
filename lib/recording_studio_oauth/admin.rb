@@ -79,6 +79,23 @@ module RecordingStudioOauth
              required_role: :view
     end
 
+    SOURCE_CELLS = {
+      false => {
+        label: "Staff",
+        style: :default,
+        tooltip: "Someone on staff added this app."
+      }.freeze,
+      true => {
+        label: "Self-registered",
+        style: :info,
+        tooltip: "This app signed itself up. Connecting still needs a person."
+      }.freeze
+    }.freeze
+
+    def source_cell(row)
+      SOURCE_CELLS.fetch(row.self_registered?)
+    end
+
     SECRET_CELLS = {
       false => {
         label: "Public",
@@ -125,6 +142,15 @@ module RecordingStudioOauth
 
       table do
         column :name
+        column :self_registered,
+               title: "Source",
+               display: :badge,
+               value: ->(row, _context) { RecordingStudioOauth::Admin.source_cell(row)[:label] },
+               display_options: lambda { |row, _context, _value|
+                 cell = RecordingStudioOauth::Admin.source_cell(row)
+                 { text: cell[:label], style: cell[:style], size: :sm }
+               },
+               tooltip: ->(row, _context) { RecordingStudioOauth::Admin.source_cell(row)[:tooltip] }
         column :confidential,
                title: "Secret",
                display: :badge,

@@ -18,6 +18,10 @@ RecordingStudioOauth::Engine.routes.draw do
         to: "oauth_authorizations#create",
         via: :post,
         defaults: { api_key: "public" }
+  post "/register",
+       to: "oauth_client_registrations#create",
+       defaults: { api_key: "public" },
+       as: :oauth_client_registration
   get "/connect",
       to: "central_relays#start",
       as: :central_oauth_connect

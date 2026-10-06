@@ -111,13 +111,6 @@ module RecordingStudioOauth
       end
 
       def prepare_reopen!(authorization)
-        time = Time.current
-        granted = authorization.access_recording
-        granted.update_columns(trashed_at: time, updated_at: time) if granted && granted.trashed_at.nil?
-        OauthAccessToken.where(oauth_authorization_id: authorization.id, revoked_at: nil)
-                        .update_all(revoked_at: time, updated_at: time)
-        OauthRefreshToken.where(oauth_authorization_id: authorization.id, revoked_at: nil)
-                         .update_all(revoked_at: time, updated_at: time)
         OauthAuthorizationCode.where(oauth_authorization_id: authorization.id, used_at: nil).delete_all
         authorization.update!(role: role, revoked_at: nil)
       end

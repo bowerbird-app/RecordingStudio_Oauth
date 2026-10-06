@@ -17,6 +17,8 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     refute client.confidential?
     assert_nil result.value[:client_secret]
     assert_nil client.client_secret_digest
+    refute client.self_registered?
+    assert_equal "none", client.token_endpoint_auth_method
     assert_match(/\Arsoauth_oc_/, client.client_id)
     refute client.allow_registration?
   end
@@ -67,6 +69,7 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert client.confidential?
     assert_match(/\Arsoauth_cs_/, secret)
     assert_predicate client.client_secret_digest, :present?
+    assert_equal "client_secret_basic", client.token_endpoint_auth_method
     refute_equal secret, client.client_secret_digest
     assert client.authenticate_secret?(secret)
   end

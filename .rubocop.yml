@@ -40,6 +40,7 @@ Metrics/MethodLength:
     - 'app/controllers/recording_studio_oauth/central_relays_controller.rb'
     - 'lib/recording_studio_oauth/configuration.rb'
     - 'lib/recording_studio_oauth/engine.rb'
+    - 'lib/recording_studio_oauth/protected_resource_registry.rb'
     - 'lib/recording_studio_oauth/services/**/*'
 
 Metrics/AbcSize:
@@ -49,6 +50,7 @@ Metrics/AbcSize:
     - 'lib/generators/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
     - 'app/controllers/recording_studio_oauth/central_relays_controller.rb'
+    - 'lib/recording_studio_oauth/configuration.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
 

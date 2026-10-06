@@ -48,6 +48,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Seed Demo App"
     assert_includes response.body, "Public"
     assert_includes response.body, "Active"
+    assert_includes response.body, "Staff"
     assert_includes response.body, "Revoke"
     refute_match(/rsoauth_cs_/, response.body)
 
@@ -212,6 +213,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     refute row.css("span").any? { |element|
       element["class"].to_s.include?("badge-success-background-color") && element.text.strip == "Active"
     }
+    assert row.text.include?("Staff")
     assert row.css('[role="tooltip"]').any? { |element|
       element.text == "Cannot hide a password. No secret. Uses PKCE."
     }
@@ -500,6 +502,36 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "staff can list and revoke a self-registered app" do
+    client = RecordingStudioOauth::OauthClient.create!(
+      name: "Inspector",
+      redirect_uris: ["http://127.0.0.1:6274/callback"],
+      confidential: false,
+      api_key: "public",
+      self_registered: true
+    )
+
+    get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
+
+    assert_response :success
+    row = css_select("tr, [role='row']").find { |element| element.text.include?("Inspector") }
+    assert row, "expected Inspector in the registered apps table"
+    assert_includes row.text, "Self-registered"
+    assert row.css('[role="tooltip"]').any? { |element|
+      element.text == "This app signed itself up. Connecting still needs a person."
+    }
+
+    post "/recording_studio_oauth/admin/oauth_clients/#{client.id}/revoke"
+
+    assert_response :redirect
+    assert_predicate client.reload, :revoked?
+
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+
+    assert_response :success
+    assert_includes response.body, "This app signed itself up. Connecting still needs a person."
+  end
+
   private
 
   def assert_submit_on_its_own_row(label)
@@ -547,3 +579,4 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_equal ["Allowed return patterns", "Exact return URLs"], wrappers.map { |wrapper| wrapper.at_css("label").text.strip }
   end
 end
+

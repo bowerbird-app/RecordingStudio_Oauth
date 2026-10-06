@@ -171,6 +171,20 @@ class ProtectedResourceRegistryTest < Minitest::Test
 
     assert_equal [
       [
+        "/.well-known/oauth-authorization-server",
+        {
+          to: "recording_studio_oauth/oauth_discoveries#authorization_server",
+          defaults: { api_key: "public" }
+        }
+      ],
+      [
+        "/.well-known/oauth-authorization-server/*issuer_path",
+        {
+          to: "recording_studio_oauth/oauth_discoveries#authorization_server",
+          defaults: { api_key: "public" }
+        }
+      ],
+      [
         "/.well-known/oauth-protected-resource",
         {
           to: "recording_studio_oauth/oauth_discoveries#protected_resource",

@@ -2,6 +2,10 @@
 
 module RecordingStudioOauth
   class OauthClient < ApplicationRecord
+    PUBLIC_AUTH_METHOD = "none"
+    SECRET_AUTH_METHODS = %w[client_secret_basic client_secret_post].freeze
+    AUTH_METHODS = (SECRET_AUTH_METHODS + [PUBLIC_AUTH_METHOD]).freeze
+
     self.table_name = "recording_studio_oauth_clients"
 
     has_many :authorizations,
@@ -14,12 +18,16 @@ module RecordingStudioOauth
              inverse_of: :oauth_client
 
     before_validation :assign_client_id, on: :create
+    before_validation :assign_token_endpoint_auth_method, on: :create
     before_validation :normalize_session_token_fields
 
     validates :name, presence: true
     validates :client_id, presence: true, uniqueness: true
     validates :api_key, presence: true, inclusion: { in: ->(_) { RecordingStudioOauth::Integration.api_names } }
     validates :redirect_uris, presence: true
+    validates :token_endpoint_auth_method,
+              presence: true,
+              inclusion: { in: AUTH_METHODS }
     validate :redirect_uris_must_be_absolute
     validate :return_lists_are_strings
     validate :exact_return_urls_must_be_absolute
@@ -32,6 +40,10 @@ module RecordingStudioOauth
 
     def public?
       !confidential?
+    end
+
+    def self_registered?
+      self_registered == true
     end
 
     def registered_for_api?(request_api)
@@ -100,6 +112,12 @@ module RecordingStudioOauth
 
     def assign_client_id
       self.client_id = OauthClientSecret.generate_client_id if client_id.blank?
+    end
+
+    def assign_token_endpoint_auth_method
+      return if token_endpoint_auth_method.present?
+
+      self.token_endpoint_auth_method = confidential? ? "client_secret_basic" : "none"
     end
 
     def normalize_session_token_fields

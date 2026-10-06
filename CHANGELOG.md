@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-10-05
+
+MCP Inspector and other standards MCP clients can discover this authorization server from the MCP URL and register themselves. Staff do not paste a client id. Connecting still needs a person.
+
+### Added
+- RFC 8414 path-inserted metadata at `/.well-known/oauth-authorization-server{mount}` via `ProtectedResourceRegistry.draw_origin_well_known`. `issuer` is the mount URL. Existing metadata URLs still work. OpenID Connect discovery stays 404.
+- RFC 7591 Dynamic Client Registration at `{mount}/register`, advertised as `registration_endpoint` when enabled. Self-registered apps are public with PKCE S256 unless they ask for a secret. Redirect URIs must be https, or http on localhost, 127.0.0.1, or `[::1]`. Registration is rate-limited per IP. Staff see those apps in Registered apps and can revoke them.
+
+### Changed
+- Dummy turns self-registered apps on so the local MCP flow works.
+- Re-consent for the same app keeps live access and refresh tokens. Refresh-token reuse voids the grant only when that token was rotated (`replaced_by_id`). A refresh token revoked any other way returns `invalid_grant` and leaves the grant standing.
+
+### Notes
+- Self-registered apps are off for hosts. Set `config.allow_self_registered_apps = true` to allow them. `config.allow_registration` is still the starting value for signup on a new app, not this switch.
+- MCP 2025-11-25 prefers Client ID Metadata Documents. This release ships DCR, which Inspector v2.9.0 and the 2025-06-18 spec use. CIMD is not implemented.
+- Registration grants no access. People still Connect.
+
 ## [0.5.6] - 2026-10-05
 
 Hosts can use Recording Studio API 0.6. Connect and token exchange stay the same.
@@ -186,6 +203,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.6.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.6...v0.6.0
 [0.5.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.5...v0.5.6
 [0.5.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.4...v0.5.5
 [0.5.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.2...v0.5.3

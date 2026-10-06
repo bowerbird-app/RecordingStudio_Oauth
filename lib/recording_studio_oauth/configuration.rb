@@ -17,8 +17,9 @@ module RecordingStudioOauth
                   :extra_protected_resource_paths,
                   :public_origin,
                   :registration_path,
-                  :layout_name
-    attr_reader :allow_registration, :hooks
+                  :layout_name,
+                  :self_registered_apps_per_minute
+    attr_reader :allow_registration, :allow_self_registered_apps, :hooks
 
     def initialize
       @authentication_method = :authenticate_user!
@@ -36,6 +37,8 @@ module RecordingStudioOauth
       @registration_path = "/users/sign_up"
       @layout_name = "recording_studio/default_layout"
       @allow_registration = false
+      @allow_self_registered_apps = false
+      @self_registered_apps_per_minute = 10
       @hooks = RecordingStudio::Hooks.new
     end
 
@@ -45,6 +48,14 @@ module RecordingStudioOauth
 
     def allow_registration?
       allow_registration == true
+    end
+
+    def allow_self_registered_apps=(value)
+      @allow_self_registered_apps = ActiveModel::Type::Boolean.new.cast(value) == true
+    end
+
+    def allow_self_registered_apps?
+      allow_self_registered_apps == true
     end
 
     def to_h
@@ -89,7 +100,9 @@ module RecordingStudioOauth
       {
         public_origin: public_origin,
         registration_path: registration_path,
-        allow_registration: allow_registration?
+        allow_registration: allow_registration?,
+        allow_self_registered_apps: allow_self_registered_apps?,
+        self_registered_apps_per_minute: self_registered_apps_per_minute
       }
     end
 
