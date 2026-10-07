@@ -16,4 +16,9 @@ class CreateOauthClientTest < Minitest::Test
     refute RecordingStudioOauth::Services::CreateOauthClient.confidential?(nil)
     assert RecordingStudioOauth::Services::CreateOauthClient.confidential?("has_secret")
   end
+
+  def test_default_api_key_is_public
+    assert_equal "public", RecordingStudioOauth::Services::CreateOauthClient::DEFAULT_API_KEY
+    assert_equal "operations", RecordingStudioOauth::Integration::OPERATIONS_API_NAME
+  end
 end

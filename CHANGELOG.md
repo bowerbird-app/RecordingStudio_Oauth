@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-10-07
+
+Staff can register an operations OauthClient and Connect it on staff Admin.
+
+### Added
+- `CreateOauthClient` takes `api_key` so a Registered App can bind to a named API such as `operations`. Public stays the default. `api_key` is the named API label, not a secret.
+- Connect lists staff AdminRoot for operations apps. Public apps still skip it. Grant on AdminRoot is rejected for a public app.
+
+### Notes
+- Hosts that define `config.api :operations` can pick Operations on New app. Connect that app at `/recording_studio_oauth/apis/operations/oauth/authorize`.
+
 ## [0.6.0] - 2026-10-05
 
 MCP Inspector and other standards MCP clients can discover this authorization server from the MCP URL and register themselves. Staff do not paste a client id. Connecting still needs a person.
@@ -203,6 +214,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.6.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.6...v0.6.0
 [0.5.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.5...v0.5.6
 [0.5.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.4...v0.5.5

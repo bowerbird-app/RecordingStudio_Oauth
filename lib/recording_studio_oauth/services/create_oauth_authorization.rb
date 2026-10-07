@@ -5,6 +5,7 @@ module RecordingStudioOauth
     class CreateOauthAuthorization < RecordingStudio::Services::BaseService
       ACCESS_GONE_MESSAGE = "That access is gone. Connect again."
       ROLE_CHANGED_MESSAGE = "Your access changed. Connect again."
+      STAFF_ADMIN_ONLY_MESSAGE = "Staff Admin is only for operations apps."
 
       def initialize(oauth_client:, manager_actor:, access_recording:, role:, redirect_uri:, code_challenge:, code_challenge_method: Pkce::S256)
         @oauth_client = oauth_client
@@ -85,6 +86,7 @@ module RecordingStudioOauth
         return failure("Access recording must point to RecordingStudio::Access") if access_recording.recordable_type != "RecordingStudio::Access"
         return failure("Role is invalid") unless OauthAuthorization::ROLES.include?(role)
         return failure("Access point recording is required") if access_point_recording.nil?
+        return failure(STAFF_ADMIN_ONLY_MESSAGE) unless access_parent_allowed_for_client?
         return failure(ACCESS_GONE_MESSAGE) unless manager_access_present?
         return failure(ROLE_CHANGED_MESSAGE) unless can_assign_requested_role?
 
@@ -128,6 +130,14 @@ module RecordingStudioOauth
 
       def access_point_recording
         @access_point_recording ||= access_recording.parent_recording || access_recording.root_recording
+      end
+
+      def access_parent_allowed_for_client?
+        parent = access_point_recording
+        return true if parent.nil?
+        return true unless Integration.admin_root_recordable_type?(parent.recordable_type)
+
+        Integration.operations_client?(oauth_client)
       end
 
       def authorization_code_ttl

@@ -6,6 +6,7 @@ module RecordingStudioOauth
       name
       redirect_uris
       secret
+      api_key
       use_central_relay
       allowed_return_patterns
       exact_return_urls
@@ -27,7 +28,8 @@ module RecordingStudioOauth
     def create_args
       shared_args.merge(
         confidential: Services::CreateOauthClient.confidential?(secret_choice),
-        allow_registration: allow_registration_for_create?
+        allow_registration: allow_registration_for_create?,
+        api_key: api_key_for_create
       )
     end
 
@@ -73,6 +75,10 @@ module RecordingStudioOauth
         session_token_audience: nil,
         session_token_secret: nil
       }
+    end
+
+    def api_key_for_create
+      params[:api_key].to_s.presence || Services::CreateOauthClient::DEFAULT_API_KEY
     end
 
     def lines(text)

@@ -110,6 +110,92 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes labels, "Meadow"
   end
 
+  test "operations connect lists AdminRoot and workspace; public still skips AdminRoot" do
+    _admin_root, admin_root_recording = create_admin_root_recording
+    admin_root_access = grant_or_bootstrap_access!(
+      recording: admin_root_recording,
+      actor: @user,
+      role: :admin
+    )
+    ops_client, = create_oauth_client(name: "Ops App", api: "operations")
+
+    get authorize_path, params: authorize_params
+
+    assert_response :success
+    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    assert_includes labels, @root_recording.recordable.name
+    assert_not_includes labels, admin_root_recording.recordable.name
+    assert_not_includes response.body, "access_recording_id=#{admin_root_access.id}"
+
+    get named_authorize_path("operations"), params: authorize_params.merge(client_id: ops_client.client_id)
+
+    assert_response :success
+    ops_labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    assert_includes ops_labels, @root_recording.recordable.name
+    assert_includes ops_labels, admin_root_recording.recordable.name
+    assert_includes response.body, "access_recording_id=#{admin_root_access.id}"
+  end
+
+  test "operations connect grants on AdminRoot" do
+    _admin_root, admin_root_recording = create_admin_root_recording
+    admin_root_access = grant_or_bootstrap_access!(
+      recording: admin_root_recording,
+      actor: @user,
+      role: :admin
+    )
+    ops_client, = create_oauth_client(name: "Ops Grant App", api: "operations")
+
+    post named_authorize_path("operations"), params: authorize_params.merge(
+      client_id: ops_client.client_id,
+      access_recording_id: admin_root_access.id,
+      role: "view",
+      decision: "connect"
+    )
+
+    assert_response :redirect
+    authorization = RecordingStudioOauth::OauthAuthorization.find_by!(
+      manager_actor: @user,
+      oauth_client: ops_client
+    )
+    granted = authorization.access_recording
+
+    assert_equal admin_root_recording.id, granted.parent_recording_id
+    assert_equal admin_root_access.id, granted.recordable.depends_on_recording_id
+    assert_equal admin_root_access.id, authorization.manager_access_recording_id
+  end
+
+  test "public client cannot grant on AdminRoot" do
+    _admin_root, admin_root_recording = create_admin_root_recording
+    admin_root_access = grant_or_bootstrap_access!(
+      recording: admin_root_recording,
+      actor: @user,
+      role: :admin
+    )
+
+    result = RecordingStudioOauth::Services::CreateOauthAuthorization.call(
+      oauth_client: @oauth_client,
+      manager_actor: @user,
+      access_recording: admin_root_access,
+      role: "view",
+      redirect_uri: "http://127.0.0.1/callback",
+      code_challenge: @pkce.fetch(:challenge),
+      code_challenge_method: "S256"
+    )
+
+    assert result.failure?
+    assert_equal RecordingStudioOauth::Services::CreateOauthAuthorization::STAFF_ADMIN_ONLY_MESSAGE, result.error.to_s
+    assert_nil RecordingStudioOauth::OauthAuthorization.find_by(oauth_client: @oauth_client, manager_actor: @user)
+
+    post authorize_path, params: authorize_params.merge(
+      access_recording_id: admin_root_access.id,
+      role: "view",
+      decision: "connect"
+    )
+
+    assert_response :unprocessable_entity
+    refute_includes response.body, admin_root_recording.recordable.name
+  end
+
   test "permission screen uses the picked parent name" do
     seed_site_name!(@root_recording, name: "Studio", actor: @user)
 

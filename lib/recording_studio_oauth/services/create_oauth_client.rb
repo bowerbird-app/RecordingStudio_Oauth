@@ -19,10 +19,11 @@ module RecordingStudioOauth
         secret_choice.to_s == HAS_SECRET_CHOICE
       end
 
-      def initialize(name:, redirect_uris:, confidential:, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil, self_registered: false, token_endpoint_auth_method: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
+      def initialize(name:, redirect_uris:, confidential:, api_key: DEFAULT_API_KEY, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil, self_registered: false, token_endpoint_auth_method: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
         @name = name.to_s
         @redirect_uris = Array(redirect_uris)
         @confidential = ActiveModel::Type::Boolean.new.cast(confidential)
+        @api_key = api_key.to_s.presence || DEFAULT_API_KEY
         @use_central_relay = ActiveModel::Type::Boolean.new.cast(use_central_relay) == true
         @allowed_return_patterns = Array(allowed_return_patterns)
         @exact_return_urls = Array(exact_return_urls)
@@ -40,7 +41,7 @@ module RecordingStudioOauth
 
       private
 
-      attr_reader :name, :redirect_uris, :confidential, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :self_registered, :token_endpoint_auth_method, :session_token_provider, :session_token_audience, :session_token_secret
+      attr_reader :name, :redirect_uris, :confidential, :api_key, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :self_registered, :token_endpoint_auth_method, :session_token_provider, :session_token_audience, :session_token_secret
 
       def perform
         secret_token = nil
@@ -48,7 +49,7 @@ module RecordingStudioOauth
           name: name,
           redirect_uris: redirect_uris,
           confidential: confidential,
-          api_key: DEFAULT_API_KEY,
+          api_key: api_key,
           use_central_relay: use_central_relay,
           allowed_return_patterns: allowed_return_patterns,
           exact_return_urls: exact_return_urls,
@@ -78,7 +79,7 @@ module RecordingStudioOauth
       end
 
       def service_args
-        { name: name, confidential: confidential, self_registered: self_registered }
+        { name: name, confidential: confidential, self_registered: self_registered, api_key: api_key }
       end
     end
   end

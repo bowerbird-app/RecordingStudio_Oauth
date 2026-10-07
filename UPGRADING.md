@@ -1,5 +1,15 @@
 # Upgrading
 
+## 0.6.1
+
+No host code change for public Connect. New apps still default to the public named API.
+
+To register a staff operations app:
+
+1. Define `config.api :operations` on Recording Studio API.
+2. Create the Registered App with API set to Operations (`api_key: "operations"`). That string is the named API label, not a secret.
+3. Connect at `/recording_studio_oauth/apis/operations/oauth/authorize`. Staff Admin appears on the list for people who already have Admin access. Public apps still skip it.
+
 ## 0.6.0
 
 Run the new migration after you pull this version.

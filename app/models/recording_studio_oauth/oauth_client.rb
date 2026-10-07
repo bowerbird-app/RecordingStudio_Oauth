@@ -42,6 +42,10 @@ module RecordingStudioOauth
       !confidential?
     end
 
+    def operations?
+      RecordingStudioOauth::Integration.operations_client?(self)
+    end
+
     def self_registered?
       self_registered == true
     end

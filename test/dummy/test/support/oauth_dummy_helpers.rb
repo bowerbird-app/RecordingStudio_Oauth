@@ -183,6 +183,10 @@ module OauthDummyHelpers
     "/recording_studio_oauth/oauth/authorize"
   end
 
+  def named_authorize_path(api)
+    "/recording_studio_oauth/apis/#{api}/oauth/authorize"
+  end
+
   def api_token_path
     "/recording_studio_api/oauth/token"
   end

@@ -11,6 +11,7 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, "style: :primary"
     assert_includes admin, "new_oauth_client_path"
     assert_includes admin, "column :self_registered"
+    assert_includes admin, "column :api_key"
     refute_includes admin, "button :registration"
     refute_includes admin, "class ConfigSection"
     refute_includes admin, "registration_setting"
@@ -57,6 +58,21 @@ class AdminDefinitionsTest < Minitest::Test
     assert_equal "Self-registered", column.cell(self_registered_row, nil)
     assert_equal({ text: "Self-registered", style: :info, size: :sm }, column.display_options_for(self_registered_row, nil, "Self-registered"))
     assert_equal "This app signed itself up. Connecting still needs a person.", column.tooltip_for(self_registered_row, nil)
+  end
+
+  def test_api_column_shows_named_api_label
+    column = RecordingStudioOauth::Admin::OauthClientsScreen.table_value.columns.find { |item| item.key == :api_key }
+
+    assert_equal "API", column.title
+
+    public_row = client_row(api_key: "public")
+
+    assert_equal "Public", column.cell(public_row, nil)
+    assert_equal "Named API this app uses. A label, not a secret.", column.tooltip_for(public_row, nil)
+
+    operations_row = client_row(api_key: "operations")
+
+    assert_equal "Operations", column.cell(operations_row, nil)
   end
 
   def test_status_column_uses_admin_badge_without_tooltip
@@ -110,6 +126,9 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes form, 'label: "Name"'
     assert_includes form, 'label: "Redirect URLs"'
     assert_includes form, 'label: "Secret"'
+    assert_includes form, 'label: "API"'
+    assert_includes form, "oauth_client[api_key]"
+    assert_includes form, "A label, not a secret"
     assert_includes form, 'label: "Use central relay"'
     assert_includes form, 'label: "Allow registration"'
     assert_includes form, 'label: "Token verification"'
@@ -121,6 +140,8 @@ class AdminDefinitionsTest < Minitest::Test
     refute_includes new_view, "Card::Component"
     refute_includes new_view, "max-w-sm"
     assert_includes show_view, "quick_copy: true"
+    assert_includes show_view, 'label: "API"'
+    assert_includes show_view, "A label, not a secret"
     assert_includes show_view, 'text: "Done"'
     refute_includes show_view, "oauth_client_secret_digest"
     refute_includes show_view, "authorization"
@@ -128,11 +149,12 @@ class AdminDefinitionsTest < Minitest::Test
 
   private
 
-  def client_row(confidential: false, revoked: false, self_registered: false)
+  def client_row(confidential: false, revoked: false, self_registered: false, api_key: "public")
     Object.new.tap do |row|
       row.define_singleton_method(:confidential?) { confidential }
       row.define_singleton_method(:revoked?) { revoked }
       row.define_singleton_method(:self_registered?) { self_registered }
+      row.define_singleton_method(:api_key) { api_key }
     end
   end
 end

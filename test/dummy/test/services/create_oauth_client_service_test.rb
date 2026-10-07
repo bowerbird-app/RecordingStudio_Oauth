@@ -23,6 +23,34 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     refute client.allow_registration?
   end
 
+  test "creates an operations client when that named API exists" do
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Staff Ops App",
+      redirect_uris: ["https://chatgpt.example/callback"],
+      confidential: false,
+      api_key: "operations"
+    )
+
+    assert result.success?, result.error.to_s
+    client = result.value.fetch(:client)
+    assert_equal "operations", client.api_key
+    assert client.operations?
+    refute client.confidential?
+  end
+
+  test "rejects an unknown named API" do
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Unknown API App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      api_key: "not_a_named_api"
+    )
+
+    assert result.failure?
+    client = result.errors.first
+    assert_includes client.errors[:api_key].join, "is not included in the list"
+  end
+
   test "copies the host registration choice when the caller omits it" do
     previous = RecordingStudioOauth.configuration.allow_registration?
     RecordingStudioOauth.configuration.allow_registration = true

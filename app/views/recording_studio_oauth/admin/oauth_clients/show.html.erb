@@ -34,6 +34,13 @@
     quick_copy: true
   ) %>
 
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client_api",
+    label: "API",
+    value: RecordingStudioOauth::Integration.human_api_name(@oauth_client.api_key),
+    help_text: "Named API this app uses. A label, not a secret."
+  ) %>
+
   <% if @client_secret.present? %>
     <%= render FlatPack::TextInput::Component.new(
       name: "oauth_client_secret",
