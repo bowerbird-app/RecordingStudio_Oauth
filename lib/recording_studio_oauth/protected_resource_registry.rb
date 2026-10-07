@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "uri"
+require "recording_studio_oauth/protected_resource_registry_entries"
 
 module RecordingStudioOauth
   class ProtectedResourceRegistry
-    DEFAULT_API_MOUNT_PATH = "/recording_studio_api"
-    DEFAULT_MCP_MOUNT_PATH = "/recording_studio_mcp"
+    DEFAULT_API_MOUNT_PATH = ProtectedResourceRegistryEntries::DEFAULT_API_MOUNT_PATH
+    DEFAULT_MCP_MOUNT_PATH = ProtectedResourceRegistryEntries::DEFAULT_MCP_MOUNT_PATH
     DEFAULT_MCP_REALM = "RecordingStudioMcp"
 
     attr_reader :api_key, :entries
@@ -19,7 +20,11 @@ module RecordingStudioOauth
 
     def self.build(configuration:, api_key: "public")
       key = api_key.to_s.presence || "public"
-      entries = key == "public" ? public_entries(configuration) : named_entries(configuration, key)
+      entries = if key == "public"
+                  ProtectedResourceRegistryEntries.public_entries(configuration)
+                else
+                  ProtectedResourceRegistryEntries.named_entries(configuration, key)
+                end
       new(api_key: key, entries: entries, public_origin: configuration.public_origin)
     end
 
@@ -63,65 +68,6 @@ module RecordingStudioOauth
 
     def www_authenticate_challenge(base_url:, realm: DEFAULT_MCP_REALM)
       find(kind: :mcp)&.www_authenticate(base_url: base_url, realm: realm)
-    end
-
-    class << self
-      private
-
-      def public_entries(configuration)
-        seen = {}
-        entries = []
-        add_entry!(entries, seen, api_entry(configuration, "public"))
-        add_entry!(entries, seen, mcp_entry(configuration, "public"))
-        add_entry!(entries, seen, origin_entry) if configuration.register_origin_as_protected_resource
-        extra_paths(configuration).each do |path|
-          add_entry!(entries, seen, ProtectedResource.new(kind: :extra, path: path))
-        end
-        entries
-      end
-
-      def named_entries(configuration, api_key)
-        seen = {}
-        entries = []
-        add_entry!(entries, seen, api_entry(configuration, api_key))
-        add_entry!(entries, seen, mcp_entry(configuration, api_key))
-        entries
-      end
-
-      def api_entry(configuration, api_key)
-        mount = normalize_path(configuration.api_mount_path.presence || DEFAULT_API_MOUNT_PATH)
-        path = api_key == "public" ? "#{mount}/api" : "#{mount}/apis/#{api_key}"
-        ProtectedResource.new(kind: :api, path: path)
-      end
-
-      def mcp_entry(configuration, api_key)
-        mount = normalize_path(configuration.mcp_mount_path.presence || DEFAULT_MCP_MOUNT_PATH)
-        path = api_key == "public" ? mount : "#{mount}/apis/#{api_key}"
-        ProtectedResource.new(kind: :mcp, path: path)
-      end
-
-      def origin_entry
-        ProtectedResource.new(kind: :origin, path: "")
-      end
-
-      def extra_paths(configuration)
-        Array(configuration.extra_protected_resource_paths).map { |path| normalize_path(path) }.uniq
-      end
-
-      def add_entry!(entries, seen, entry)
-        raise ArgumentError, "protected resource path #{entry.path.inspect} is already registered" if seen.key?(entry.path)
-
-        seen[entry.path] = true
-        entries << entry
-      end
-
-      def normalize_path(value)
-        cleaned = value.to_s.strip
-        return "" if cleaned.empty? || cleaned == "/"
-
-        cleaned = "/#{cleaned}" unless cleaned.start_with?("/")
-        cleaned.sub(%r{/+\z}, "")
-      end
     end
 
     private
