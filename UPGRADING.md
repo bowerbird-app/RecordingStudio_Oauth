@@ -1,6 +1,6 @@
 # Upgrading
 
-## 0.6.1
+## 0.6.2
 
 No host code change for public Connect. New apps still default to the public named API.
 

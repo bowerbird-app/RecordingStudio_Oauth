@@ -194,4 +194,4 @@ See `docs/session-tokens.md`.
 
 ## Version
 
-0.6.1
+0.6.2
