@@ -40,7 +40,7 @@ module RecordingStudioOauth
     end
 
     def current_api_key
-      api_key_from_issuer_path.presence || params[:api_key].to_s.presence || "public"
+      api_key_from_issuer_path.presence || api_key_from_resource_path.presence || params[:api_key].to_s.presence || "public"
     end
 
     def issuer
@@ -53,11 +53,7 @@ module RecordingStudioOauth
 
       mount = request.script_name.to_s
       mount = configured_mount_path if mount.blank? || mount == "/"
-      request_api_key == "public" ? mount : "#{mount}/apis/#{request_api_key}"
-    end
-
-    def request_api_key
-      params[:api_key].to_s.presence || "public"
+      current_api_key == "public" ? mount : "#{mount}/apis/#{current_api_key}"
     end
 
     def inserted_issuer_path
@@ -79,8 +75,30 @@ module RecordingStudioOauth
     end
 
     def api_key_from_issuer_path
-      match = issuer_path.match(%r{\A#{Regexp.escape(configured_mount_path)}/apis/([^/]+)\z})
+      path = inserted_issuer_path
+      return unless path
+
+      match = path.match(%r{\A#{Regexp.escape(configured_mount_path)}/apis/([^/]+)\z})
       match && match[1]
+    end
+
+    def api_key_from_resource_path
+      suffix = "/#{params[:resource_path].to_s.delete_prefix("/")}"
+      return if suffix == "/"
+
+      [configured_api_mount_path, configured_mcp_mount_path].each do |mount|
+        match = suffix.match(%r{\A#{Regexp.escape(mount)}/apis/([^/]+)\z})
+        return match[1] if match
+      end
+      nil
+    end
+
+    def configured_api_mount_path
+      RecordingStudioOauth.configuration.api_mount_path.presence || "/recording_studio_api"
+    end
+
+    def configured_mcp_mount_path
+      RecordingStudioOauth.configuration.mcp_mount_path.presence || "/recording_studio_mcp"
     end
 
     def protected_resource_entry(registry)

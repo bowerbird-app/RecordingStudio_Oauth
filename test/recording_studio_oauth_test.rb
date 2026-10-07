@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.2", ::RecordingStudioOauth::VERSION
+    assert_equal "0.6.3", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -111,6 +111,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "named API label"
     assert_includes readme, 'api_key: "operations"'
     assert_includes readme, "/recording_studio_oauth/apis/operations/oauth/authorize"
+    assert_includes readme, "/recording_studio_mcp/apis/operations"
     assert_includes readme, "/recording_studio_oauth/callback"
     assert_includes readme, "/recording_studio_oauth/connect"
     assert_includes readme, "verify_session_token"

@@ -19,7 +19,7 @@ module RecordingStudioOauth
 
     def self.build(configuration:, api_key: "public")
       key = api_key.to_s.presence || "public"
-      entries = key == "public" ? public_entries(configuration) : [api_entry(configuration, key)]
+      entries = key == "public" ? public_entries(configuration) : named_entries(configuration, key)
       new(api_key: key, entries: entries, public_origin: configuration.public_origin)
     end
 
@@ -72,11 +72,19 @@ module RecordingStudioOauth
         seen = {}
         entries = []
         add_entry!(entries, seen, api_entry(configuration, "public"))
-        add_entry!(entries, seen, mcp_entry(configuration))
+        add_entry!(entries, seen, mcp_entry(configuration, "public"))
         add_entry!(entries, seen, origin_entry) if configuration.register_origin_as_protected_resource
         extra_paths(configuration).each do |path|
           add_entry!(entries, seen, ProtectedResource.new(kind: :extra, path: path))
         end
+        entries
+      end
+
+      def named_entries(configuration, api_key)
+        seen = {}
+        entries = []
+        add_entry!(entries, seen, api_entry(configuration, api_key))
+        add_entry!(entries, seen, mcp_entry(configuration, api_key))
         entries
       end
 
@@ -86,11 +94,10 @@ module RecordingStudioOauth
         ProtectedResource.new(kind: :api, path: path)
       end
 
-      def mcp_entry(configuration)
-        ProtectedResource.new(
-          kind: :mcp,
-          path: normalize_path(configuration.mcp_mount_path.presence || DEFAULT_MCP_MOUNT_PATH)
-        )
+      def mcp_entry(configuration, api_key)
+        mount = normalize_path(configuration.mcp_mount_path.presence || DEFAULT_MCP_MOUNT_PATH)
+        path = api_key == "public" ? mount : "#{mount}/apis/#{api_key}"
+        ProtectedResource.new(kind: :mcp, path: path)
       end
 
       def origin_entry

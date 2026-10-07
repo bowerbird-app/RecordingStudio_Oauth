@@ -24,6 +24,8 @@ This gem is one authorization server. It advertises more than one protected-reso
 | --- | --- | --- |
 | API | `https://app.example.com/recording_studio_api/api` | `/.well-known/oauth-protected-resource/recording_studio_api/api` |
 | MCP | `https://app.example.com/recording_studio_mcp` | `/.well-known/oauth-protected-resource/recording_studio_mcp` |
+| Named API | `https://app.example.com/recording_studio_api/apis/operations` | `/.well-known/oauth-protected-resource/recording_studio_api/apis/operations` |
+| Named MCP | `https://app.example.com/recording_studio_mcp/apis/operations` | `/.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations` |
 
 The engine URL `/recording_studio_oauth/.well-known/oauth-protected-resource` still serves the API identifier. Origin unsuffixed `/.well-known/oauth-protected-resource` is 404 unless you set `register_origin_as_protected_resource = true`.
 
@@ -69,7 +71,7 @@ RecordingStudioOauth.configure do |config|
 end
 ```
 
-A present `resource` on authorize or token must match a registry entry. Unknown values return `invalid_target`. Omit the parameter as before. The value is not stored.
+A present `resource` on authorize or token must match a registry entry for that named API. Unknown values return `invalid_target`. Omit the parameter as before. The value is not stored. Ops MCP clients must send the named MCP URL, not the public MCP mount.
 
 ## Connect
 
@@ -82,7 +84,7 @@ The list title is `{app} wants to connect to {site}`. The app name is the regist
 
 People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it. Registered apps shows Secret, API, and Status. Hover or focus explains Public versus Has a secret. Active and Revoked need no extra line. API is the named API label, not a secret.
 
-To let ChatGPT or Grok Connect as staff later, create an operations app: pick Operations on New app (`api_key: "operations"`), then send the person to `/recording_studio_oauth/apis/operations/oauth/authorize`. Public Connect stays on `/recording_studio_oauth/oauth/authorize` and still hides staff Admin.
+To let ChatGPT or Grok Connect as staff later, create an operations app: pick Operations on New app (`api_key: "operations"`), then send the person to `/recording_studio_oauth/apis/operations/oauth/authorize`. Ops MCP Connect must pass `resource=https://<host>/recording_studio_mcp/apis/operations`. Public Connect stays on `/recording_studio_oauth/oauth/authorize` and still hides staff Admin.
 
 ## Install
 
@@ -194,4 +196,4 @@ See `docs/session-tokens.md`.
 
 ## Version
 
-0.6.2
+0.6.3

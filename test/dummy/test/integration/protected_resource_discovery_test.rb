@@ -73,6 +73,24 @@ class ProtectedResourceDiscoveryTest < ActionDispatch::IntegrationTest
     assert_equal ["#{HOST}/recording_studio_oauth/apis/operations"], body.fetch("authorization_servers")
   end
 
+  test "origin path-inserted named MCP PRM is the named MCP identifier" do
+    get "/.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations"
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "#{HOST}/recording_studio_mcp/apis/operations", body.fetch("resource")
+    assert_equal ["#{HOST}/recording_studio_oauth/apis/operations"], body.fetch("authorization_servers")
+  end
+
+  test "origin path-inserted named API PRM is the named API identifier" do
+    get "/.well-known/oauth-protected-resource/recording_studio_api/apis/operations"
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "#{HOST}/recording_studio_api/apis/operations", body.fetch("resource")
+    assert_equal ["#{HOST}/recording_studio_oauth/apis/operations"], body.fetch("authorization_servers")
+  end
+
   test "origin PRM issuer uses engine_mount_path" do
     RecordingStudioOauth.configuration.engine_mount_path = "/oauth"
 

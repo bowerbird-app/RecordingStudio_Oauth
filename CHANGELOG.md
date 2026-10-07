@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2026-10-07
+
+ChatGPT ops MCP Connect can send `resource` of the named MCP URL.
+
+### Added
+- Named API registries (for example `operations`) register the MCP identifier `{mcp_mount}/apis/{api_key}` next to the existing API identifier. Public stays API + bare MCP mount + extras/origin.
+
+### Notes
+- Ops MCP clients must use `resource` of the MCP URL, such as `https://<host>/recording_studio_mcp/apis/operations`. Authorize is `/recording_studio_oauth/apis/operations/oauth/authorize`. That `resource` is no longer `invalid_target`.
+- Origin path-inserted metadata at `/.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations` advertises that identifier and the named authorization server.
+- Public MCP still uses `https://<host>/recording_studio_mcp`. Named Connect does not accept the bare MCP mount.
+
 ## [0.6.2] - 2026-10-07
 
 Staff can register an operations OauthClient and Connect it on staff Admin.
@@ -214,6 +226,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.6.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.1...v0.6.2
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.6...v0.6.0
 [0.5.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.5...v0.5.6
