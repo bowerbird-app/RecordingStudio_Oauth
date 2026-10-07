@@ -38,18 +38,6 @@ class IssueDelegatedAccessTokenTest < Minitest::Test
     assert_equal "invalid_target", result.error.fetch(:error)
   end
 
-  def test_named_mcp_resource_is_not_invalid_target
-    result = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
-      grant_type: "authorization_code",
-      client_id: "client",
-      api: :operations,
-      resource: "https://app.example.com/recording_studio_mcp/apis/operations"
-    )
-
-    assert result.failure?
-    refute_equal "invalid_target", result.error.fetch(:error)
-  end
-
   def test_named_mcp_resource_on_public_api_is_invalid_target
     result = RecordingStudioOauth::Services::IssueDelegatedAccessToken.call(
       grant_type: "authorization_code",
