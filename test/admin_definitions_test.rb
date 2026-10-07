@@ -128,6 +128,7 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes form, 'label: "Secret"'
     assert_includes form, 'label: "API"'
     assert_includes form, "oauth_client[api_key]"
+    assert_includes form, "help_text: named_api_hint"
     assert_includes form, "A label, not a secret"
     assert_includes form, 'label: "Use central relay"'
     assert_includes form, 'label: "Allow registration"'

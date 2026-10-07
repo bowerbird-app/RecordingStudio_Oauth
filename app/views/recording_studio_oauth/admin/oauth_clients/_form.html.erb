@@ -40,27 +40,25 @@
 
   <% named_api_hint = "Named API this app uses. A label, not a secret. Public is people and workspaces. Operations is staff Admin." %>
   <% if @oauth_client.new_record? && RecordingStudioOauth::Integration.multiple_named_apis? %>
-    <%= render FlatPack::Tooltip::Component.new(text: named_api_hint, placement: :top) do %>
-      <%= render FlatPack::Select::Component.new(
-        name: "oauth_client[api_key]",
-        label: "API",
-        options: RecordingStudioOauth::Integration.named_api_choices,
-        value: @oauth_client.api_key.presence || RecordingStudioOauth::Services::CreateOauthClient::DEFAULT_API_KEY,
-        placeholder: nil,
-        searchable: false,
-        required: true,
-        error: @oauth_client.errors[:api_key].to_sentence.presence
-      ) %>
-    <% end %>
+    <%= render FlatPack::Select::Component.new(
+      name: "oauth_client[api_key]",
+      label: "API",
+      options: RecordingStudioOauth::Integration.named_api_choices,
+      value: @oauth_client.api_key.presence || RecordingStudioOauth::Services::CreateOauthClient::DEFAULT_API_KEY,
+      placeholder: nil,
+      searchable: false,
+      required: true,
+      help_text: named_api_hint,
+      error: @oauth_client.errors[:api_key].to_sentence.presence
+    ) %>
   <% elsif @oauth_client.persisted? && (RecordingStudioOauth::Integration.multiple_named_apis? || @oauth_client.operations?) %>
-    <%= render FlatPack::Tooltip::Component.new(text: named_api_hint, placement: :top) do %>
-      <%= render FlatPack::TextInput::Component.new(
-        name: "oauth_client_api",
-        label: "API",
-        value: RecordingStudioOauth::Integration.human_api_name(@oauth_client.api_key),
-        disabled: true
-      ) %>
-    <% end %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "oauth_client_api",
+      label: "API",
+      value: RecordingStudioOauth::Integration.human_api_name(@oauth_client.api_key),
+      disabled: true,
+      help_text: named_api_hint
+    ) %>
   <% end %>
 
   <div>
