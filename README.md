@@ -8,7 +8,7 @@ It is not Users. It is not Doorkeeper. It is not OIDC or SAML. It is not OAuth s
 
 ## What you get
 
-**OauthClient** is a registry row: name, client id, redirect URIs, public or confidential, named API, revoked. It is not a recordable and not a child of Access.
+**OauthClient** is a registry row: name, client id, redirect URIs, public or confidential, named API, revoked. It is not a recordable and not a child of Access. `api_key` is the named API label (`public`, `operations`, …), not a secret. New apps default to `public`.
 
 **OauthAuthorization** is an Accessible actor. Connect grants Access on the parent of the Access the person clicked, `depends_on:` that Access. The app's Access is a sibling of theirs. Same app and same node reconnects. Asking for more than they have, or a missing Access, rejects. Nothing is silently clamped.
 
@@ -77,10 +77,12 @@ Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame:
 
 The list title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
 
-1. A list in a card with default padding. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect (default), Connected (success), or Reconnect (danger). Reconnect has a tooltip: "This connection is no longer live." Staff AdminRoot is not a row. The list is flat, not a tree.
+1. A list in a card with default padding. Each row is a workspace or folder the person can already use. Trailing Flatpack buttons are Connect (default), Connected (success), or Reconnect (danger). Reconnect has a tooltip: "This connection is no longer live." Staff Admin is not a row for public apps. An operations app (`api_key: "operations"`) can Connect there. The list is flat, not a tree.
 2. `{picked parent} permissions`. Role picker when they have more than View, with no field label or help. Connect and Cancel are separate buttons. Cancel is `access_denied`. Those two submit with `data-turbo="false"` so an off-host `redirect_uri` is a full page navigation. Workspace list GET links stay on Turbo.
 
-People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it. Registered apps shows Secret and Status as badges. Hover or focus explains Public versus Has a secret. Active and Revoked need no extra line.
+People can see and remove connected apps. Staff can register an app from Admin, copy the client id (and secret once), and revoke it. Registered apps shows Secret, API, and Status. Hover or focus explains Public versus Has a secret. Active and Revoked need no extra line. API is the named API label, not a secret.
+
+To let ChatGPT or Grok Connect as staff later, create an operations app: pick Operations on New app (`api_key: "operations"`), then send the person to `/recording_studio_oauth/apis/operations/oauth/authorize`. Public Connect stays on `/recording_studio_oauth/oauth/authorize` and still hides staff Admin.
 
 ## Install
 
@@ -97,7 +99,7 @@ Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi
 
 ## Dummy
 
-`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+`test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only for public apps. Dummy names an `operations` API so Registered apps can create an operations OauthClient. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
 ## Central Connect relay
 
@@ -192,4 +194,4 @@ See `docs/session-tokens.md`.
 
 ## Version
 
-0.6.0
+0.6.2

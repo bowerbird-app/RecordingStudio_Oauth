@@ -6,11 +6,12 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 
 - Devise sign-in (`admin@admin.com` / `Password`)
 - Accessible grants on Workspace, Folder, and AdminRoot
+- Named APIs `public` and `operations` (`api_key` is that label, not a secret)
 - Seed Demo App plus a public WordPress app whose redirect is the host relay
 - Studio Workspace, Docs Workspace, and Product Docs
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
-- Staff Admin Registered apps can add an app (New app), show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger.
+- Staff Admin Registered apps can add an app (New app), pick Public or Operations, show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger. Operations apps can Connect on Admin. Public apps cannot.
 - RFC 8414 on the host `/.well-known` paths, including `/.well-known/oauth-authorization-server/recording_studio_oauth`
 - RFC 7591 self-registered apps at `POST /recording_studio_oauth/register` (dummy turns this on)
 - RFC 9728 path-inserted protected-resource metadata at `/.well-known/oauth-protected-resource/recording_studio_mcp`
@@ -39,7 +40,8 @@ Page-only review shots live in `doc/review/`.
 ## Routes
 
 - `/` dummy home
-- `/recording_studio_oauth/oauth/authorize` Connect
+- `/recording_studio_oauth/oauth/authorize` Connect (public apps)
+- `/recording_studio_oauth/apis/operations/oauth/authorize` Connect (operations apps)
 - `/recording_studio_oauth/connect` central Connect relay start
 - `/recording_studio_oauth/callback` central Connect relay callback
 - `/recording_studio_oauth/connected_apps` connected apps

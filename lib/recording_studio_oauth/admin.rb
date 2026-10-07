@@ -151,6 +151,10 @@ module RecordingStudioOauth
                  { text: cell[:label], style: cell[:style], size: :sm }
                },
                tooltip: ->(row, _context) { RecordingStudioOauth::Admin.source_cell(row)[:tooltip] }
+        column :api_key,
+               title: "API",
+               value: ->(row, _context) { RecordingStudioOauth::Integration.human_api_name(row.api_key) },
+               tooltip: ->(_row, _context) { "Named API this app uses. A label, not a secret." }
         column :confidential,
                title: "Secret",
                display: :badge,

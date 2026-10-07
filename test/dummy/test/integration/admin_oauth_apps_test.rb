@@ -74,6 +74,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Name"
     assert_includes response.body, "Redirect URLs"
     assert_includes response.body, "Secret"
+    assert_includes response.body, "API"
     assert_includes response.body, "Create app"
     assert_includes response.body, "Use central relay"
     assert_includes response.body, "Allow registration"
@@ -92,7 +93,38 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     refute token_box["checked"], "Token verification stays off on a new app"
     token_fields = css_select("#token_verification_fields").first
     assert token_fields["hidden"], "session token fields stay hidden until Token verification is on"
+    assert_select "select[name='oauth_client[api_key]']"
     refute_includes response.body, "max-w-sm"
+  end
+
+  test "staff can create an operations app and see the named API" do
+    assert_difference -> { RecordingStudioOauth::OauthClient.count }, 1 do
+      post "/recording_studio_oauth/admin/oauth_clients", params: {
+        oauth_client: {
+          name: "Staff Ops App",
+          redirect_uris: "https://chatgpt.example/callback",
+          secret: "public",
+          api_key: "operations"
+        }
+      }
+    end
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Staff Ops App")
+    assert_equal "operations", client.api_key
+    assert client.operations?
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Operations"
+    assert_includes response.body, "Named API this app uses. A label, not a secret."
+
+    get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
+
+    assert_response :success
+    row = css_select("tr, [role='row']").find { |element| element.text.include?("Staff Ops App") }
+    assert row, "expected Staff Ops App in the registered apps table"
+    assert_includes row.text, "Operations"
   end
 
   test "staff can create a public app and see the client id once without a secret" do
@@ -116,6 +148,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "This app has no secret."
     refute_match(/rsoauth_cs_/, response.body)
     refute client.confidential?
+    assert_equal "public", client.api_key
     assert_nil client.client_secret_digest
 
     get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }

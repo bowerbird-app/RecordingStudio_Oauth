@@ -12,6 +12,11 @@ RecordingStudioApi.configure do |config|
   config.rate_limit_api_enabled = false if config.respond_to?(:rate_limit_api_enabled=)
   config.api_request_logging_enabled = false if config.respond_to?(:api_request_logging_enabled=)
   config.api_management_authorization_required = false if config.respond_to?(:api_management_authorization_required=)
+
+  config.api :operations do |api|
+    api.openapi_title = "Operations API"
+    api.openapi_description = "Staff Admin API. operations is a named API label, not a secret."
+  end
 end
 
 RecordingStudioApi.register_recordable_type_api(

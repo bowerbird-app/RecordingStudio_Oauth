@@ -107,7 +107,8 @@ module RecordingStudioOauth
 
       resolved = Integration.resolve_access_recording_for_actor(
         actor: current_oauth_actor,
-        requested_access_recording_id: requested_access_recording_id
+        requested_access_recording_id: requested_access_recording_id,
+        oauth_client: @oauth_client
       )
       @access_candidates = Array(resolved.fetch(:candidates))
       @selected_access_recording = selected_access_recording_from_params
