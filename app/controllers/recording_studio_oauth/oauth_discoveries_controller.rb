@@ -2,6 +2,8 @@
 
 module RecordingStudioOauth
   class OauthDiscoveriesController < ActionController::API
+    include Concerns::OauthDiscoveryApiKey
+
     def authorization_server
       return head :not_found unless known_issuer_path?
 
@@ -39,10 +41,6 @@ module RecordingStudioOauth
       { registration_endpoint: "#{issuer}/register" }
     end
 
-    def current_api_key
-      api_key_from_issuer_path.presence || params[:api_key].to_s.presence || "public"
-    end
-
     def issuer
       "#{request.base_url}#{issuer_path}"
     end
@@ -53,34 +51,7 @@ module RecordingStudioOauth
 
       mount = request.script_name.to_s
       mount = configured_mount_path if mount.blank? || mount == "/"
-      request_api_key == "public" ? mount : "#{mount}/apis/#{request_api_key}"
-    end
-
-    def request_api_key
-      params[:api_key].to_s.presence || "public"
-    end
-
-    def inserted_issuer_path
-      suffix = params[:issuer_path].to_s.delete_prefix("/")
-      return if suffix.empty?
-
-      "/#{suffix}"
-    end
-
-    def configured_mount_path
-      RecordingStudioOauth.configuration.engine_mount_path.presence || "/recording_studio_oauth"
-    end
-
-    def known_issuer_path?
-      path = issuer_path
-      return true if path == configured_mount_path
-
-      path.match?(%r{\A#{Regexp.escape(configured_mount_path)}/apis/[^/]+\z})
-    end
-
-    def api_key_from_issuer_path
-      match = issuer_path.match(%r{\A#{Regexp.escape(configured_mount_path)}/apis/([^/]+)\z})
-      match && match[1]
+      current_api_key == "public" ? mount : "#{mount}/apis/#{current_api_key}"
     end
 
     def protected_resource_entry(registry)
@@ -104,7 +75,7 @@ module RecordingStudioOauth
     end
 
     def token_endpoint
-      api_mount = RecordingStudioOauth.configuration.api_mount_path.presence || "/recording_studio_api"
+      api_mount = configured_api_mount_path
       if current_api_key == "public"
         "#{request.base_url}#{api_mount}/oauth/token"
       else
@@ -113,7 +84,7 @@ module RecordingStudioOauth
     end
 
     def revocation_endpoint
-      api_mount = RecordingStudioOauth.configuration.api_mount_path.presence || "/recording_studio_api"
+      api_mount = configured_api_mount_path
       if current_api_key == "public"
         "#{request.base_url}#{api_mount}/oauth/revoke"
       else

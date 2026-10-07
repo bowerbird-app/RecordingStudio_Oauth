@@ -41,7 +41,7 @@ Page-only review shots live in `doc/review/`.
 
 - `/` dummy home
 - `/recording_studio_oauth/oauth/authorize` Connect (public apps)
-- `/recording_studio_oauth/apis/operations/oauth/authorize` Connect (operations apps)
+- `/recording_studio_oauth/apis/operations/oauth/authorize` Connect (operations apps). Ops MCP `resource` is `/recording_studio_mcp/apis/operations`.
 - `/recording_studio_oauth/connect` central Connect relay start
 - `/recording_studio_oauth/callback` central Connect relay callback
 - `/recording_studio_oauth/connected_apps` connected apps
@@ -50,4 +50,5 @@ Page-only review shots live in `doc/review/`.
 - `/.well-known/oauth-authorization-server/recording_studio_oauth` authorization-server metadata
 - `/recording_studio_oauth/register` Dynamic Client Registration
 - `/.well-known/oauth-protected-resource/recording_studio_mcp` MCP protected-resource metadata
+- `/.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations` operations MCP protected-resource metadata
 - `/users/sign_in` Devise

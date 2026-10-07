@@ -1,5 +1,17 @@
 # Upgrading
 
+## 0.6.3
+
+No host code change for public Connect or public MCP. Named APIs now allow the MCP identifier as `resource`.
+
+Ops MCP clients (ChatGPT Connect included) must send `resource` of the MCP URL:
+
+`https://<host>/recording_studio_mcp/apis/operations`
+
+Authorize stays `/recording_studio_oauth/apis/operations/oauth/authorize`. Token stays `/recording_studio_api/apis/operations/oauth/token`. A present `resource` that is not in that named registry is still `invalid_target`. Omit `resource` as before.
+
+`GET /.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations` is that identifier. `authorization_servers` is `/recording_studio_oauth/apis/operations`.
+
 ## 0.6.2
 
 No host code change for public Connect. New apps still default to the public named API.

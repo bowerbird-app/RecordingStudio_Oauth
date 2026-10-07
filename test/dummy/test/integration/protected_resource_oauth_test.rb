@@ -10,6 +10,8 @@ class ProtectedResourceOauthTest < ActionDispatch::IntegrationTest
   HOST = "http://www.example.com"
   API_RESOURCE = "#{HOST}/recording_studio_api/api"
   MCP_RESOURCE = "#{HOST}/recording_studio_mcp"
+  OPERATIONS_API_RESOURCE = "#{HOST}/recording_studio_api/apis/operations"
+  OPERATIONS_MCP_RESOURCE = "#{HOST}/recording_studio_mcp/apis/operations"
 
   setup do
     @user = create_user
@@ -116,6 +118,52 @@ class ProtectedResourceOauthTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match(/\Arsoauth_at_/, JSON.parse(response.body).fetch("access_token"))
+  end
+
+  test "operations authorize and token accept the named MCP resource" do
+    ops_client, = create_oauth_client(name: "Ops MCP App", api: "operations")
+
+    get named_authorize_path("operations"), params: authorize_params.merge(
+      client_id: ops_client.client_id,
+      resource: OPERATIONS_MCP_RESOURCE
+    )
+
+    assert_response :success
+    assert_includes response.body, ops_client.name
+    refute_includes response.body, "resource is not a registered protected resource"
+
+    get named_authorize_path("operations"), params: authorize_params.merge(
+      client_id: ops_client.client_id,
+      resource: OPERATIONS_API_RESOURCE
+    )
+
+    assert_response :success
+    assert_includes response.body, ops_client.name
+
+    get named_authorize_path("operations"), params: authorize_params.merge(
+      client_id: ops_client.client_id,
+      resource: MCP_RESOURCE
+    )
+
+    assert_response :bad_request
+    assert_includes response.body, "resource is not a registered protected resource"
+
+    ops_pkce = pkce_pair
+    approved = approve_delegated_oauth(
+      oauth_client: ops_client,
+      user: @user,
+      access_recording: @access_recording,
+      pkce: ops_pkce
+    )
+    post named_api_token_path("operations"), params: token_params(
+      code: approved.fetch(:code),
+      resource: OPERATIONS_MCP_RESOURCE,
+      code_verifier: ops_pkce.fetch(:verifier)
+    ).merge(client_id: ops_client.client_id)
+
+    assert_response :success
+    assert_match(/\Arsoauth_at_/, JSON.parse(response.body).fetch("access_token"))
+    refute JSON.parse(response.body).key?("resource")
   end
 
   test "token rejects repeated resource params" do

@@ -27,13 +27,26 @@ class ProtectedResourceRegistryTest < Minitest::Test
     assert_nil registry.find(kind: :origin)
   end
 
-  def test_named_api_registry_excludes_mcp
+  def test_named_api_registry_includes_mcp
     registry = build_registry(api_key: "operations")
 
-    assert_equal [:api], registry.entries.map(&:kind)
-    assert_equal ["https://app.example.com/recording_studio_api/apis/operations"], registry.identifiers(base_url: BASE_URL)
-    assert_nil registry.find(kind: :mcp)
+    assert_equal %i[api mcp], registry.entries.map(&:kind)
+    assert_equal [
+      "https://app.example.com/recording_studio_api/apis/operations",
+      "https://app.example.com/recording_studio_mcp/apis/operations"
+    ], registry.identifiers(base_url: BASE_URL)
+    assert_equal "/recording_studio_mcp/apis/operations", registry.find(kind: :mcp).path
     assert_nil registry.resolve(path_suffix: "recording_studio_mcp")
+    assert_equal :mcp, registry.resolve(path_suffix: "recording_studio_mcp/apis/operations").kind
+    assert registry.permit?("https://app.example.com/recording_studio_mcp/apis/operations", base_url: BASE_URL)
+    refute registry.permit?("https://app.example.com/recording_studio_mcp", base_url: BASE_URL)
+  end
+
+  def test_public_registry_does_not_include_named_mcp_paths
+    registry = build_registry
+
+    refute registry.permit?("https://app.example.com/recording_studio_mcp/apis/operations", base_url: BASE_URL)
+    assert_nil registry.resolve(path_suffix: "recording_studio_mcp/apis/operations")
   end
 
   def test_resolve_matches_path_suffixes
@@ -110,6 +123,14 @@ class ProtectedResourceRegistryTest < Minitest::Test
       "https://app.example.com/hooks"
     ], registry.identifiers(base_url: BASE_URL)
     assert_equal :extra, registry.resolve(path_suffix: "hooks").kind
+
+    named = build_registry(api_key: "operations")
+    assert_equal [
+      "https://app.example.com/api/apis/operations",
+      "https://app.example.com/mcp/apis/operations"
+    ], named.identifiers(base_url: BASE_URL)
+    assert_nil named.find(kind: :origin)
+    assert_nil named.resolve(path_suffix: "hooks")
   end
 
   def test_overlapping_extra_path_raises
@@ -153,6 +174,12 @@ class ProtectedResourceRegistryTest < Minitest::Test
       "https://app.example.com/.well-known/oauth-protected-resource/recording_studio_mcp",
       registry.find(kind: :mcp).metadata_url(base_url: BASE_URL)
     )
+
+    named = build_registry(api_key: "operations")
+    assert_equal(
+      'Bearer realm="RecordingStudioMcp", resource_metadata="https://app.example.com/.well-known/oauth-protected-resource/recording_studio_mcp/apis/operations"',
+      named.www_authenticate_challenge(base_url: BASE_URL)
+    )
   end
 
   def test_facade_builds_from_module_configuration
@@ -160,6 +187,16 @@ class ProtectedResourceRegistryTest < Minitest::Test
 
     assert_equal "public", registry.api_key
     assert_equal %i[api mcp], registry.entries.map(&:kind)
+
+    operations = RecordingStudioOauth.protected_resources(api_key: "operations")
+    assert operations.permit?(
+      "https://host/recording_studio_mcp/apis/operations",
+      base_url: "https://host"
+    )
+    refute registry.permit?(
+      "https://host/recording_studio_mcp/apis/operations",
+      base_url: "https://host"
+    )
   end
 
   def test_draw_origin_well_known_draws_origin_root_routes
