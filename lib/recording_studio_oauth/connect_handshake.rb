@@ -4,13 +4,15 @@ module RecordingStudioOauth
   module ConnectHandshake
     module_function
 
-    def title(plugin_name:, site_names:)
+    def title(plugin_name:, site_names:, title: Copy::UNSET)
+      return title if Copy.provided?(title)
+
       plugin = plugin_name.to_s
       names = Array(site_names).map { |name| present_name(name) }
       if names.uniq.one? && names.first.present?
-        "#{plugin} wants to connect to #{names.first}"
+        Copy.t("connect.title_with_site", app: plugin, site: names.first)
       else
-        "#{plugin} wants to connect"
+        Copy.t("connect.title", app: plugin)
       end
     end
 

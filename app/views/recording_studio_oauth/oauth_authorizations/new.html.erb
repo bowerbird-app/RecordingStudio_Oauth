@@ -38,7 +38,7 @@
 
   <div class="space-y-3">
     <%= render FlatPack::Button::Component.new(
-      text: "Connect",
+      text: oauth_t("connect.allow"),
       style: :primary,
       size: :md,
       type: "submit",
@@ -47,7 +47,7 @@
       class: "w-full"
     ) %>
     <%= render FlatPack::Button::Component.new(
-      text: "Cancel",
+      text: oauth_t("connect.deny"),
       style: :secondary,
       size: :md,
       type: "submit",

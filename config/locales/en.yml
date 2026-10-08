@@ -1,0 +1,51 @@
+en:
+  recording_studio:
+    oauth:
+      layout:
+        go_back: "Go back"
+        connect_title: "Connect"
+      roles:
+        view: "View"
+        edit: "Edit"
+        admin: "Admin"
+      connect:
+        title: "%{app} wants to connect"
+        title_with_site: "%{app} wants to connect to %{site}"
+        permissions: "Permissions"
+        permissions_with_name: "%{name} permissions"
+        allow: "Connect"
+        deny: "Cancel"
+        reconnect_hint: "This connection is no longer live."
+        status:
+          connect: "Connect"
+          reconnect: "Reconnect"
+          connected: "Connected"
+        empty_title: "No place to connect from yet"
+        empty_description: "Ask someone to invite you, then try again."
+      connected_apps:
+        title: "Connected apps"
+        subtitle: "These apps have their own access. Remove one to shut it off."
+        remove: "Remove access"
+        revoke_confirm: "Remove this app's access?"
+        empty_title: "Nothing connected yet"
+        empty_description: "When you connect an app, it shows up here."
+        status: "%{permission} on %{workspace}"
+        status_removed: "%{permission} on %{workspace} · removed"
+        this_place: "this place"
+      flashes:
+        access_removed: "App access removed."
+      errors:
+        page_title: "Could not connect"
+        access_gone: "That access is gone. Connect again."
+        role_changed: "Your access changed. Connect again."
+        staff_admin_only: "Staff Admin is only for operations apps."
+        invite_first: "Ask someone to invite you first"
+        pick_place: "Pick a place first"
+        unsupported_response_type: "response_type must be code"
+        invalid_target: "resource is not a registered protected resource"
+        invalid_client: "client is invalid"
+        invalid_request: "redirect_uri does not match"
+        not_registered: "This app is not registered."
+        return_not_allowed: "That return address is not allowed."
+        relay_not_set_up: "This app is not set up for the central relay."
+        proof_key_required: "Connect needs a proof key."

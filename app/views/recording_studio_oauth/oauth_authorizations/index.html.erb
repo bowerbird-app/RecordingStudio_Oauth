@@ -28,8 +28,8 @@
   <% end %>
 <% else %>
   <%= render FlatPack::EmptyState::Component.new(
-    title: "No place to connect from yet",
-    description: "Ask someone to invite you, then try again.",
+    title: oauth_t("connect.empty_title"),
+    description: oauth_t("connect.empty_description"),
     icon: :inbox
   ) %>
 <% end %>

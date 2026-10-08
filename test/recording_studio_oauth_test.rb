@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.3", ::RecordingStudioOauth::VERSION
+    assert_equal "0.7.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -20,6 +20,8 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.198"'
     refute_includes gemspec, "recording_studio_users"
+    refute_includes gemspec, "recording_studio_internationalization"
+    refute_includes gemspec, "RecordingStudio_Internationalization"
     refute_includes gemspec, "~> 0.1.144"
   end
 
@@ -56,9 +58,12 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.7"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.7.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.207"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.209"'
+    assert_includes gemfile, "recording_studio_internationalization"
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
     refute_includes gemfile, "recording_studio_users"
     refute_includes gemfile, 'tag: "v0.1.144"'
+    refute_includes gemfile, 'tag: "v0.1.207"'
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service
@@ -79,7 +84,7 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_dummy_login_layout_keeps_flatpack_assets
     application_layout = File.read(File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__))
 
-    assert_includes application_layout, '<html data-theme="rounded">'
+    assert_includes application_layout, "dummy_document_attributes"
     assert_includes application_layout, 'stylesheet_link_tag "flat_pack/variables"'
     assert_includes application_layout, "javascript_importmap_tags"
     refute_includes application_layout, "mt-28"
@@ -116,6 +121,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "/recording_studio_oauth/connect"
     assert_includes readme, "verify_session_token"
     assert_includes readme, "record_external_install"
+    assert_includes readme, "recording_studio.oauth"
     refute_includes readme, "/recording_studio_oauth/wordpress/"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"
@@ -146,7 +152,7 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes consent, "page_nav_back_url"
     refute_includes consent, "help_text"
     refute_includes consent, "Permission"
-    assert_includes consent, 'text: "Connect"'
+    assert_includes consent, 'oauth_t("connect.allow")'
     assert_includes consent, 'value: "connect"'
     assert_includes consent, 'value: "cancel"'
     assert_includes consent, "data: { turbo: false }"
@@ -157,6 +163,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes layout, "max-w-sm"
     assert_includes layout, "FlatPack::PageNav::Component"
     assert_includes layout, "skip_connect_page_nav"
+    assert_includes layout, "oauth_document_attributes"
     refute_includes layout, "max-w-6xl"
   end
 
@@ -173,12 +180,12 @@ class RecordingStudioOauthTest < Minitest::Test
     controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
     consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
 
-    assert_includes controller, '"Connect" => :default'
-    assert_includes controller, '"Reconnect" => :danger'
-    assert_includes controller, '"Connected" => :success'
-    refute_includes controller, '"Connect" => :primary'
-    refute_includes controller, '"Reconnect" => :primary'
-    refute_includes controller, '"Connected" => :secondary'
+    assert_includes controller, '"connect" => :default'
+    assert_includes controller, '"reconnect" => :danger'
+    assert_includes controller, '"connected" => :success'
+    refute_includes controller, '"connect" => :primary'
+    refute_includes controller, '"reconnect" => :primary'
+    refute_includes controller, '"connected" => :secondary'
     assert_includes consent, "style: :primary"
     assert_includes consent, "style: :secondary"
   end
@@ -187,7 +194,7 @@ class RecordingStudioOauthTest < Minitest::Test
     controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
 
     assert_includes controller, "FlatPack::Tooltip::Component"
-    assert_includes controller, "This connection is no longer live."
+    assert_includes controller, 'Copy.t("connect.reconnect_hint")'
     assert_includes controller, "placement: :top"
     refute_includes controller, "title: RECONNECT"
     refute_includes controller, 'title: "This connection'

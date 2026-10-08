@@ -5,11 +5,10 @@ module RecordingStudioOauth
     include Concerns::HostAuthentication
 
     CONNECT_BUTTON_STYLE = {
-      "Connect" => :default,
-      "Reconnect" => :danger,
-      "Connected" => :success
+      "connect" => :default,
+      "reconnect" => :danger,
+      "connected" => :success
     }.freeze
-    RECONNECT_HINT = "This connection is no longer live."
 
     layout "recording_studio_oauth/authorization"
 
@@ -44,7 +43,7 @@ module RecordingStudioOauth
       end
 
       unless role_allowed_for?(selected, requested_role)
-        @errors << Services::CreateOauthAuthorization::ROLE_CHANGED_MESSAGE
+        @errors << Services::CreateOauthAuthorization.role_changed_message
         render :index, status: :unprocessable_entity
         return
       end
@@ -150,9 +149,9 @@ module RecordingStudioOauth
 
     def connect_permission_title
       name = access_parent_name(@selected_access_recording)
-      return "Permissions" if name.blank?
+      return Copy.t("connect.permissions") if name.blank?
 
-      "#{name} permissions"
+      Copy.t("connect.permissions_with_name", name: name)
     end
     helper_method :connect_permission_title
 
@@ -172,18 +171,27 @@ module RecordingStudioOauth
 
     def access_selection_error
       return reconnect_missing_access_message if requested_access_recording_id.present?
-      return "Ask someone to invite you first" if @access_candidates.empty?
+      return Copy.t("errors.invite_first") if @access_candidates.empty?
 
-      "Pick a place first"
+      Copy.t("errors.pick_place")
     end
 
     def reconnect_missing_access_message
-      Services::CreateOauthAuthorization::ACCESS_GONE_MESSAGE
+      Services::CreateOauthAuthorization.access_gone_message
     end
 
     def reconnect_error?(error)
       message = error.to_s
-      message.include?("Connect again") || message.include?("exceed")
+      reconnect_messages.include?(message) || message.include?("exceed")
+    end
+
+    def reconnect_messages
+      [
+        Services::CreateOauthAuthorization.access_gone_message,
+        Services::CreateOauthAuthorization.role_changed_message,
+        Services::CreateOauthAuthorization::ACCESS_GONE_MESSAGE,
+        Services::CreateOauthAuthorization::ROLE_CHANGED_MESSAGE
+      ]
     end
 
     def deny_requested?
@@ -207,7 +215,7 @@ module RecordingStudioOauth
       OauthAuthorization::ROLES.filter_map do |role|
         next unless OauthAuthorization.role_at_or_below?(role, current_role)
 
-        [role.to_s.humanize, role]
+        [Copy.role_name(role), role]
       end
     end
 
@@ -297,30 +305,34 @@ module RecordingStudioOauth
     end
     helper_method :access_parent_name
 
-    def connection_status_for(access_recording)
+    def connection_status_key_for(access_recording)
       authorizations = OauthAuthorization.where(
         oauth_client: @oauth_client,
         manager_actor: current_oauth_actor,
         manager_access_recording: access_recording
       )
-      return "Connect" if authorizations.none?
-      return "Connected" if authorizations.any?(&:active?)
+      return "connect" if authorizations.none?
+      return "connected" if authorizations.any?(&:active?)
 
-      "Reconnect"
+      "reconnect"
+    end
+
+    def connection_status_for(access_recording)
+      Copy.t("connect.status.#{connection_status_key_for(access_recording)}")
     end
     helper_method :connection_status_for
 
     def connection_status_trailing(access_recording)
-      status = connection_status_for(access_recording)
+      status_key = connection_status_key_for(access_recording)
       button = view_context.render FlatPack::Button::Component.new(
-        text: status,
-        style: CONNECT_BUTTON_STYLE.fetch(status),
+        text: Copy.t("connect.status.#{status_key}"),
+        style: CONNECT_BUTTON_STYLE.fetch(status_key),
         size: :sm,
         href: connect_choice_url(access_recording)
       )
-      return button unless status == "Reconnect"
+      return button unless status_key == "reconnect"
 
-      view_context.render(FlatPack::Tooltip::Component.new(text: RECONNECT_HINT, placement: :top)) { button }
+      view_context.render(FlatPack::Tooltip::Component.new(text: Copy.t("connect.reconnect_hint"), placement: :top)) { button }
     end
     helper_method :connection_status_trailing
 

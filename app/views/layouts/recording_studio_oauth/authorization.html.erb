@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html <%= tag.attributes(oauth_document_attributes) %>>
   <head>
     <% rs_config = RecordingStudio.configuration %>
-    <% app_name = (rs_config.respond_to?(:app_name) ? rs_config.app_name : nil) || "Connect" %>
+    <% app_name = (rs_config.respond_to?(:app_name) ? rs_config.app_name : nil) || oauth_t("layout.connect_title") %>
     <title><%= content_for(:title).presence || app_name %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="icon" href="/icon.png" type="image/png">
@@ -22,7 +22,7 @@
         <% unless content_for?(:skip_connect_page_nav) %>
           <%= render FlatPack::PageNav::Component.new(
             back_icon: content_for(:page_nav_back_icon).presence || "chevron-left",
-            back_label: content_for(:page_nav_back_label).presence || "Go back",
+            back_label: content_for(:page_nav_back_label).presence || oauth_t("layout.go_back"),
             back_style: (content_for(:page_nav_back_style).presence || "secondary").to_sym,
             back_size: (content_for(:page_nav_back_size).presence || "md").to_sym
           ) %>

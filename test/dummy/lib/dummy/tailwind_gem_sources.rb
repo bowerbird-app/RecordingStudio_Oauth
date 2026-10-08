@@ -23,7 +23,8 @@ module Dummy
         engine_path(RecordingStudioApi, "app"),
         engine_path(RecordingStudioAttachable, "app"),
         engine_path(RecordingStudioRootSwitchable, "app/views"),
-        engine_path(RecordingStudioSiteSettings, "app")
+        engine_path(RecordingStudioSiteSettings, "app"),
+        engine_path(RecordingStudioInternationalization, "app")
       ].compact
     end
 

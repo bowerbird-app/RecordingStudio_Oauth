@@ -28,4 +28,9 @@ end
 require "rails"
 require "active_support/time"
 Time.zone ||= "UTC"
+require "i18n"
+I18n.load_path << File.expand_path("../config/locales/en.yml", __dir__)
+I18n.backend.load_translations
+I18n.default_locale = :en
+I18n.available_locales = Array(I18n.available_locales) | %i[en]
 require "recording_studio_oauth"

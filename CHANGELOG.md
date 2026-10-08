@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-10-08
+
+People can translate Connect and connected-apps copy. The gem ships English only.
+
+### Added
+- Rails I18n under `recording_studio.oauth.*` for the consent screens, connected apps, and HTML error pages a person can land on. The gem ships `config/locales/en.yml` only.
+- Dummy offers English and French via Recording Studio Internationalization (dummy Gemfile only). A language selector sits in the dummy top nav.
+
+### Changed
+- Dummy pins Flatpack `v0.1.209` and Recording Studio `v4.3.0`.
+- `version.rb` is `0.7.0`. Tagged `v0.6.4` was the Admin / Flatpack dummy pin bump that left `version.rb` at `0.6.3`.
+
+### Upgrade Notes
+- Install Oauth `0.7.0`. No migration.
+- Copy `recording_studio.oauth.*` into host locale files for other languages.
+- Arguments and config that pass copy still win over locale defaults.
+- Client app names, descriptions, workspace titles, and other stored data stay untranslated.
+- Role labels look up `recording_studio.oauth.roles.<name>` and fall back to humanize.
+- Scope descriptions look up `recording_studio.oauth.scopes.<name>` and fall back to the existing text.
+- Staff Registered-app admin, OAuth protocol error codes, and JSON `error` / `error_description` stay English.
+
+## [0.6.4] - 2026-10-08
+
+Tagged dummy pin bump. `version.rb` stayed `0.6.3`.
+
+### Changed
+- Dummy and development pins: Admin `v2.0.6`, Flatpack `v0.1.207`.
+
 ## [0.6.3] - 2026-10-07
 
 ChatGPT ops MCP Connect can send `resource` of the named MCP URL.
@@ -226,6 +254,8 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0
+[0.6.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.1...v0.6.2
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.5.6...v0.6.0
