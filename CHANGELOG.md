@@ -14,8 +14,8 @@ People can translate Connect and connected-apps copy. The gem ships English only
 - Dummy offers English and French via Recording Studio Internationalization (dummy Gemfile only). A language selector sits in the dummy top nav.
 
 ### Changed
-- Dummy pins Flatpack `v0.1.209` and Recording Studio `v4.3.0`.
-- `version.rb` is `0.7.0`. Tagged `v0.6.4` was the Admin / Flatpack dummy pin bump that left `version.rb` at `0.6.3`.
+- Dummy pins Admin `v2.0.7`, Flatpack `v0.1.209`, and Recording Studio `v4.3.0`.
+- `version.rb` is `0.7.0`. Tagged `v0.6.4` and `v0.6.5` were dummy pin bumps that left `version.rb` at `0.6.3`.
 
 ### Upgrade Notes
 - Install Oauth `0.7.0`. No migration.
@@ -25,6 +25,13 @@ People can translate Connect and connected-apps copy. The gem ships English only
 - Role labels look up `recording_studio.oauth.roles.<name>` and fall back to humanize.
 - Scope descriptions look up `recording_studio.oauth.scopes.<name>` and fall back to the existing text.
 - Staff Registered-app admin, OAuth protocol error codes, and JSON `error` / `error_description` stay English.
+
+## [0.6.5] - 2026-10-08
+
+Tagged dummy pin bump. `version.rb` stayed `0.6.3`.
+
+### Changed
+- Dummy and development pins: Recording Studio `v4.3.0`.
 
 ## [0.6.4] - 2026-10-08
 
