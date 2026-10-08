@@ -7,6 +7,18 @@ module RecordingStudioOauth
       ROLE_CHANGED_MESSAGE = "Your access changed. Connect again."
       STAFF_ADMIN_ONLY_MESSAGE = "Staff Admin is only for operations apps."
 
+      def self.access_gone_message
+        Copy.t("errors.access_gone")
+      end
+
+      def self.role_changed_message
+        Copy.t("errors.role_changed")
+      end
+
+      def self.staff_admin_only_message
+        Copy.t("errors.staff_admin_only")
+      end
+
       def initialize(oauth_client:, manager_actor:, access_recording:, role:, redirect_uri:, code_challenge:, code_challenge_method: Pkce::S256)
         @oauth_client = oauth_client
         @manager_actor = manager_actor
@@ -86,9 +98,9 @@ module RecordingStudioOauth
         return failure("Access recording must point to RecordingStudio::Access") if access_recording.recordable_type != "RecordingStudio::Access"
         return failure("Role is invalid") unless OauthAuthorization::ROLES.include?(role)
         return failure("Access point recording is required") if access_point_recording.nil?
-        return failure(STAFF_ADMIN_ONLY_MESSAGE) unless access_parent_allowed_for_client?
-        return failure(ACCESS_GONE_MESSAGE) unless manager_access_present?
-        return failure(ROLE_CHANGED_MESSAGE) unless can_assign_requested_role?
+        return failure(self.class.staff_admin_only_message) unless access_parent_allowed_for_client?
+        return failure(self.class.access_gone_message) unless manager_access_present?
+        return failure(self.class.role_changed_message) unless can_assign_requested_role?
 
         true
       end

@@ -7,6 +7,7 @@ require "recording_studio_api"
 require "active_record"
 require "recording_studio_site_settings"
 require "flat_pack"
+require "recording_studio_oauth/copy"
 require "recording_studio_oauth/connect_handshake"
 require "recording_studio_oauth/token_digest"
 require "recording_studio_oauth/secret_box"
@@ -40,6 +41,7 @@ require "recording_studio_oauth/services/verify_session_token"
 require "recording_studio_oauth/services/record_external_install"
 require "recording_studio_oauth/oauth_client_form"
 require "recording_studio_oauth/admin"
+require_relative "../../app/helpers/recording_studio_oauth/copy_helper"
 
 module RecordingStudioOauth
   class Engine < ::Rails::Engine
@@ -89,6 +91,12 @@ module RecordingStudioOauth
 
       def identity_hash
         {}.compare_by_identity
+      end
+    end
+
+    initializer "recording_studio_oauth.view_helpers" do
+      ActiveSupport.on_load(:action_view) do
+        include RecordingStudioOauth::CopyHelper
       end
     end
 

@@ -1,5 +1,15 @@
 # Upgrading
 
+## 0.7.0
+
+No migration. Hosts can translate Connect and connected-apps copy.
+
+Copy `recording_studio.oauth.*` from `config/locales/en.yml` into host locale files. The gem ships English only. Do not add Recording Studio Internationalization to this gem — add it on the host if you want a language selector.
+
+Arguments and config that pass copy still win. Client app names, descriptions, workspace titles, and other stored data stay untranslated. Role labels look up `recording_studio.oauth.roles.<name>` and fall back to humanize.
+
+Staff Registered-app admin, OAuth protocol error codes, and JSON `error` / `error_description` stay English.
+
 ## 0.6.3
 
 No host code change for public Connect or public MCP. Named APIs now allow the MCP identifier as `resource`.

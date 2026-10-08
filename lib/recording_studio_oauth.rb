@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "recording_studio_oauth/version"
+require "recording_studio_oauth/copy"
 require "recording_studio_oauth/configuration"
 require "recording_studio_oauth/protected_resource"
 require "recording_studio_oauth/protected_resource_registry"

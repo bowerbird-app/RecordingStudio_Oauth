@@ -20,24 +20,22 @@ module RecordingStudioOauth
       authorization = OauthAuthorization.find_by!(id: params[:id], manager_actor: current_oauth_actor)
       Services::VoidOauthAuthorization.call(authorization: authorization)
 
-      redirect_to connected_apps_path, notice: "App access removed."
+      redirect_to connected_apps_path, notice: Copy.t("flashes.access_removed")
     end
 
     private
 
     def connected_app_status(authorization)
-      workspace = authorization.workspace_recording&.recordable
-      workspace_name = if workspace.respond_to?(:name) && workspace.name.present?
-                         workspace.name
-                       elsif workspace.respond_to?(:title) && workspace.title.present?
-                         workspace.title
-                       else
-                         "this place"
-                       end
-      permission = authorization.role.to_s.humanize
-      return "#{permission} on #{workspace_name} · removed" if authorization.revoked_at.present?
+      key = authorization.revoked_at.present? ? "connected_apps.status_removed" : "connected_apps.status"
+      Copy.t(key, permission: Copy.role_name(authorization.role), workspace: connected_app_workspace_name(authorization))
+    end
 
-      "#{permission} on #{workspace_name}"
+    def connected_app_workspace_name(authorization)
+      workspace = authorization.workspace_recording&.recordable
+      return workspace.name if workspace.respond_to?(:name) && workspace.name.present?
+      return workspace.title if workspace.respond_to?(:title) && workspace.title.present?
+
+      Copy.t("connected_apps.this_place")
     end
   end
 end

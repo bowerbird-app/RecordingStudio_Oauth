@@ -88,7 +88,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Site Settings `~> 0.1`, Flatpack `~> 0.1.144`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Site Settings `~> 0.1`, Flatpack `~> 0.1.198`.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
@@ -99,9 +99,26 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 Boot registers `authorization_code` and `refresh_token` with `RecordingStudioApi.register_oauth_grant`. That hook is required. Boot also registers `RecordingStudioOauth::TokenAuthenticator` so `rsoauth_at_` tokens authenticate on the API resource server. Token exchange uses the API engine's existing `/oauth/token`, including a named path such as `/apis/wp_plugin_demo/oauth/token`. A public Registered App (`api_key=public`) can complete `authorization_code` and `refresh_token` on that named path. The minted bearer still authenticates on the public API. Recording Studio API still requires `api_client.api_key` to match a named resource path. Confidential clients still have to match the request API. `client_credentials` stays built into API. Do not copy Connect into the API gem.
 
+## Translating
+
+Connect and connected-apps copy lives under `recording_studio.oauth.*`. This gem ships **English only** in `config/locales/en.yml`. Hosts own other languages. Copy `recording_studio.oauth.*` into `config/locales/<locale>.yml` and list that locale in `config.i18n.available_locales`.
+
+```erb
+<%= t("recording_studio.oauth.connect.allow") %>
+<%= t("recording_studio.oauth.connected_apps.title") %>
+```
+
+Do not add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) as a dependency of this gem. It is optional on the host. The dummy uses it to switch English and French.
+
+Arguments and host config that pass copy still win over locale defaults. Stored names stay data: client app names, descriptions, workspace titles, and other database content are not translated. Role labels look up `recording_studio.oauth.roles.<name>` and fall back to humanize. Human-readable scope descriptions look up `recording_studio.oauth.scopes.<name>` and fall back to the existing text.
+
+Staff Registered-app admin screens stay English. OAuth protocol error codes and JSON `error` / `error_description` fields stay English. Dummy demo and docs pages stay English.
+
 ## Dummy
 
 `test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only for public apps. Dummy names an `operations` API so Registered apps can create an operations OauthClient. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
+
+Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v4.3.0`, Admin `v2.0.7`, Flatpack `v0.1.209`, and Recording Studio Internationalization `v0.1.2` (dummy only).
 
 ## Central Connect relay
 
@@ -196,4 +213,4 @@ See `docs/session-tokens.md`.
 
 ## Version
 
-0.6.3
+0.7.0

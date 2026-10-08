@@ -1,10 +1,10 @@
 <%= render FlatPack::Grid::Component.new(cols: 2) do %>
   <div class="space-y-6">
-    <% recording_studio_page_nav(title: "Connected apps") %>
+    <% recording_studio_page_nav(title: oauth_t("connected_apps.title")) %>
 
     <%= render FlatPack::PageTitle::Component.new(
-      title: "Connected apps",
-      subtitle: "These apps have their own access. Remove one to shut it off.",
+      title: oauth_t("connected_apps.title"),
+      subtitle: oauth_t("connected_apps.subtitle"),
       variant: :h1
     ) %>
 
@@ -15,9 +15,9 @@
             <% remove_button = nil %>
             <% if authorization.revoked_at.nil? %>
               <% remove_button = capture do %>
-                <%= form_with url: connected_app_path(authorization), method: :delete do %>
+                <%= form_with url: connected_app_path(authorization), method: :delete, data: { turbo_confirm: oauth_t("connected_apps.revoke_confirm") } do %>
                   <%= render FlatPack::Button::Component.new(
-                    text: "Remove access",
+                    text: oauth_t("connected_apps.remove"),
                     style: :danger,
                     size: :sm,
                     type: "submit"
@@ -36,8 +36,8 @@
       <% end %>
     <% else %>
       <%= render FlatPack::EmptyState::Component.new(
-        title: "Nothing connected yet",
-        description: "When you connect an app, it shows up here.",
+        title: oauth_t("connected_apps.empty_title"),
+        description: oauth_t("connected_apps.empty_description"),
         icon: :inbox
       ) %>
     <% end %>

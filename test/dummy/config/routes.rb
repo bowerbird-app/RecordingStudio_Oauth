@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   mount RecordingStudioAttachable::Engine, at: "/recording_studio_attachable"
   mount RecordingStudioSiteSettings::Engine, at: "/recording_studio_site_settings"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
+  mount RecordingStudioInternationalization::Engine, at: "/recording_studio_internationalization"
 
   RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)
 

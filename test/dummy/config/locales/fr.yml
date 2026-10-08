@@ -1,0 +1,51 @@
+fr:
+  recording_studio:
+    oauth:
+      layout:
+        go_back: "Retour"
+        connect_title: "Connexion"
+      roles:
+        view: "Voir"
+        edit: "Modifier"
+        admin: "Admin"
+      connect:
+        title: "%{app} souhaite se connecter"
+        title_with_site: "%{app} souhaite se connecter à %{site}"
+        permissions: "Autorisations"
+        permissions_with_name: "Autorisations %{name}"
+        allow: "Connecter"
+        deny: "Annuler"
+        reconnect_hint: "Cette connexion n’est plus active."
+        status:
+          connect: "Connecter"
+          reconnect: "Reconnecter"
+          connected: "Connecté"
+        empty_title: "Aucun espace auquel se connecter pour le moment"
+        empty_description: "Demandez une invitation, puis réessayez."
+      connected_apps:
+        title: "Applications connectées"
+        subtitle: "Ces applications ont leur propre accès. Retirez-en une pour la couper."
+        remove: "Retirer l’accès"
+        revoke_confirm: "Retirer l’accès de cette application ?"
+        empty_title: "Rien n’est encore connecté"
+        empty_description: "Quand vous connectez une application, elle apparaît ici."
+        status: "%{permission} sur %{workspace}"
+        status_removed: "%{permission} sur %{workspace} · retiré"
+        this_place: "cet espace"
+      flashes:
+        access_removed: "Accès de l’application retiré."
+      errors:
+        page_title: "Connexion impossible"
+        access_gone: "Cet accès n’existe plus. Connectez-vous à nouveau."
+        role_changed: "Votre accès a changé. Connectez-vous à nouveau."
+        staff_admin_only: "L’administration n’est disponible que pour les applications d’exploitation."
+        invite_first: "Demandez d’abord une invitation"
+        pick_place: "Choisissez d’abord un espace"
+        unsupported_response_type: "Cette application a demandé une connexion que nous ne prenons pas en charge."
+        invalid_target: "Cette application a demandé un espace que nous ne reconnaissons pas."
+        invalid_client: "Cette application n’est pas enregistrée."
+        invalid_request: "Cette demande de connexion n’est pas valide."
+        not_registered: "Cette application n’est pas enregistrée."
+        return_not_allowed: "Cette adresse de retour n’est pas autorisée."
+        relay_not_set_up: "Cette application n’est pas configurée pour le relais central."
+        proof_key_required: "La connexion a besoin d’une clé de preuve."
