@@ -21,10 +21,6 @@ Site-wide OAuth metrics register with Recording Studio Metrics for the operation
   Accessible check Admin screens use).
 - Runtime dependency `recording_studio_metrics` `~> 0.2` (GitHub tag `v0.2.0`).
 
-### Changed
-- Dummy and development pins: Recording Studio API `v0.6.11`, Metrics `v0.2.0`.
-  Gemspec still constrains API to `>= 0.5.2, < 0.7`.
-
 ### Upgrade notes
 - Bump to `0.8.0`. No migration.
 - Add `recording_studio_metrics` at tag `v0.2.0`.
@@ -291,7 +287,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
-[0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.0...v0.8.0
+[0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.2...v0.6.3
