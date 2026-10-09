@@ -80,10 +80,10 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
         as: :json
     assert_response :success
     opened = timeseries_counts(response.parsed_body)
-    assert_equal authorizations_created_between(Time.utc(2026, 2, 10), Time.utc(2026, 2, 11)), opened["2026-02-10"]
-    assert_equal authorizations_created_between(Time.utc(2026, 3, 12), Time.utc(2026, 3, 13)), opened["2026-03-12"]
-    assert_operator opened["2026-02-10"], :>=, 1
-    assert_operator opened["2026-03-12"], :>=, 1
+    assert_equal authorizations_created_between(Time.utc(2026, 9, 20), Time.utc(2026, 9, 21)), opened["2026-09-20"]
+    assert_equal authorizations_created_between(Time.utc(2026, 10, 5), Time.utc(2026, 10, 6)), opened["2026-10-05"]
+    assert_operator opened["2026-09-20"], :>=, 1
+    assert_operator opened["2026-10-05"], :>=, 1
   end
 
   test "metrics index lists oauth client and authorization metrics" do
@@ -144,7 +144,7 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     revoked.update!(self_registered: true)
     revoked.revoke!
 
-    travel_to Time.utc(2026, 2, 10, 12) do
+    travel_to Time.utc(2026, 9, 20, 12) do
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: manual,
         manager_actor: @staff,
@@ -154,7 +154,7 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
       )
     end
 
-    travel_to Time.utc(2026, 3, 12, 12) do
+    travel_to Time.utc(2026, 10, 5, 12) do
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: dcr,
         manager_actor: @staff,

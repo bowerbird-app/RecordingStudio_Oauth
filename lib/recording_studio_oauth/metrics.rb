@@ -10,6 +10,8 @@ module RecordingStudioOauth
     API = :operations
     EXPOSE = { api: [API] }.freeze
     AUTHORIZE = ->(context) { RecordingStudioOauth::Api::Access.can_view?(context) }
+    ACTIVE_CLIENTS = ->(relation) { relation.merge(RecordingStudioOauth::OauthClient.active) }
+    ACTIVE_AUTHORIZATIONS = ->(relation) { relation.merge(RecordingStudioOauth::OauthAuthorization.active) }
 
     module_function
 
@@ -24,7 +26,7 @@ module RecordingStudioOauth
         model: RecordingStudioOauth::OauthClient,
         blast_radius: :site,
         api_authorize: AUTHORIZE,
-        scope: :active
+        scope: ACTIVE_CLIENTS
       ) { RecordingStudioOauth::Metrics.define_clients(self) }
     end
 
@@ -44,7 +46,7 @@ module RecordingStudioOauth
 
     def define_authorizations(dsl)
       dsl.timeseries :over_time, title: "New authorizations", field: :created_at, expose: EXPOSE
-      dsl.breakdown :by_role, title: "Authorizations by role", field: :role, expose: EXPOSE, scope: :active
+      dsl.breakdown :by_role, title: "Authorizations by role", field: :role, expose: EXPOSE, scope: ACTIVE_AUTHORIZATIONS
     end
   end
 end

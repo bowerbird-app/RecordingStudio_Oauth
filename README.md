@@ -213,7 +213,7 @@ See `docs/session-tokens.md`.
 
 ## Operations metrics
 
-The gem registers site-wide OAuth metrics. The host exposes them once:
+The gem depends on `recording_studio_metrics` and registers site-wide OAuth metrics. The host exposes them once:
 
 ```ruby
 RecordingStudioMetrics::Api.register!(api: :operations)
