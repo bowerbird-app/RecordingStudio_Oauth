@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-10-09
+
+Site-wide OAuth metrics register with Recording Studio Metrics for the operations API.
+
+### Added
+- `RecordingStudioOauth::Metrics.register!` registers `:oauth_clients` and
+  `:oauth_authorizations` (`blast_radius: :site`) with RecordingStudioMetrics.
+  Clients: `oauth_clients.total` (active apps, same `OauthClient.active` count
+  as the Admin Registered-apps card) and `oauth_clients.by_registration`
+  (`self_registered`). Authorizations: `oauth_authorizations.over_time`
+  (`created_at`) and `oauth_authorizations.by_role` on `OauthAuthorization.active`.
+  Each metric is exposed on `:operations` only. `api_authorize` uses
+  `RecordingStudioOauth::Api::Access.can_view?` (AdminRoot `:view`, the same
+  Accessible check Admin screens use).
+- Runtime dependency `recording_studio_metrics` `~> 0.2` (GitHub tag `v0.2.0`).
+
+### Upgrade notes
+- Bump to `0.8.0`. No migration.
+- Add `recording_studio_metrics` at tag `v0.2.0`.
+- This gem does not call `RecordingStudioMetrics::Api.register!`. The host
+  registers Metrics endpoints once:
+
+```ruby
+RecordingStudioMetrics::Api.register!(api: :operations)
+```
+
 ## [0.7.0] - 2026-10-08
 
 People can translate Connect and connected-apps copy. The gem ships English only.
@@ -261,6 +287,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.2...v0.6.3

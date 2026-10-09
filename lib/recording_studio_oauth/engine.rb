@@ -41,6 +41,7 @@ require "recording_studio_oauth/services/verify_session_token"
 require "recording_studio_oauth/services/record_external_install"
 require "recording_studio_oauth/oauth_client_form"
 require "recording_studio_oauth/admin"
+require "recording_studio_oauth/metrics"
 require_relative "../../app/helpers/recording_studio_oauth/copy_helper"
 
 module RecordingStudioOauth
@@ -185,6 +186,10 @@ module RecordingStudioOauth
           RecordingStudioOauth::Engine.apply_controller_extensions(controller)
         end
       end
+    end
+
+    initializer "recording_studio_oauth.metrics" do
+      config.to_prepare { RecordingStudioOauth::Metrics.register! }
     end
 
     config.to_prepare do

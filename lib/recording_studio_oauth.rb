@@ -60,3 +60,4 @@ module RecordingStudioOauth
 end
 
 require "recording_studio_oauth/engine"
+require "recording_studio_oauth/metrics"
