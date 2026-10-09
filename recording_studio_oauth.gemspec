@@ -8,8 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors     = ["Bowerbird"]
   spec.homepage    = "https://github.com/bowerbird-app/RecordingStudio_Oauth"
   spec.summary     = "Authorization server for third-party apps in Recording Studio"
-  spec.description = "People Connect a registered app. The app gets its own Accessible grant. " \
-                     "API stays the resource server and token URL."
+  spec.description = "People Connect a registered app. The app gets its own Accessible grant. API stays the resource server and token URL."
   spec.license     = "MIT"
   spec.required_ruby_version = ">= 3.3.0"
 
