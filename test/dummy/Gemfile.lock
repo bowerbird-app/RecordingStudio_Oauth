@@ -36,13 +36,13 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_api.git
-  revision: 91cd1e328032af27361f5384b54209300d434fb3
-  tag: v0.6.0
+  revision: 297673a375b71751d6fffe43ffbe71a6769f69f1
+  tag: v0.6.11
   specs:
-    recording_studio_api (0.6.0)
+    recording_studio_api (0.6.11)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
-      recording_studio_accessible (~> 0.9)
+      recording_studio_accessible (~> 0.11)
       redis (~> 5.3)
 
 GIT
@@ -52,6 +52,15 @@ GIT
   specs:
     recording_studio_attachable (0.7.0)
       flat_pack (>= 0.1.135)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_metrics.git
+  revision: 6e02b6b75a8a9dad2bd80c6ba2d30f7444e67b9e
+  tag: v0.2.0
+  specs:
+    recording_studio_metrics (0.2.0)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
 
@@ -93,13 +102,14 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_oauth (0.7.0)
+    recording_studio_oauth (0.8.0)
       flat_pack (~> 0.1.198)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.11)
       recording_studio_admin (~> 2.0)
       recording_studio_api (>= 0.5.2, < 0.7)
+      recording_studio_metrics (~> 0.2)
       recording_studio_site_settings (~> 0.1)
 
 GEM
@@ -532,6 +542,7 @@ DEPENDENCIES
   recording_studio_api!
   recording_studio_attachable!
   recording_studio_internationalization!
+  recording_studio_metrics!
   recording_studio_oauth!
   recording_studio_root_switchable!
   recording_studio_site_settings!
@@ -662,10 +673,11 @@ CHECKSUMS
   recording_studio (4.3.0)
   recording_studio_accessible (0.11.0)
   recording_studio_admin (2.0.7)
-  recording_studio_api (0.6.0)
+  recording_studio_api (0.6.11)
   recording_studio_attachable (0.7.0)
   recording_studio_internationalization (0.1.2)
-  recording_studio_oauth (0.7.0)
+  recording_studio_metrics (0.2.0)
+  recording_studio_oauth (0.8.0)
   recording_studio_root_switchable (0.5.1)
   recording_studio_site_settings (0.1.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae

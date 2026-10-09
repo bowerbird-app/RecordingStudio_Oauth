@@ -88,7 +88,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Site Settings `~> 0.1`, Flatpack `~> 0.1.198`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Metrics `~> 0.2`, Site Settings `~> 0.1`, Flatpack `~> 0.1.198`. The host calls `RecordingStudioMetrics::Api.register!(api: :operations)` once.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
@@ -118,7 +118,7 @@ Staff Registered-app admin screens stay English. OAuth protocol error codes and 
 
 `test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Product Docs is Connect (default), Admin is staff-only for public apps. Dummy names an `operations` API so Registered apps can create an operations OauthClient. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
-Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v4.3.0`, Admin `v2.0.7`, Flatpack `v0.1.209`, and Recording Studio Internationalization `v0.1.2` (dummy only).
+Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v4.3.0`, Admin `v2.0.7`, API `v0.6.11`, Metrics `v0.2.0`, Flatpack `v0.1.209`, and Recording Studio Internationalization `v0.1.2` (dummy only).
 
 ## Central Connect relay
 
@@ -211,6 +211,26 @@ RecordingStudioOauth.record_external_install(
 
 See `docs/session-tokens.md`.
 
+## Operations metrics
+
+The gem registers site-wide OAuth metrics. The host exposes them once:
+
+```ruby
+RecordingStudioMetrics::Api.register!(api: :operations)
+```
+
+Staff with AdminRoot `:view` can read them. A public token or a non-admin operations token is denied.
+
+| Method | Path |
+| --- | --- |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/by_registration` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/over_time` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/by_role` |
+
+`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`.
+
 ## Version
 
-0.7.0
+0.8.0

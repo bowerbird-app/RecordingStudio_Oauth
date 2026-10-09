@@ -1,5 +1,17 @@
 # Upgrading
 
+## 0.8.0
+
+No migration. Install Oauth `0.8.0` and add `recording_studio_metrics` at tag `v0.2.0`.
+
+This gem registers OAuth metrics. The host exposes them once:
+
+```ruby
+RecordingStudioMetrics::Api.register!(api: :operations)
+```
+
+Staff with AdminRoot `:view` can read them on the operations API. A public token or a non-admin operations token is denied.
+
 ## 0.7.0
 
 No migration. Hosts can translate Connect and connected-apps copy.
