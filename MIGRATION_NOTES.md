@@ -10,7 +10,7 @@
 - Admin `~> 2.0` (dummy tag `v2.0.7`)
 - Site Settings `~> 0.1` (dummy tag `v0.1.3`)
 - Attachable `~> 0.5` (dummy tag `v0.13.0`, required by Site Settings). Dummy includes library and placement migrations from Attachable `0.12.0`. View copy uses Rails I18n (`recording_studio.attachable.*`).
-- Root Switchable dummy tag `v0.5.3`
+- Root Switchable dummy tag `v0.6.0` (view copy uses Rails I18n under `recording_studio.root_switchable.*`)
 - Flatpack `~> 0.1.198` (dummy tag `v0.1.213`; Attachable `0.11+` needs `>= 0.1.213`)
 
 Do not depend on Users.
