@@ -3,7 +3,10 @@
 ## 0.10.0
 
 No Oauth migration. Install Oauth `0.10.0` and add `recording_studio_trashable`
-at tag `v0.9.0` (`~> 0.9`).
+at tag `v0.10.0` (`~> 0.10`). Load query helpers only
+(`require "recording_studio_trashable/query"`; Gemfile `require: false` when
+Bundler would auto-require the gem). Do not load the full Trashable engine for
+these Oauth call sites.
 
 Oauth Access grant voids and kept/trashed recording lookups use Trashable
 sibling APIs (`void_recording!`, `recording_studio_trashable_kept?` /

@@ -75,7 +75,7 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     refute authorization.active?
   end
 
-  test "kept_sql matches main where(trashed_at: nil) under default_scope; active does not" do
+  test "kept_sql matches main where(trashed_at: nil) under where.not(trashed_at: nil) default_scope; active does not" do
     granted = @approved.fetch(:access_recording)
     RecordingStudioTrashable.void_recording!(granted, time: Time.utc(2026, 10, 13, 12, 0, 0))
     assert granted.reload.recording_studio_trashable_trashed?
@@ -83,13 +83,13 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     host = Class.new(RecordingStudio::Recording) do
       def self.name = "OauthTrashableParityHostRecording"
 
-      default_scope -> { where(trashed_at: nil) }
+      # Host default scope already limits to trashed rows — the case where
+      # active's unscope diverges from main's additive where(trashed_at: nil).
+      default_scope -> { where.not(trashed_at: nil) }
     end
     host.include(RecordingStudioTrashable::RecordingScopes)
 
-    # Prior trashed_at filter (only trashed rows), then apply a kept filter — the
-    # case where active's unscope diverges from main's additive where(trashed_at: nil).
-    only_trashed = host.unscope(where: :trashed_at).where.not(trashed_at: nil)
+    only_trashed = host.all
     assert_includes only_trashed.pluck(:id), granted.id
 
     main_ids = only_trashed.where(trashed_at: nil).order(:id).pluck(:id)
@@ -111,3 +111,4 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal main_ids, oauth_ids
   end
 end
+

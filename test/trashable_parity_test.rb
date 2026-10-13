@@ -2,23 +2,24 @@
 
 require "test_helper"
 
-# Proves Oauth call sites map onto RecordingStudioTrashable sibling APIs with
-# main-compatible void / kept / active semantics (no invented wrappers).
+# Proves Oauth call sites map onto RecordingStudioTrashable query-only sibling
+# APIs with main-compatible void / kept / active semantics (no invented wrappers).
 class TrashableParityTest < Minitest::Test
-  def test_gemspec_and_gemfile_pin_trashable_v0_9
+  def test_gemspec_and_gemfile_pin_trashable_v0_10_query_only
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
     gemfile = File.read(File.expand_path("../Gemfile", __dir__))
     dummy_gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.9"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.9.0"'
-    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.9.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0", require: false'
+    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0", require: false'
   end
 
-  def test_engine_requires_trashable
+  def test_engine_requires_trashable_query_only
     engine = File.read(File.expand_path("../lib/recording_studio_oauth/engine.rb", __dir__))
 
-    assert_includes engine, 'require "recording_studio_trashable"'
+    assert_includes engine, 'require "recording_studio_trashable/query"'
+    refute_includes engine, 'require "recording_studio_trashable"'
   end
 
   def test_void_oauth_authorization_uses_void_recording_not_update_columns
@@ -35,7 +36,7 @@ class TrashableParityTest < Minitest::Test
 
   def test_void_recording_source_still_pins_update_columns
     trashable_root = Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path
-    source = File.read(File.join(trashable_root, "lib/recording_studio_trashable.rb"))
+    source = File.read(File.join(trashable_root, "lib/recording_studio_trashable/query.rb"))
     method_source = source[/def void_recording!\(.*?\n    end/m]
 
     refute_nil method_source
@@ -52,14 +53,14 @@ class TrashableParityTest < Minitest::Test
         File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__)
       )
     )
-    trashable_active = File.read(
+    trashable_scopes = File.read(
       File.join(
         Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
-        "lib/recording_studio/trashable/capabilities/trashable.rb"
+        "lib/recording_studio_trashable/recording_scopes.rb"
       )
     )
 
-    assert_includes trashable_active, "unscope(where: :trashed_at).where(trashed_at: nil)"
+    assert_includes trashable_scopes, "unscope(where: :trashed_at).where(trashed_at: nil)"
     assert_includes integration, "recording_studio_trashable_kept_sql"
     refute_includes integration, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, integration)
@@ -72,7 +73,7 @@ class TrashableParityTest < Minitest::Test
     source = File.read(
       File.join(
         Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
-        "lib/recording_studio/trashable/capabilities/trashable.rb"
+        "lib/recording_studio_trashable/recording_scopes.rb"
       )
     )
     active_scope = source[/scope :recording_studio_trashable_active, -> \{.*?\}/m]

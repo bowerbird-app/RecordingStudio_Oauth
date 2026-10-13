@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] - 2026-10-13
 
 Oauth Access grant voids and kept/trashed recording lookups go through
-`RecordingStudioTrashable` sibling APIs instead of raw `trashed_at` column access.
+`RecordingStudioTrashable` query-only sibling APIs instead of raw `trashed_at`
+column access.
 
 ### Changed
 - `VoidOauthAuthorization` soft-voids the granted Access recording with
@@ -22,14 +23,19 @@ Oauth Access grant voids and kept/trashed recording lookups go through
   dummy admin resolver). Not `recording_studio_trashable_active`, which
   `unscope`s `trashed_at` first and can diverge from main's additive
   `where(trashed_at: nil)`.
-- Runtime dependency `recording_studio_trashable` `~> 0.9` (GitHub tag `v0.9.0`,
-  commit `20275de`).
+- Runtime dependency `recording_studio_trashable` `~> 0.10` (GitHub tag
+  `v0.10.0`). Oauth loads `require "recording_studio_trashable/query"` only
+  (Gemfile pins use `require: false`), so Trashable engine side effects
+  (importmap/assets, `:trashable` capability, CopyHelper, trash metrics) do not
+  load.
 
 ### Upgrade notes
 - Bump to `0.10.0`. No Oauth migration.
-- Add `recording_studio_trashable` at tag `v0.9.0`. Hosts that already have
-  `trashed_at` from Recording Studio do not need Trashable UI migrations for
-  these Oauth call sites. Install Trashable fully if you want trash-bin UI.
+- Add `recording_studio_trashable` at tag `v0.10.0` (`~> 0.10`). Prefer
+  `require "recording_studio_trashable/query"` (and Gemfile `require: false`
+  when Bundler would auto-require the gem) so hosts do not pull Trashable UI
+  unless they mount it. Hosts that already have `trashed_at` from Recording
+  Studio do not need Trashable UI migrations for these Oauth call sites.
 - Nil Access recording on void still returns early (shared `void_recording!`
   would raise `ArgumentError`); behavior matches main.
 - Kept lookups use additive `kept_sql`, not `recording_studio_trashable_active`.
