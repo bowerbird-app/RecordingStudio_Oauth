@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-10-13
+
+`/register` rate limiting uses the shared Recording Studio Cache limiter.
+
+### Changed
+- `RecordingStudioOauth::RegisterRateLimit` is a thin adapter over
+  `RecordingStudioCache::RateLimiter` (`backend: :rails_cache`, `strategy: :ttl`).
+  Storage keys stay `recording_studio_oauth/register/<IP>` (or `…/unknown`).
+  The adapter keeps main's `limit.to_i <= 0` short-circuit (covers `nil`, blank,
+  `0`, and negatives) before constructing the shared limiter, then passes
+  `limit.to_i` and hardcoded `period: 1.minute` (not a config key on main).
+  Store is still `RegisterRateLimit.cache` (`@cache || Rails.cache`) — there is
+  no `Configuration#cache_store` — passed explicitly as `store:` (not
+  `RecordingStudioCache.store`). Cache connection / IO errors still raise:
+  `rescue_errors: [NeverRescued]` (v0.5.0 rejects `[]`; the private sentinel is
+  never raised, so nothing is swallowed).
+- Runtime dependency `recording_studio_cache` `~> 0.5` (GitHub tag `v0.5.0`).
+
+### Notes
+- Keys still expire in one minute. Main already passed `expires_in: 1.minute` on
+  increment/write; the shared `:ttl` backend keeps that TTL (no new expiry).
+
+### Upgrade notes
+- Bump to `0.9.0`. No migration.
+- Add `recording_studio_cache` at tag `v0.5.0`.
+- No host config change. `self_registered_apps_per_minute` and `/register`
+  responses stay the same for normal and disabled-limit paths.
+
 ## [0.8.0] - 2026-10-09
 
 Site-wide OAuth metrics register with Recording Studio Metrics for the operations API.
@@ -287,6 +315,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.9.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.8.2...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.3...v0.6.4

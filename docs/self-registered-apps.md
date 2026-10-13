@@ -28,7 +28,7 @@ A successful body has `client_id`, `client_id_issued_at`, and the registered met
 
 Redirect URIs must be https, or http on localhost, 127.0.0.1, or `[::1]`. Fragments and wildcard hosts are rejected. Errors use RFC 7591 shapes: `invalid_redirect_uri` and `invalid_client_metadata`.
 
-`/register` is limited per IP by `config.self_registered_apps_per_minute` (default 10). `0` turns the limit off.
+`/register` is limited per IP by `config.self_registered_apps_per_minute` (default 10). `0`, blank, or nil turns the limit off (`limit.to_i <= 0`). The window is one minute (not configurable). The counter lives in Rails.cache under `recording_studio_oauth/register/<IP>` via `RecordingStudioCache::RateLimiter` (`RegisterRateLimit` is the thin adapter).
 
 ## Access
 

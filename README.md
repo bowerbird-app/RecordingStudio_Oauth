@@ -88,7 +88,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Site Settings `~> 0.1`, Flatpack `~> 0.1.198`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.7`, Cache `~> 0.5`, Site Settings `~> 0.1`, Flatpack `~> 0.1.198`.
    Also add `recording_studio_metrics` `~> 0.2` and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
@@ -236,4 +236,4 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 
 ## Version
 
-0.8.0
+0.9.0

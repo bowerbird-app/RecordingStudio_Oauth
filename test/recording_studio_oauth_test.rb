@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.8.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.9.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -17,6 +17,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.7"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", "~> 0.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.198"'
@@ -60,6 +61,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.1.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.8.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
     assert_includes gemfile, "recording_studio_internationalization"
@@ -126,6 +128,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "record_external_install"
     assert_includes readme, "recording_studio.oauth"
     assert_includes readme, "recording_studio_metrics"
+    assert_includes readme, "Cache `~> 0.5`"
     assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total"
     assert_includes readme, "RecordingStudioMetrics::Api.register!(api: :operations)"
     refute_includes readme, "/recording_studio_oauth/wordpress/"
