@@ -108,7 +108,11 @@ module RecordingStudioOauth
 
       def admin_access_recording
         type_names = Array(RecordingStudioOauth.configuration.admin_root_recordable_type_names)
-        RecordingStudio::Recording.unscoped.find_by(recordable_type: type_names, parent_recording_id: nil, trashed_at: nil)
+        # Additive kept_sql on the same unscoped base as main (not the shared
+        # active scope, which unscopes trashed_at first).
+        RecordingStudio::Recording.unscoped
+                                  .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
+                                  .find_by(recordable_type: type_names, parent_recording_id: nil)
       end
 
       def client_form

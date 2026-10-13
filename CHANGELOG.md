@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-10-13
+
+Oauth Access grant voids and kept/trashed recording lookups go through
+`RecordingStudioTrashable` query-only sibling APIs instead of raw `trashed_at`
+column access.
+
+### Changed
+- `VoidOauthAuthorization` soft-voids the granted Access recording with
+  `RecordingStudioTrashable.void_recording!` (same `update_columns(trashed_at:,
+  updated_at:)` write as main; no cascade, capability, auth, or `trash_root`).
+- Connect / authorization kept checks use `recording_studio_trashable_kept?` /
+  `recording_studio_trashable_trashed?`.
+- Access recording lookups add
+  `where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)` on the
+  same base relation as main (`unscoped` for gem lookups; no `unscoped` for the
+  dummy admin resolver). Not `recording_studio_trashable_active`, which
+  `unscope`s `trashed_at` first and can diverge from main's additive
+  `where(trashed_at: nil)`.
+- Runtime dependency `recording_studio_trashable` `~> 0.10` (GitHub tag
+  `v0.10.0`). Oauth loads `require "recording_studio_trashable/query"` only
+  (Gemfile pins use `require: false`), so Trashable engine side effects
+  (importmap/assets, `:trashable` capability, CopyHelper, trash metrics) do not
+  load.
+
+### Upgrade notes
+- Bump to `0.10.0`. No Oauth migration.
+- Add `recording_studio_trashable` at tag `v0.10.0` (`~> 0.10`). Prefer
+  `require "recording_studio_trashable/query"` (and Gemfile `require: false`
+  when Bundler would auto-require the gem) so hosts do not pull Trashable UI
+  unless they mount it. Hosts that already have `trashed_at` from Recording
+  Studio do not need Trashable UI migrations for these Oauth call sites.
+- Nil Access recording on void still returns early (shared `void_recording!`
+  would raise `ArgumentError`); behavior matches main.
+- Kept lookups use additive `kept_sql`, not `recording_studio_trashable_active`.
+
 ## [0.9.0] - 2026-10-13
 
 `/register` rate limiting uses the shared Recording Studio Cache limiter.
@@ -315,6 +350,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.10.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.8.2...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0

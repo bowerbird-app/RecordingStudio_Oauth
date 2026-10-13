@@ -13,8 +13,11 @@ module RecordingStudioOauth
       access_ids = RecordingStudio::Access.where(actor: actor).pluck(:id)
       return [] if access_ids.empty?
 
+      # Additive kept_sql matches main's kept filter on this unscoped base
+      # (the shared active scope unscopes trashed_at first and is not used here).
       RecordingStudio::Recording.unscoped
-                                .where(recordable_type: "RecordingStudio::Access", recordable_id: access_ids, trashed_at: nil)
+                                .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
+                                .where(recordable_type: "RecordingStudio::Access", recordable_id: access_ids)
                                 .order(:created_at, :id)
                                 .to_a
     end

@@ -14,7 +14,8 @@ module RecordingStudioOauth
 
       def perform
         return success(authorization) if authorization.nil?
-        return success(authorization) if authorization.revoked? && authorization.access_recording&.trashed_at.present?
+        return success(authorization) if authorization.revoked? &&
+                                         authorization.access_recording&.recording_studio_trashable_trashed?
 
         OauthAuthorization.transaction do
           authorization.lock!
@@ -33,10 +34,10 @@ module RecordingStudioOauth
 
       def trash_granted_access!(time)
         access_recording = authorization.access_recording
+        # Shared void_recording! raises ArgumentError on nil; main returned early.
         return if access_recording.nil?
-        return if access_recording.trashed_at.present?
 
-        access_recording.update_columns(trashed_at: time, updated_at: time)
+        RecordingStudioTrashable.void_recording!(access_recording, time: time)
       end
 
       def revoke_tokens!(time)

@@ -1,5 +1,22 @@
 # Upgrading
 
+## 0.10.0
+
+No Oauth migration. Install Oauth `0.10.0` and add `recording_studio_trashable`
+at tag `v0.10.0` (`~> 0.10`). Load query helpers only
+(`require "recording_studio_trashable/query"`; Gemfile `require: false` when
+Bundler would auto-require the gem). Do not load the full Trashable engine for
+these Oauth call sites.
+
+Oauth Access grant voids and kept/trashed recording lookups use Trashable
+sibling APIs (`void_recording!`, `recording_studio_trashable_kept?` /
+`recording_studio_trashable_trashed?`, additive
+`recording_studio_trashable_kept_sql`). Oauth does not use
+`recording_studio_trashable_active` for those lookups: that scope unscopes
+`trashed_at` first and is not identical to main's `where(trashed_at: nil)`.
+Hosts that already have `trashed_at` on recordings do not need Trashable UI
+migrations for these call sites.
+
 ## 0.9.0
 
 No migration. Install Oauth `0.9.0` and add `recording_studio_cache` at tag `v0.5.0`.
@@ -9,6 +26,7 @@ No migration. Install Oauth `0.9.0` and add `recording_studio_cache` at tag `v0.
 `RecordingStudioCache::RateLimiter` behind the same `RegisterRateLimit` API.
 Cache keys stay `recording_studio_oauth/register/<IP>`. Cache connection / IO
 errors still raise.
+
 
 ## 0.8.0
 
