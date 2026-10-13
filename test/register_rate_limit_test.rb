@@ -125,4 +125,26 @@ class RegisterRateLimitTest < Minitest::Test
       assert_nil @cache.read("recording_studio_oauth/register/7.7.7.7")
     end
   end
+
+  def test_store_connection_errors_raise_like_main
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = 1
+    broken = Object.new
+    def broken.increment(*)
+      raise Errno::ECONNREFUSED, "cache down"
+    end
+
+    def broken.write(*)
+      raise Errno::ECONNREFUSED, "cache down"
+    end
+
+    def broken.read(*)
+      raise Errno::ECONNREFUSED, "cache down"
+    end
+    RecordingStudioOauth::RegisterRateLimit.cache = broken
+
+    error = assert_raises(Errno::ECONNREFUSED) do
+      RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    end
+    assert_match(/cache down/, error.message)
+  end
 end

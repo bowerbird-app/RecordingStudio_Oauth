@@ -18,15 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `limit.to_i` and hardcoded `period: 1.minute` (not a config key on main).
   Store is still `RegisterRateLimit.cache` (`@cache || Rails.cache`) — there is
   no `Configuration#cache_store` — passed explicitly as `store:` (not
-  `RecordingStudioCache.store`).
+  `RecordingStudioCache.store`). Cache connection / IO errors still raise:
+  `rescue_errors: [SystemExit]` (v0.5.0 rejects `[]`; `SystemExit` never matches
+  store errors, so nothing is swallowed).
 - Runtime dependency `recording_studio_cache` `~> 0.5` (GitHub tag `v0.5.0`).
 
 ### Notes
 - Keys still expire in one minute. Main already passed `expires_in: 1.minute` on
   increment/write; the shared `:ttl` backend keeps that TTL (no new expiry).
-- Connection / IO / timeout errors from the cache store now follow the shared
-  limiter defaults (narrow `rescue_errors:`, `fail_closed: false` → allow).
-  Main let those raise. Other exceptions still raise.
 
 ### Upgrade notes
 - Bump to `0.9.0`. No migration.

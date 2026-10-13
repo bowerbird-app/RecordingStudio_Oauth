@@ -13,6 +13,8 @@ module RecordingStudioOauth
   #
   # Main's +limit.to_i <= 0+ short-circuit runs before the shared limiter is
   # constructed, so a disabled limit never hits cache or period validation.
+  # Store errors still raise: +rescue_errors: [SystemExit]+ (v0.5.0 rejects +[]+;
+  # +SystemExit+ never matches cache errors).
   class RegisterRateLimit
     CACHE_PREFIX = "recording_studio_oauth/register"
     # Main always used +expires_in: 1.minute+; period is not configurable.
@@ -39,20 +41,25 @@ module RecordingStudioOauth
       limit = RecordingStudioOauth.configuration.self_registered_apps_per_minute
       return true if limit.to_i <= 0
 
-      RecordingStudioCache::RateLimiter.new(
-        storage_key: storage_key,
-        limit: limit.to_i,
-        period: WINDOW,
-        backend: :rails_cache,
-        strategy: :ttl,
-        store: self.class.cache
-      ).allow?
+      RecordingStudioCache::RateLimiter.new(**limiter_options(limit)).allow?
     end
 
     private
 
     def storage_key
       "#{CACHE_PREFIX}/#{@ip}"
+    end
+
+    def limiter_options(limit)
+      {
+        storage_key: storage_key,
+        limit: limit.to_i,
+        period: WINDOW,
+        backend: :rails_cache,
+        strategy: :ttl,
+        store: self.class.cache,
+        rescue_errors: [SystemExit]
+      }
     end
   end
 end
