@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.10.1
+
+No Oauth migration or host code change. Install Oauth `0.10.1`. Widen Recording
+Studio API to `>= 0.5.2, < 0.8` (dummy tag `v0.7.0`). Metrics must be
+`~> 0.2, >= 0.2.2` (dummy tag `v0.2.2`) so API `0.7` can resolve.
+
 ## 0.10.0
 
 No Oauth migration. Install Oauth `0.10.0` and add `recording_studio_trashable`
