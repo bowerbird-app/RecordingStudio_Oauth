@@ -27,13 +27,15 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_api.git
-  revision: 91cd1e328032af27361f5384b54209300d434fb3
-  tag: v0.6.0
+  revision: 18cd57917a217dd7f2452ed73ae179f227082f30
+  tag: v0.7.0
   specs:
-    recording_studio_api (0.6.0)
+    recording_studio_api (0.7.0)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
-      recording_studio_accessible (~> 0.9)
+      recording_studio_accessible (~> 0.11)
+      recording_studio_metrics (~> 0.2, >= 0.2.2)
+      recording_studio_trashable (~> 0.10)
       redis (~> 5.3)
 
 GIT
@@ -58,10 +60,10 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_metrics.git
-  revision: 6e02b6b75a8a9dad2bd80c6ba2d30f7444e67b9e
-  tag: v0.2.0
+  revision: b992b5d3a5ef0b5a96c98a2e1410810d7d872f20
+  tag: v0.2.2
   specs:
-    recording_studio_metrics (0.2.0)
+    recording_studio_metrics (0.2.2)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
 
@@ -103,15 +105,15 @@ GIT
 PATH
   remote: .
   specs:
-    recording_studio_oauth (0.10.0)
+    recording_studio_oauth (0.10.1)
       flat_pack (~> 0.1.198)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.11)
       recording_studio_admin (~> 2.0)
-      recording_studio_api (>= 0.5.2, < 0.7)
+      recording_studio_api (>= 0.5.2, < 0.8)
       recording_studio_cache (~> 0.5)
-      recording_studio_metrics (~> 0.2)
+      recording_studio_metrics (~> 0.2, >= 0.2.2)
       recording_studio_site_settings (~> 0.1)
       recording_studio_trashable (~> 0.10)
 
@@ -510,11 +512,11 @@ CHECKSUMS
   recording_studio (4.5.0)
   recording_studio_accessible (0.15.0)
   recording_studio_admin (2.2.0)
-  recording_studio_api (0.6.0)
+  recording_studio_api (0.7.0)
   recording_studio_attachable (0.15.0)
   recording_studio_cache (0.5.0)
-  recording_studio_metrics (0.2.0)
-  recording_studio_oauth (0.10.0)
+  recording_studio_metrics (0.2.2)
+  recording_studio_oauth (0.10.1)
   recording_studio_site_settings (0.1.0)
   recording_studio_trashable (0.10.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
