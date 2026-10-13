@@ -11,6 +11,7 @@ module RecordingStudioOauth
     EXPOSE = { api: [API] }.freeze
     AUTHORIZE = ->(context) { RecordingStudioOauth::Api::Access.can_view?(context) }
     ACTIVE_CLIENTS = ->(relation) { relation.merge(RecordingStudioOauth::OauthClient.active) }
+    CREATED_SELF_REGISTERED = ->(relation) { relation.where(self_registered: true) }
     ACTIVE_AUTHORIZATIONS = ->(relation) { relation.merge(RecordingStudioOauth::OauthAuthorization.active) }
 
     module_function
@@ -42,6 +43,12 @@ module RecordingStudioOauth
     def define_clients(dsl)
       dsl.count :total, title: "Registered apps", expose: EXPOSE
       dsl.breakdown :by_registration, title: "Apps by registration", field: :self_registered, expose: EXPOSE
+      dsl.timeseries :self_registered_over_time,
+                     title: "New self-registered apps",
+                     description: "Apps that signed themselves up in each period. Revoked ones still count.",
+                     field: :created_at,
+                     expose: EXPOSE,
+                     scope: CREATED_SELF_REGISTERED
     end
 
     def define_authorizations(dsl)

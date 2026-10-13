@@ -5,10 +5,12 @@ require "test_helper"
 class OauthMetricsApiTest < ActionDispatch::IntegrationTest
   include OauthDummyHelpers
 
+  REPORT_TIME = Time.utc(2026, 10, 6, 12)
   OPERATIONS_ROOT = "/recording_studio_api/apis/operations/v1"
   PUBLIC_ROOT = "/recording_studio_api/api/v1"
 
   setup do
+    travel_to REPORT_TIME
     @staff = create_user(email: "metrics-staff-#{SecureRandom.hex(4)}@example.com")
     Current.actor = @staff
     @workspace_root, @workspace_access = create_access_recording_for(
@@ -86,17 +88,47 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     assert_operator opened["2026-10-05"], :>=, 1
   end
 
+  test "operations staff token reads self-registered sign-ups over time" do
+    get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+        params: { interval: "day" },
+        headers: auth(@staff_operations_token),
+        as: :json
+
+    assert_response :success
+    body = response.parsed_body
+    assert_equal "oauth_clients.self_registered_over_time", body.fetch("metric")
+    assert_equal "New self-registered apps", body.fetch("title")
+    assert_equal "Apps that signed themselves up in each period. Revoked ones still count.", body.fetch("description")
+    assert_equal "records_created_during_period", body.fetch("metadata").fetch("semantics")
+
+    counts = timeseries_counts(body)
+    assert_equal 31, counts.size
+    assert_equal "2026-09-06", counts.keys.first
+    assert_equal "2026-10-06", counts.keys.last
+    assert_equal 0, counts.fetch("2026-09-20")
+    assert_equal 2, counts.fetch("2026-10-05")
+    assert_equal 2, counts.values.sum
+  end
+
   test "metrics index lists oauth client and authorization metrics" do
     get "#{OPERATIONS_ROOT}/metrics", headers: auth(@staff_operations_token), as: :json
 
     assert_response :success
     identifiers = response.parsed_body.fetch("metrics").map { |row| row.fetch("identifier") }
-    %w[
-      oauth_clients.total
-      oauth_clients.by_registration
-      oauth_authorizations.over_time
+    oauth_identifiers = identifiers.grep(/\Aoauth_/).sort
+    assert_equal %w[
       oauth_authorizations.by_role
-    ].each { |identifier| assert_includes identifiers, identifier }
+      oauth_authorizations.over_time
+      oauth_clients.by_registration
+      oauth_clients.self_registered_over_time
+      oauth_clients.total
+    ], oauth_identifiers
+
+    readme = File.read(RecordingStudioOauth::Engine.root.join("README.md"))
+    oauth_identifiers.each do |identifier|
+      path = "#{OPERATIONS_ROOT}/metrics/#{identifier.tr(".", "/")}"
+      assert readme.include?(path), "README missing #{path}"
+    end
   end
 
   test "non-admin operations token is denied oauth metrics" do
@@ -110,11 +142,17 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
         as: :json
     assert_response :forbidden
 
+    get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+        headers: auth(@workspace_operations_token),
+        as: :json
+    assert_response :forbidden
+
     get "#{OPERATIONS_ROOT}/metrics", headers: auth(@workspace_operations_token), as: :json
     assert_response :success
     identifiers = response.parsed_body.fetch("metrics").map { |row| row.fetch("identifier") }
     refute_includes identifiers, "oauth_clients.total"
     refute_includes identifiers, "oauth_authorizations.by_role"
+    refute_includes identifiers, "oauth_clients.self_registered_over_time"
   end
 
   test "public API token is denied operations oauth metrics" do
@@ -137,14 +175,12 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
   private
 
   def seed_clients_and_authorizations!
-    manual, = create_oauth_client(name: "Manual metrics #{SecureRandom.hex(4)}")
-    dcr, = create_oauth_client(name: "DCR metrics #{SecureRandom.hex(4)}")
-    dcr.update!(self_registered: true)
-    revoked, = create_oauth_client(name: "Revoked metrics #{SecureRandom.hex(4)}")
-    revoked.update!(self_registered: true)
-    revoked.revoke!
+    manual = nil
+    dcr = nil
+    revoked = nil
 
     travel_to Time.utc(2026, 9, 20, 12) do
+      manual, = create_oauth_client(name: "Manual metrics #{SecureRandom.hex(4)}")
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: manual,
         manager_actor: @staff,
@@ -155,6 +191,10 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     end
 
     travel_to Time.utc(2026, 10, 5, 12) do
+      dcr, = create_oauth_client(name: "DCR metrics #{SecureRandom.hex(4)}")
+      dcr.update!(self_registered: true)
+      revoked, = create_oauth_client(name: "Revoked metrics #{SecureRandom.hex(4)}")
+      revoked.update!(self_registered: true)
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: dcr,
         manager_actor: @staff,
@@ -171,6 +211,8 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
       )
       revoked_grant.update!(revoked_at: Time.current)
     end
+
+    revoked.revoke!
   end
 
   def breakdown_counts(payload)

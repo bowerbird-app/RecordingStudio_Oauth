@@ -230,10 +230,11 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/by_registration` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/self_registered_over_time` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/over_time` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/by_role` |
 
-`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`.
+`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_clients.self_registered_over_time` is new self-registered apps by `created_at`. Revoked apps stay in the period they signed up in, so its buckets can add up to more than the self-registered row of `by_registration`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`.
 
 ## Version
 
