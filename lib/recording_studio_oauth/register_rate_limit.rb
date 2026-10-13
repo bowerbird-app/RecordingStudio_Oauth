@@ -8,7 +8,8 @@ module RecordingStudioOauth
   # Keeps the legacy storage key shape
   # +recording_studio_oauth/register/<IP>+ (or +unknown+ when the IP is blank),
   # the +self_registered_apps_per_minute+ config, a one-minute TTL window, and
-  # the injectable +.cache+ store used by tests.
+  # main's store resolution via {.cache} (+@cache || Rails.cache+ — there is no
+  # +Configuration#cache_store+).
   #
   # Main's +limit.to_i <= 0+ short-circuit runs before the shared limiter is
   # constructed, so a disabled limit never hits cache or period validation.
@@ -20,6 +21,7 @@ module RecordingStudioOauth
     class << self
       attr_writer :cache
 
+      # Same store main used in +next_count+: injectable override, else +Rails.cache+.
       def cache
         @cache || Rails.cache
       end

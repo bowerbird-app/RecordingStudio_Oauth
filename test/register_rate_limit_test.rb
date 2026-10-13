@@ -97,4 +97,32 @@ class RegisterRateLimitTest < Minitest::Test
     assert_equal 1, other.read("recording_studio_oauth/register/5.5.5.5")
     assert_nil @cache.read("recording_studio_oauth/register/5.5.5.5")
   end
+
+  def test_store_is_register_rate_limit_cache_not_configuration
+    # Main had no Configuration#cache / #cache_store; only RegisterRateLimit.cache.
+    refute RecordingStudioOauth.configuration.respond_to?(:cache)
+    refute RecordingStudioOauth.configuration.respond_to?(:cache_store)
+
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = 1
+    injected = ActiveSupport::Cache::MemoryStore.new
+    RecordingStudioOauth::RegisterRateLimit.cache = injected
+
+    assert_same injected, RecordingStudioOauth::RegisterRateLimit.cache
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("8.8.8.8")
+    assert_equal 1, injected.read("recording_studio_oauth/register/8.8.8.8")
+  end
+
+  def test_cache_defaults_to_rails_cache_when_not_injected
+    RecordingStudioOauth::RegisterRateLimit.cache = nil
+    rails_store = ActiveSupport::Cache::MemoryStore.new
+
+    Rails.stub(:cache, rails_store) do
+      assert_same rails_store, RecordingStudioOauth::RegisterRateLimit.cache
+
+      RecordingStudioOauth.configuration.self_registered_apps_per_minute = 1
+      assert RecordingStudioOauth::RegisterRateLimit.allow?("7.7.7.7")
+      assert_equal 1, rails_store.read("recording_studio_oauth/register/7.7.7.7")
+      assert_nil @cache.read("recording_studio_oauth/register/7.7.7.7")
+    end
+  end
 end
