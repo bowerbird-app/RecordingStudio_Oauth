@@ -70,6 +70,7 @@ Metrics/BlockLength:
   Exclude:
     - 'test/**/*'
     - 'config/routes.rb'
+    - 'recording_studio_oauth.gemspec'
     - 'lib/recording_studio_oauth/admin.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
