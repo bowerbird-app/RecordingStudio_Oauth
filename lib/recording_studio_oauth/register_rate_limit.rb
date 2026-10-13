@@ -9,8 +9,13 @@ module RecordingStudioOauth
   # +recording_studio_oauth/register/<IP>+ (or +unknown+ when the IP is blank),
   # the +self_registered_apps_per_minute+ config, a one-minute TTL window, and
   # the injectable +.cache+ store used by tests.
+  #
+  # Main's +limit.to_i <= 0+ short-circuit runs before the shared limiter is
+  # constructed, so a disabled limit never hits cache or period validation.
   class RegisterRateLimit
     CACHE_PREFIX = "recording_studio_oauth/register"
+    # Main always used +expires_in: 1.minute+; period is not configurable.
+    WINDOW = 1.minute
 
     class << self
       attr_writer :cache
@@ -29,10 +34,13 @@ module RecordingStudioOauth
     end
 
     def allow?
+      limit = RecordingStudioOauth.configuration.self_registered_apps_per_minute
+      return true if limit.to_i <= 0
+
       RecordingStudioCache::RateLimiter.new(
         storage_key: storage_key,
-        limit: RecordingStudioOauth.configuration.self_registered_apps_per_minute,
-        period: 1.minute,
+        limit: limit.to_i,
+        period: WINDOW,
         backend: :rails_cache,
         strategy: :ttl,
         store: self.class.cache

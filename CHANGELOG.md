@@ -12,17 +12,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `RecordingStudioOauth::RegisterRateLimit` is a thin adapter over
   `RecordingStudioCache::RateLimiter` (`backend: :rails_cache`, `strategy: :ttl`).
-  Storage keys stay `recording_studio_oauth/register/<IP>` (or `…/unknown`),
-  limits stay `config.self_registered_apps_per_minute`, and the window stays
-  one minute. `RegisterRateLimit.cache` still injects the store (default
-  `Rails.cache`), passed through as `store:`.
+  Storage keys stay `recording_studio_oauth/register/<IP>` (or `…/unknown`).
+  The adapter keeps main's `limit.to_i <= 0` short-circuit (covers `nil`, blank,
+  `0`, and negatives) before constructing the shared limiter, then passes
+  `limit.to_i` and hardcoded `period: 1.minute` (not a config key on main).
+  `RegisterRateLimit.cache` still injects the store (default `Rails.cache`),
+  passed through as `store:`.
 - Runtime dependency `recording_studio_cache` `~> 0.5` (GitHub tag `v0.5.0`).
+
+### Notes
+- Connection / IO / timeout errors from the cache store now follow the shared
+  limiter defaults (narrow `rescue_errors:`, `fail_closed: false` → allow).
+  Main let those raise. Other exceptions still raise.
 
 ### Upgrade notes
 - Bump to `0.9.0`. No migration.
 - Add `recording_studio_cache` at tag `v0.5.0`.
 - No host config change. `self_registered_apps_per_minute` and `/register`
-  responses stay the same.
+  responses stay the same for normal and disabled-limit paths.
 
 ## [0.8.0] - 2026-10-09
 

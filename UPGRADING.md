@@ -4,9 +4,11 @@
 
 No migration. Install Oauth `0.9.0` and add `recording_studio_cache` at tag `v0.5.0`.
 
-`/register` still rate-limits per IP with `config.self_registered_apps_per_minute`.
-The limiter is now `RecordingStudioCache::RateLimiter` behind the same
-`RegisterRateLimit` API. Cache keys stay `recording_studio_oauth/register/<IP>`.
+`/register` still rate-limits per IP with `config.self_registered_apps_per_minute`
+(`0` / blank / nil still disables). The limiter is now
+`RecordingStudioCache::RateLimiter` behind the same `RegisterRateLimit` API.
+Cache keys stay `recording_studio_oauth/register/<IP>`. Cache connection / IO
+timeouts fail open (allow) via the shared limiter; main raised those.
 
 ## 0.8.0
 

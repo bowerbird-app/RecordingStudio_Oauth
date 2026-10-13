@@ -25,10 +25,49 @@ class RegisterRateLimitTest < Minitest::Test
     assert RecordingStudioOauth::RegisterRateLimit.allow?("2.2.2.2")
   end
 
-  def test_zero_limit_disables_throttling
+  def test_zero_limit_disables_throttling_without_cache_writes
     RecordingStudioOauth.configuration.self_registered_apps_per_minute = 0
 
     3.times { assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1") }
+    assert_nil @cache.read("recording_studio_oauth/register/1.1.1.1")
+  end
+
+  def test_nil_limit_disables_throttling_like_main_to_i
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = nil
+
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    assert_nil @cache.read("recording_studio_oauth/register/1.1.1.1")
+  end
+
+  def test_blank_limit_disables_throttling_like_main_to_i
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = ""
+
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    assert_nil @cache.read("recording_studio_oauth/register/1.1.1.1")
+  end
+
+  def test_negative_limit_disables_throttling_like_main_to_i
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = -3
+
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    assert_nil @cache.read("recording_studio_oauth/register/1.1.1.1")
+  end
+
+  def test_string_limit_coerces_with_to_i_like_main
+    RecordingStudioOauth.configuration.self_registered_apps_per_minute = "2"
+
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    assert RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    refute RecordingStudioOauth::RegisterRateLimit.allow?("1.1.1.1")
+    assert_equal 3, @cache.read("recording_studio_oauth/register/1.1.1.1")
+  end
+
+  def test_window_is_hardcoded_one_minute_like_main
+    # Main used expires_in: 1.minute only; period is not a config key.
+    # Shared RateLimiter coerces via period.to_i (Duration and "60" both → 60).
+    assert_equal 1.minute, RecordingStudioOauth::RegisterRateLimit::WINDOW
+    assert_equal 60, RecordingStudioOauth::RegisterRateLimit::WINDOW.to_i
+    assert_equal 60, "60".to_i
   end
 
   def test_storage_key_matches_legacy_register_ip_shape

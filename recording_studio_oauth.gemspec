@@ -2,7 +2,7 @@
 
 require_relative "lib/recording_studio_oauth/version"
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.name        = "recording_studio_oauth"
   spec.version     = RecordingStudioOauth::VERSION
   spec.authors     = ["Bowerbird"]
@@ -32,4 +32,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency "recording_studio_cache", "~> 0.5"
   spec.add_dependency "recording_studio_metrics", "~> 0.2"
   spec.add_dependency "recording_studio_site_settings", "~> 0.1"
-end
+end # rubocop:enable Metrics/BlockLength
