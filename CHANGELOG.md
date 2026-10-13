@@ -16,8 +16,12 @@ Oauth Access grant voids and kept/trashed recording lookups go through
   updated_at:)` write as main; no cascade, capability, auth, or `trash_root`).
 - Connect / authorization kept checks use `recording_studio_trashable_kept?` /
   `recording_studio_trashable_trashed?`.
-- Access recording lookups chain `.recording_studio_trashable_active` instead of
-  `trashed_at: nil` (admin unscoped lookup included).
+- Access recording lookups add
+  `where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)` on the
+  same base relation as main (`unscoped` for gem lookups; no `unscoped` for the
+  dummy admin resolver). Not `recording_studio_trashable_active`, which
+  `unscope`s `trashed_at` first and can diverge from main's additive
+  `where(trashed_at: nil)`.
 - Runtime dependency `recording_studio_trashable` `~> 0.9` (GitHub tag `v0.9.0`,
   commit `20275de`).
 
@@ -28,6 +32,7 @@ Oauth Access grant voids and kept/trashed recording lookups go through
   these Oauth call sites. Install Trashable fully if you want trash-bin UI.
 - Nil Access recording on void still returns early (shared `void_recording!`
   would raise `ArgumentError`); behavior matches main.
+- Kept lookups use additive `kept_sql`, not `recording_studio_trashable_active`.
 
 ## [0.9.0] - 2026-10-13
 

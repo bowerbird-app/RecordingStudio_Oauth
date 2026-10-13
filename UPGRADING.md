@@ -7,7 +7,10 @@ at tag `v0.9.0` (`~> 0.9`).
 
 Oauth Access grant voids and kept/trashed recording lookups use Trashable
 sibling APIs (`void_recording!`, `recording_studio_trashable_kept?` /
-`recording_studio_trashable_trashed?`, `recording_studio_trashable_active`).
+`recording_studio_trashable_trashed?`, additive
+`recording_studio_trashable_kept_sql`). Oauth does not use
+`recording_studio_trashable_active` for those lookups: that scope unscopes
+`trashed_at` first and is not identical to main's `where(trashed_at: nil)`.
 Hosts that already have `trashed_at` on recordings do not need Trashable UI
 migrations for these call sites.
 

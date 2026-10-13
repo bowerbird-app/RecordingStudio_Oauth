@@ -43,16 +43,43 @@ class TrashableParityTest < Minitest::Test
     refute_includes method_source, "update!("
   end
 
-  def test_integration_and_admin_use_trashable_active_scope
-    integration = File.read(File.expand_path("../lib/recording_studio_oauth/integration.rb", __dir__))
-    admin = File.read(
-      File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__)
+  def test_integration_and_admin_use_additive_kept_sql_not_active_scope
+    integration = strip_ruby_comments(
+      File.read(File.expand_path("../lib/recording_studio_oauth/integration.rb", __dir__))
+    )
+    admin = strip_ruby_comments(
+      File.read(
+        File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__)
+      )
+    )
+    trashable_active = File.read(
+      File.join(
+        Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
+        "lib/recording_studio/trashable/capabilities/trashable.rb"
+      )
     )
 
-    assert_includes integration, ".recording_studio_trashable_active"
+    assert_includes trashable_active, "unscope(where: :trashed_at).where(trashed_at: nil)"
+    assert_includes integration, "recording_studio_trashable_kept_sql"
+    refute_includes integration, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, integration)
-    assert_includes admin, "unscoped.recording_studio_trashable_active.find_by"
+    assert_includes admin, "recording_studio_trashable_kept_sql"
+    refute_includes admin, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, admin)
+  end
+
+  def test_active_scope_unscopes_trashed_at_unlike_main_where_filter
+    source = File.read(
+      File.join(
+        Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
+        "lib/recording_studio/trashable/capabilities/trashable.rb"
+      )
+    )
+    active_scope = source[/scope :recording_studio_trashable_active, -> \{.*?\}/m]
+
+    refute_nil active_scope
+    assert_includes active_scope, "unscope(where: :trashed_at)"
+    assert_includes active_scope, "where(trashed_at: nil)"
   end
 
   def test_authorization_model_and_create_use_predicates
@@ -159,5 +186,11 @@ class TrashableParityTest < Minitest::Test
 
     error = assert_raises(ArgumentError) { ScopedRecording.recording_studio_trashable_kept_sql(nil) }
     assert_equal "table is required", error.message
+  end
+
+  private
+
+  def strip_ruby_comments(source)
+    source.gsub(/^\s*#.*\n/, "")
   end
 end

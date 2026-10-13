@@ -135,6 +135,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "RecordingStudioMetrics::Api.register!(api: :operations)"
     assert_includes readme, "Trashable"
     assert_includes readme, "void_recording!"
+    assert_includes readme, "recording_studio_trashable_kept_sql"
     assert_includes readme, "v0.9.0"
     refute_includes readme, "/recording_studio_oauth/wordpress/"
     refute_includes readme, "internal template"
