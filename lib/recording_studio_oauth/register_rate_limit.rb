@@ -13,12 +13,14 @@ module RecordingStudioOauth
   #
   # Main's +limit.to_i <= 0+ short-circuit runs before the shared limiter is
   # constructed, so a disabled limit never hits cache or period validation.
-  # Store errors still raise: +rescue_errors: [SystemExit]+ (v0.5.0 rejects +[]+;
-  # +SystemExit+ never matches cache errors).
+  # Store errors still raise (see +NeverRescued+).
   class RegisterRateLimit
     CACHE_PREFIX = "recording_studio_oauth/register"
     # Main always used +expires_in: 1.minute+; period is not configurable.
     WINDOW = 1.minute
+    # v0.5.0 rejects rescue_errors: []. Main propagated all store errors; this
+    # sentinel is never raised, so the shared limiter rescues nothing.
+    NeverRescued = Class.new(StandardError)
 
     class << self
       attr_writer :cache
@@ -58,7 +60,7 @@ module RecordingStudioOauth
         backend: :rails_cache,
         strategy: :ttl,
         store: self.class.cache,
-        rescue_errors: [SystemExit]
+        rescue_errors: [NeverRescued]
       }
     end
   end

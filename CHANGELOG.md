@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Store is still `RegisterRateLimit.cache` (`@cache || Rails.cache`) — there is
   no `Configuration#cache_store` — passed explicitly as `store:` (not
   `RecordingStudioCache.store`). Cache connection / IO errors still raise:
-  `rescue_errors: [SystemExit]` (v0.5.0 rejects `[]`; `SystemExit` never matches
-  store errors, so nothing is swallowed).
+  `rescue_errors: [NeverRescued]` (v0.5.0 rejects `[]`; the private sentinel is
+  never raised, so nothing is swallowed).
 - Runtime dependency `recording_studio_cache` `~> 0.5` (GitHub tag `v0.5.0`).
 
 ### Notes
