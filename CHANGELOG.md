@@ -68,7 +68,6 @@ column access.
 - No host config change. `self_registered_apps_per_minute` and `/register`
   responses stay the same for normal and disabled-limit paths.
 
-
 ## [0.8.0] - 2026-10-09
 
 Site-wide OAuth metrics register with Recording Studio Metrics for the operations API.
