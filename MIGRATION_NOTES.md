@@ -8,6 +8,7 @@
 - Accessible `~> 0.11` (dummy tag `v0.15.0`). Access roles are strings (`view`, `edit`, `admin`). Dummy also has access invitations plus audience constraint/rule tables from Accessible `0.14.0`. View copy uses Rails I18n (`recording_studio.accessible.*`); `0.15.0` is translation-only (English unchanged).
 - API `>= 0.5.2, < 0.7` (dummy tag `v0.6.0`). Dummy shims `RecordingStudio::Access.roles` for this pin.
 - Metrics `~> 0.2` (dummy tag `v0.2.0`). The host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
+- Trashable `~> 0.9` (dummy tag `v0.9.0`). Oauth voids and kept/trashed lookups use sibling APIs; dummy already has `trashed_at` from Recording Studio.
 - Admin `~> 2.0` (dummy tag `v2.2.0`). `2.2.0` is translation-only (English unchanged).
 - Site Settings `~> 0.1` (dummy tag `v0.1.3`)
 - Attachable `~> 0.5` (dummy tag `v0.15.0`, required by Site Settings). Dummy includes library and placement migrations from Attachable `0.12.0`. View copy uses Rails I18n (`recording_studio.attachable.*`); `0.15.0` is translation-only (English unchanged).

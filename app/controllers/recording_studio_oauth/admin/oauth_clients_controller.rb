@@ -108,7 +108,10 @@ module RecordingStudioOauth
 
       def admin_access_recording
         type_names = Array(RecordingStudioOauth.configuration.admin_root_recordable_type_names)
-        RecordingStudio::Recording.unscoped.find_by(recordable_type: type_names, parent_recording_id: nil, trashed_at: nil)
+        RecordingStudio::Recording.unscoped.recording_studio_trashable_active.find_by(
+          recordable_type: type_names,
+          parent_recording_id: nil
+        )
       end
 
       def client_form

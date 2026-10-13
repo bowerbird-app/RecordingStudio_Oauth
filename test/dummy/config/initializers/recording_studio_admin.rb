@@ -9,7 +9,10 @@ RecordingStudioAdmin.configure do |config|
     admin_root = AdminRoot.find_by(name: "Admin")
     next unless admin_root
 
-    RecordingStudio::Recording.find_by(recordable: admin_root, parent_recording_id: nil, trashed_at: nil)
+    RecordingStudio::Recording.unscoped.recording_studio_trashable_active.find_by(
+      recordable: admin_root,
+      parent_recording_id: nil
+    )
   end
   config.site_admin_recording_resolver = config.access_recording_resolver
   config.engine_layout = "recording_studio/default_layout"

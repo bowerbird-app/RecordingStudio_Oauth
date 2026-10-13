@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.9.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.10.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -20,6 +20,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", "~> 0.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.1"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.9"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.198"'
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "recording_studio_internationalization"
@@ -63,6 +64,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.8.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.9.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
     assert_includes gemfile, "recording_studio_internationalization"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
@@ -131,6 +133,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "Cache `~> 0.5`"
     assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total"
     assert_includes readme, "RecordingStudioMetrics::Api.register!(api: :operations)"
+    assert_includes readme, "Trashable"
+    assert_includes readme, "void_recording!"
+    assert_includes readme, "v0.9.0"
     refute_includes readme, "/recording_studio_oauth/wordpress/"
     refute_includes readme, "internal template"
     refute_includes readme, "respond_to?(:register_oauth_grant)"

@@ -130,7 +130,7 @@ module RecordingStudioOauth
       end
 
       def manager_access_present?
-        return false if access_recording.trashed_at.present?
+        return false if access_recording.recording_studio_trashable_trashed?
         return false unless access_recording.recordable.is_a?(RecordingStudio::Access)
 
         true

@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-10-13
+
+Oauth Access grant voids and kept/trashed recording lookups go through
+`RecordingStudioTrashable` sibling APIs instead of raw `trashed_at` column access.
+
+### Changed
+- `VoidOauthAuthorization` soft-voids the granted Access recording with
+  `RecordingStudioTrashable.void_recording!` (same `update_columns(trashed_at:,
+  updated_at:)` write as main; no cascade, capability, auth, or `trash_root`).
+- Connect / authorization kept checks use `recording_studio_trashable_kept?` /
+  `recording_studio_trashable_trashed?`.
+- Access recording lookups chain `.recording_studio_trashable_active` instead of
+  `trashed_at: nil` (admin unscoped lookup included).
+- Runtime dependency `recording_studio_trashable` `~> 0.9` (GitHub tag `v0.9.0`,
+  commit `20275de`).
+
+### Upgrade notes
+- Bump to `0.10.0`. No Oauth migration.
+- Add `recording_studio_trashable` at tag `v0.9.0`. Hosts that already have
+  `trashed_at` from Recording Studio do not need Trashable UI migrations for
+  these Oauth call sites. Install Trashable fully if you want trash-bin UI.
+- Nil Access recording on void still returns early (shared `void_recording!`
+  would raise `ArgumentError`); behavior matches main.
+
 ## [0.9.0] - 2026-10-13
 
 `/register` rate limiting uses the shared Recording Studio Cache limiter.
@@ -32,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `recording_studio_cache` at tag `v0.5.0`.
 - No host config change. `self_registered_apps_per_minute` and `/register`
   responses stay the same for normal and disabled-limit paths.
+
 
 ## [0.8.0] - 2026-10-09
 
@@ -315,6 +340,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.10.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.8.2...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0

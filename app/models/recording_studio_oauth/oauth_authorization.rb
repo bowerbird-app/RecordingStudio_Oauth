@@ -46,7 +46,7 @@ module RecordingStudioOauth
     end
 
     def granted_access_recording_active?
-      access_recording.present? && access_recording.trashed_at.nil?
+      access_recording.present? && access_recording.recording_studio_trashable_kept?
     end
 
     def workspace_recording
@@ -55,7 +55,7 @@ module RecordingStudioOauth
 
     def accessible_authorized?
       workspace = workspace_recording
-      return false if workspace.blank? || workspace.trashed_at.present?
+      return false if workspace.blank? || workspace.recording_studio_trashable_trashed?
 
       RecordingStudioAccessible.authorized?(
         actor: self,
