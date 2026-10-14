@@ -135,6 +135,22 @@ module RecordingStudioOauth
       blast_radius :site
       query { |_context| OauthClient.order(:name) }
 
+      # Same fields the oauth_clients metrics group by, so a metric can drill into this list.
+      filter :date_range, field: :created_at
+      filter :self_registered,
+             title: "Source",
+             options: %w[true false],
+             apply: ->(relation, value, _context) { relation.where(self_registered: value.to_s == "true") }
+      filter :confidential,
+             title: "Secret",
+             options: %w[true false],
+             apply: ->(relation, value, _context) { relation.where(confidential: value.to_s == "true") }
+      filter :api_key,
+             title: "API",
+             options: -> { OauthClient.distinct.order(:api_key).pluck(:api_key).compact_blank },
+             apply: ->(relation, value, _context) { relation.where(api_key: value) }
+      filter_presentation :modal, inline_count: 1
+
       button :new,
              text: "New app",
              style: :primary,
