@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-10-14
+
+### Added
+- `oauth_authorizations.granted_over_time` (timeseries, unit `count`): authorizations granted per period by `created_at`. Ones revoked later still count.
+- `oauth_authorizations.revoked_over_time` (timeseries, unit `count`): authorizations revoked per period by `revoked_at`.
+- Both take `from` / `to` and `interval`, plus `group_by=role`; groups under `min_group_size` (5) fold into `other`. There is no grouping by client, actor or recording, and no filters (no site list of authorizations exists). Same site scope, `:operations` exposure and Admin root `:view` check as the other OAuth metrics. No migration.
+
 ## [0.11.1] - 2026-10-14
 
 ### Changed

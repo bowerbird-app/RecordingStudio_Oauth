@@ -174,6 +174,54 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     assert_equal true, entry.dig("date_range", "supported")
   end
 
+  test "authorizations granted and revoked over time take from, to and group_by role" do
+    window = { interval: "day", from: "2026-09-20", to: "2026-10-06" }
+
+    get "#{OPERATIONS_ROOT}/metrics/oauth_authorizations/granted_over_time",
+        params: window, headers: auth(@staff_operations_token), as: :json
+    assert_response :success
+    granted = response.parsed_body
+    assert_equal "Authorizations granted", granted.fetch("title")
+    assert_equal "count", granted.fetch("unit")
+    assert granted.fetch("description").present?
+    counts = timeseries_counts(granted)
+    assert_equal "2026-09-20", counts.keys.first
+    assert_equal 1, counts.fetch("2026-09-20")
+    assert_equal 2, counts.fetch("2026-10-05")
+
+    get "#{OPERATIONS_ROOT}/metrics/oauth_authorizations/revoked_over_time",
+        params: window, headers: auth(@staff_operations_token), as: :json
+    assert_response :success
+    revoked = timeseries_counts(response.parsed_body)
+    expected = RecordingStudioOauth::OauthAuthorization.where(revoked_at: Time.utc(2026, 10, 5)...Time.utc(2026, 10, 6)).count
+    assert_operator expected, :>=, 1
+    assert_equal expected, revoked.fetch("2026-10-05")
+    assert_equal 0, revoked.fetch("2026-09-20")
+
+    get "#{OPERATIONS_ROOT}/metrics/oauth_authorizations/revoked_over_time",
+        params: window.merge(group_by: "role"), headers: auth(@staff_operations_token), as: :json
+    assert_response :success
+    assert_equal "role", response.parsed_body.fetch("group_by")
+  end
+
+  test "authorizations granted and revoked reject identifying group_by fields" do
+    %w[granted_over_time revoked_over_time].each do |name|
+      %w[oauth_client_id manager_actor_id access_recording_id].each do |field|
+        get "#{OPERATIONS_ROOT}/metrics/oauth_authorizations/#{name}",
+            params: { interval: "day", group_by: field }, headers: auth(@staff_operations_token), as: :json
+        assert_response :unprocessable_entity, "#{name} #{field}"
+      end
+    end
+  end
+
+  test "non-admin operations token is denied granted and revoked authorizations" do
+    %w[granted_over_time revoked_over_time].each do |name|
+      get "#{OPERATIONS_ROOT}/metrics/oauth_authorizations/#{name}",
+          params: { interval: "day" }, headers: auth(@workspace_operations_token), as: :json
+      assert_response :forbidden, name
+    end
+  end
+
   test "metrics index lists oauth client and authorization metrics" do
     get "#{OPERATIONS_ROOT}/metrics", headers: auth(@staff_operations_token), as: :json
 
@@ -182,7 +230,9 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     oauth_identifiers = identifiers.grep(/\Aoauth_/).sort
     assert_equal %w[
       oauth_authorizations.by_role
+      oauth_authorizations.granted_over_time
       oauth_authorizations.over_time
+      oauth_authorizations.revoked_over_time
       oauth_clients.by_registration
       oauth_clients.self_registered_over_time
       oauth_clients.total

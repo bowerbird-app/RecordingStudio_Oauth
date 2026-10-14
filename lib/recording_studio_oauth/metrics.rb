@@ -17,6 +17,12 @@ module RecordingStudioOauth
     SELF_REGISTERED_GROUPS = %i[confidential api_key].freeze
     SELF_REGISTERED_DESCRIPTION = "Apps that signed themselves up (dynamic client registration) in each " \
                                   "period, by created_at. Revoked ones still count."
+    REVOKED_AUTHORIZATIONS = ->(relation) { relation.where.not(revoked_at: nil) }
+    # Role is the access level granted; never group by client, actor or recording.
+    AUTHORIZATION_GROUPS = %i[role].freeze
+    GRANTED_DESCRIPTION = "Authorizations granted to apps in each period, by created_at. " \
+                          "Ones revoked later still count."
+    REVOKED_DESCRIPTION = "Authorizations revoked in each period, by revoked_at."
     ACTIVE_AUTHORIZATIONS = ->(relation) { relation.merge(RecordingStudioOauth::OauthAuthorization.active) }
 
     module_function
@@ -60,6 +66,12 @@ module RecordingStudioOauth
 
     def define_authorizations(dsl)
       dsl.timeseries :over_time, title: "New authorizations", field: :created_at, expose: EXPOSE
+      dsl.timeseries :granted_over_time, title: "Authorizations granted", description: GRANTED_DESCRIPTION,
+                                         unit: "count", field: :created_at, expose: EXPOSE,
+                                         group_by: AUTHORIZATION_GROUPS
+      dsl.timeseries :revoked_over_time, title: "Authorizations revoked", description: REVOKED_DESCRIPTION,
+                                         unit: "count", field: :revoked_at, expose: EXPOSE,
+                                         scope: REVOKED_AUTHORIZATIONS, group_by: AUTHORIZATION_GROUPS
       dsl.breakdown :by_role, title: "Authorizations by role", field: :role, expose: EXPOSE, scope: ACTIVE_AUTHORIZATIONS
     end
   end
