@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.5] - 2026-10-14
+
+### Changed
+- Runtime dependency `recording_studio_api` widened to `>= 0.5.2, < 0.9` so hosts can use API `0.8.0`. The development Gemfiles pin API tag `v0.8.0`.
+
+### Notes
+- Tags `v0.10.3` and `v0.10.4` were dependency-bump tags whose `VERSION` still read `0.10.2`; this change ships as `0.10.5`.
+
+### Upgrade notes
+- Bump to `0.10.5`. No migration and no configuration change.
+
 ## [0.10.2] - 2026-10-14
 
 ### Fixed
