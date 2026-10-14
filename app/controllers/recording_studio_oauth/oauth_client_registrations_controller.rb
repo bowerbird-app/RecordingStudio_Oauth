@@ -5,7 +5,9 @@ module RecordingStudioOauth
     def create
       return render_rate_limited unless RegisterRateLimit.allow?(request.remote_ip)
 
-      result = Services::RegisterOauthClient.call(metadata: registration_metadata)
+      return render_unknown_api unless known_api_key?
+
+      result = Services::RegisterOauthClient.call(metadata: registration_metadata, api_key: api_key)
       if result.success?
         render json: result.value, status: :created
       else
@@ -16,11 +18,27 @@ module RecordingStudioOauth
 
     private
 
+    def api_key
+      params[:api_key].to_s.presence || Integration::DEFAULT_API_NAME
+    end
+
+    def known_api_key?
+      Integration.api_names.map(&:to_s).include?(api_key)
+    end
+
+    def render_unknown_api
+      payload = {
+        error: "invalid_request",
+        error_description: "Unknown API."
+      }
+      render json: payload, status: :not_found
+    end
+
     def registration_metadata
       if request.content_mime_type&.json?
         JSON.parse(request.raw_post)
       else
-        params.except(:controller, :action, :format)
+        params.except(:controller, :action, :format, :api_key)
       end
     rescue JSON::ParserError
       {}

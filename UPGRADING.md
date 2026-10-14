@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.10.2
+
+No Oauth migration or host code change. Install Oauth `0.10.2` to get the
+named-API `POST /apis/:api_key/register` route that the metadata already
+advertises.
+
 ## 0.10.1
 
 No Oauth migration or host code change. Install Oauth `0.10.1`. Widen Recording

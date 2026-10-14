@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-10-14
+
+### Fixed
+- Named-API Dynamic Client Registration. The authorization-server metadata for
+  a named API (for example `/apis/operations`) advertised
+  `registration_endpoint` `/recording_studio_oauth/apis/<key>/register`, but
+  no route existed, so DCR clients such as ChatGPT got a 404. Oauth now routes
+  `POST /apis/:api_key/register` to the existing registration controller and
+  binds the new client to that `api_key`.
+- `registration_endpoint` is still only advertised when
+  `allow_self_registered_apps` is on. When it is off, the named-API endpoint
+  returns `400 invalid_client_metadata` (same as `/register`), not a 404.
+- An unknown `api_key` on the register route returns `404` with a JSON
+  `invalid_request` error and creates no client.
+
+### Upgrade notes
+- Bump to `0.10.2`. No Oauth migration or host code change.
+
 ## [0.10.1] - 2026-10-13
 
 Dependency-only release so Oauth can install with Recording Studio API `0.7`.

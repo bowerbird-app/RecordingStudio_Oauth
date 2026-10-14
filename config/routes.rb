@@ -46,6 +46,9 @@ RecordingStudioOauth::Engine.routes.draw do
   match "/apis/:api_key/oauth/authorize",
         to: "oauth_authorizations#create",
         via: :post
+  post "/apis/:api_key/register",
+       to: "oauth_client_registrations#create",
+       as: :named_api_oauth_client_registration
   get "/apis/:api_key/.well-known/oauth-authorization-server",
       to: "oauth_discoveries#authorization_server"
   get "/apis/:api_key/.well-known/oauth-protected-resource",
