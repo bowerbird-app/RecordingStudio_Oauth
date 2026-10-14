@@ -535,6 +535,34 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "registered apps list filters by source, secret, API and created_at" do
+    make = lambda do |name, created_at:, **attrs|
+      RecordingStudioOauth::OauthClient.create!(
+        name: name, redirect_uris: ["http://127.0.0.1:6274/callback"],
+        confidential: false, api_key: "public", self_registered: false, **attrs
+      ).tap { |client| client.update_columns(created_at: created_at) }
+    end
+    make.call("Filter Self App", created_at: Time.utc(2025, 3, 5, 12), self_registered: true)
+    make.call("Filter Secret App", created_at: Time.utc(2025, 3, 6, 12), confidential: true,
+                                   client_secret_digest: "test-digest-#{SecureRandom.hex(8)}")
+    make.call("Filter Ops App", created_at: Time.utc(2025, 3, 7, 12), api_key: "operations")
+    names = lambda do |params|
+      get "/admin/screens/oauth_clients/table",
+          params: params.merge(anchor_url: "http://www.example.com/admin/screens/oauth_clients")
+      assert_response :success
+      %w[Self Secret Ops].select { |name| response.body.include?("Filter #{name} App") }
+    end
+
+    assert_equal %w[Self Secret Ops], names.call({})
+    assert_equal %w[Self], names.call(self_registered: "true")
+    assert_equal %w[Secret Ops], names.call(self_registered: "false")
+    assert_equal %w[Secret], names.call(confidential: "true")
+    assert_equal %w[Ops], names.call(api_key: "operations")
+    assert_equal %w[Self Secret], names.call(start_date: "2025-03-05", end_date: "2025-03-06")
+    assert_equal %w[Ops], names.call(start_date: "2025-03-07")
+    assert_equal %w[Self Secret Ops], names.call(self_registered: "maybe")
+  end
+
   test "staff can list and revoke a self-registered app" do
     client = RecordingStudioOauth::OauthClient.create!(
       name: "Inspector",
