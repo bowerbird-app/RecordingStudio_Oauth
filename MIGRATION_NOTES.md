@@ -4,7 +4,7 @@
 
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
-- Recording Studio `~> 4.2` (dummy tag `v4.5.0`)
+- Recording Studio `~> 4.2` (dummy tag `v4.6.0`). `4.6.0` adds English fallback for gem i18n keys (no migration).
 - Accessible `~> 0.11` (dummy tag `v0.15.0`). Access roles are strings (`view`, `edit`, `admin`). Dummy also has access invitations plus audience constraint/rule tables from Accessible `0.14.0`. View copy uses Rails I18n (`recording_studio.accessible.*`); `0.15.0` is translation-only (English unchanged).
 - API `>= 0.5.2, < 0.8` (dummy tag `v0.7.0`). Dummy shims `RecordingStudio::Access.roles` for this pin.
 - Metrics `~> 0.2, >= 0.2.2` (dummy tag `v0.2.2`). The host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
