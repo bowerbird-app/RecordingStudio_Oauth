@@ -10,13 +10,14 @@ module RecordingStudioOauth
       SUPPORTED_GRANT_TYPES = %w[authorization_code refresh_token].freeze
       SUPPORTED_RESPONSE_TYPES = %w[code].freeze
 
-      def initialize(metadata:)
+      def initialize(metadata:, api_key: CreateOauthClient::DEFAULT_API_KEY)
         @metadata = stringify_metadata(metadata)
+        @api_key = api_key.to_s.presence || CreateOauthClient::DEFAULT_API_KEY
       end
 
       private
 
-      attr_reader :metadata
+      attr_reader :metadata, :api_key
 
       def perform
         return oauth_failure("invalid_client_metadata", "Self-registered apps are turned off on this host") unless RecordingStudioOauth.configuration.allow_self_registered_apps?
@@ -43,6 +44,7 @@ module RecordingStudioOauth
           name: client_name,
           redirect_uris: redirect_uris,
           confidential: confidential,
+          api_key: api_key,
           allow_registration: false,
           self_registered: true,
           token_endpoint_auth_method: auth_method
@@ -114,7 +116,7 @@ module RecordingStudioOauth
       end
 
       def service_args
-        { token_endpoint_auth_method: token_endpoint_auth_method }
+        { token_endpoint_auth_method: token_endpoint_auth_method, api_key: api_key }
       end
     end
   end

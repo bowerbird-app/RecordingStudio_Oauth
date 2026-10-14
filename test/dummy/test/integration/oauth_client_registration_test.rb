@@ -116,6 +116,60 @@ class OauthClientRegistrationTest < ActionDispatch::IntegrationTest
     assert_equal "invalid_client_metadata", JSON.parse(response.body).fetch("error")
   end
 
+  test "registers a client bound to a named API" do
+    post "/recording_studio_oauth/apis/operations/register",
+         params: {
+           client_name: "ChatGPT",
+           redirect_uris: ["https://chatgpt.com/connector_platform_oauth_redirect"],
+           token_endpoint_auth_method: "none"
+         },
+         as: :json
+
+    assert_response :created
+    client = RecordingStudioOauth::OauthClient.find_by!(client_id: JSON.parse(response.body).fetch("client_id"))
+    assert_equal "operations", client.api_key
+    assert client.self_registered?
+  end
+
+  test "named API register returns invalid_client_metadata when self-registration is off" do
+    RecordingStudioOauth.configuration.allow_self_registered_apps = false
+
+    assert_no_difference -> { RecordingStudioOauth::OauthClient.count } do
+      post "/recording_studio_oauth/apis/operations/register",
+           params: { redirect_uris: ["https://app.example.com/callback"] },
+           as: :json
+    end
+
+    assert_response :bad_request
+    assert_equal "invalid_client_metadata", JSON.parse(response.body).fetch("error")
+  end
+
+  test "named API register rejects an unknown api key" do
+    assert_no_difference -> { RecordingStudioOauth::OauthClient.count } do
+      post "/recording_studio_oauth/apis/nope/register",
+           params: { redirect_uris: ["https://app.example.com/callback"] },
+           as: :json
+    end
+
+    assert_response :not_found
+    assert_equal "invalid_request", JSON.parse(response.body).fetch("error")
+  end
+
+  test "named API metadata registration_endpoint is a working route" do
+    get "/.well-known/oauth-authorization-server/recording_studio_oauth/apis/operations"
+    assert_response :success
+    endpoint = JSON.parse(response.body).fetch("registration_endpoint")
+    assert_equal "http://www.example.com/recording_studio_oauth/apis/operations/register", endpoint
+
+    post URI.parse(endpoint).path,
+         params: { redirect_uris: ["https://app.example.com/callback"] },
+         as: :json
+
+    assert_response :created
+    client = RecordingStudioOauth::OauthClient.find_by!(client_id: JSON.parse(response.body).fetch("client_id"))
+    assert_equal "operations", client.api_key
+  end
+
   test "rate limits register per IP" do
     RecordingStudioOauth::RegisterRateLimit.cache = ActiveSupport::Cache::MemoryStore.new
     RecordingStudioOauth.configuration.self_registered_apps_per_minute = 1
