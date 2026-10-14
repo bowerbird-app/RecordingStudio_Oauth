@@ -31,6 +31,6 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.8"
   spec.add_dependency "recording_studio_cache", "~> 0.5"
   spec.add_dependency "recording_studio_metrics", "~> 0.2", ">= 0.2.2"
-  spec.add_dependency "recording_studio_site_settings", "~> 0.1"
+  spec.add_dependency "recording_studio_site_settings", "~> 0.2"
   spec.add_dependency "recording_studio_trashable", "~> 0.10"
 end # rubocop:enable Metrics/BlockLength
