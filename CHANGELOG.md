@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-10-14
+
+### Added
+- `oauth_clients.self_registered_over_time` (timeseries, unit `count`): new self-registered (dynamic client registration) apps per period by `created_at`. Revoked apps still count in the period they signed up in. Takes `from` / `to` and `interval` (`day`, `week`, `month`, `year`).
+- `group_by=confidential` (public vs confidential client, the Registered apps "Secret" column) and `group_by=api_key` (the named API label, the "API" column). Groups under `min_group_size` (5) fold into `other`. No grouping by name, client id or redirect URIs, and no filters (the Registered apps list has none).
+- Same site scope, `:operations` exposure and Admin root `:view` check (`Api::Access.can_view?`) as the Registered apps list and the other OAuth metrics. The catalog carries `unit`, `title`, `description`, `group_by`, `min_group_size` and `date_range`.
+
+### Changed
+- Runtime dependency `recording_studio_metrics` `~> 0.3` (GitHub tag `v0.3.1`), up from `~> 0.2, >= 0.2.2`, for `group_by`.
+
+### Upgrade notes
+- Bump to `0.11.0`. No migration.
+- Pin `recording_studio_metrics` to tag `v0.3.1` (`~> 0.3`).
+
 ## [0.10.5] - 2026-10-14
 
 ### Changed

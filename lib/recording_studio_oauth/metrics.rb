@@ -12,6 +12,11 @@ module RecordingStudioOauth
     AUTHORIZE = ->(context) { RecordingStudioOauth::Api::Access.can_view?(context) }
     ACTIVE_CLIENTS = ->(relation) { relation.merge(RecordingStudioOauth::OauthClient.active) }
     CREATED_SELF_REGISTERED = ->(relation) { relation.where(self_registered: true) }
+    # Columns shown on the Registered apps list: "Secret" (confidential) and "API" (api_key, a named API
+    # label, not a secret). Never group by name, client_id or redirect URIs.
+    SELF_REGISTERED_GROUPS = %i[confidential api_key].freeze
+    SELF_REGISTERED_DESCRIPTION = "Apps that signed themselves up (dynamic client registration) in each " \
+                                  "period, by created_at. Revoked ones still count."
     ACTIVE_AUTHORIZATIONS = ->(relation) { relation.merge(RecordingStudioOauth::OauthAuthorization.active) }
 
     module_function
@@ -45,10 +50,12 @@ module RecordingStudioOauth
       dsl.breakdown :by_registration, title: "Apps by registration", field: :self_registered, expose: EXPOSE
       dsl.timeseries :self_registered_over_time,
                      title: "New self-registered apps",
-                     description: "Apps that signed themselves up in each period. Revoked ones still count.",
+                     description: SELF_REGISTERED_DESCRIPTION,
+                     unit: "count",
                      field: :created_at,
                      expose: EXPOSE,
-                     scope: CREATED_SELF_REGISTERED
+                     scope: CREATED_SELF_REGISTERED,
+                     group_by: SELF_REGISTERED_GROUPS
     end
 
     def define_authorizations(dsl)
