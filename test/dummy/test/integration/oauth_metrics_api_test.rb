@@ -5,10 +5,12 @@ require "test_helper"
 class OauthMetricsApiTest < ActionDispatch::IntegrationTest
   include OauthDummyHelpers
 
+  REPORT_TIME = Time.utc(2026, 10, 6, 12)
   OPERATIONS_ROOT = "/recording_studio_api/apis/operations/v1"
   PUBLIC_ROOT = "/recording_studio_api/api/v1"
 
   setup do
+    travel_to REPORT_TIME
     @staff = create_user(email: "metrics-staff-#{SecureRandom.hex(4)}@example.com")
     Current.actor = @staff
     @workspace_root, @workspace_access = create_access_recording_for(
@@ -86,17 +88,111 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     assert_operator opened["2026-10-05"], :>=, 1
   end
 
+  test "operations staff token reads self-registered sign-ups over time" do
+    get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+        params: { interval: "day" },
+        headers: auth(@staff_operations_token),
+        as: :json
+
+    assert_response :success
+    body = response.parsed_body
+    assert_equal "oauth_clients.self_registered_over_time", body.fetch("metric")
+    assert_equal "New self-registered apps", body.fetch("title")
+    assert_equal "Apps that signed themselves up (dynamic client registration) in each period, by created_at. " \
+                 "Revoked ones still count.", body.fetch("description")
+    assert_equal "count", body.fetch("unit")
+    assert_equal "records_created_during_period", body.fetch("metadata").fetch("semantics")
+
+    counts = timeseries_counts(body)
+    assert_equal 31, counts.size
+    assert_equal "2026-09-06", counts.keys.first
+    assert_equal "2026-10-06", counts.keys.last
+    assert_equal 0, counts.fetch("2026-09-20")
+    assert_equal 2, counts.fetch("2026-10-05")
+    assert_equal 2, counts.values.sum
+  end
+
+  test "self-registered sign-ups take from, to and group_by confidential or api_key" do
+    travel_to Time.utc(2026, 10, 1, 12) do
+      5.times { |index| self_registered_client!("DCR public #{index}") }
+      self_registered_client!("DCR confidential", confidential: true)
+    end
+    manual_window, = create_oauth_client(name: "Manual in window #{SecureRandom.hex(4)}")
+    manual_window.update_column(:created_at, Time.utc(2026, 10, 1, 13))
+
+    %w[confidential api_key].each do |field|
+      get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+          params: { interval: "day", group_by: field, from: "2026-10-01", to: "2026-10-06" },
+          headers: auth(@staff_operations_token),
+          as: :json
+
+      assert_response :success
+      body = response.parsed_body
+      assert_equal field, body.fetch("group_by")
+      totals = timeseries_counts(body)
+      assert_equal "2026-10-01", totals.keys.first
+      assert_equal 6, totals.fetch("2026-10-01")
+      assert_equal 2, totals.fetch("2026-10-05")
+      groups = body.fetch("groups")
+      other = body["other"]
+      totals.each do |date, total|
+        grouped = groups.sum { |row| series_value(row.fetch("data"), date) }
+        grouped += series_value(other.fetch("data"), date) if other
+        assert_equal total, grouped, "#{field} groups plus other equal the total on #{date}"
+      end
+      keys = groups.map { |row| cast_breakdown_key(row.fetch("key")) }
+      if field == "confidential"
+        assert_equal [false], keys, "public DCR apps (7) are kept; the single confidential one folds into other"
+        assert other.present?
+      else
+        assert_equal ["public"], keys
+      end
+    end
+  end
+
+  test "self-registered sign-ups reject identifying group_by fields" do
+    %w[name client_id redirect_uris self_registered].each do |field|
+      get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+          params: { group_by: field },
+          headers: auth(@staff_operations_token),
+          as: :json
+      assert_response :unprocessable_entity, field
+    end
+  end
+
+  test "catalog lists unit, title, description and group_by for self-registered sign-ups" do
+    get "#{OPERATIONS_ROOT}/metrics", headers: auth(@staff_operations_token), as: :json
+
+    assert_response :success
+    entry = response.parsed_body.fetch("metrics").index_by { |row| row.fetch("identifier") }
+                    .fetch("oauth_clients.self_registered_over_time")
+    assert_equal "count", entry.fetch("unit")
+    assert_equal "New self-registered apps", entry.fetch("title")
+    assert_includes entry.fetch("description"), "dynamic client registration"
+    assert_equal %w[confidential api_key], entry.fetch("group_by")
+    assert_equal 5, entry.fetch("min_group_size")
+    assert_equal true, entry.dig("date_range", "supported")
+  end
+
   test "metrics index lists oauth client and authorization metrics" do
     get "#{OPERATIONS_ROOT}/metrics", headers: auth(@staff_operations_token), as: :json
 
     assert_response :success
     identifiers = response.parsed_body.fetch("metrics").map { |row| row.fetch("identifier") }
-    %w[
-      oauth_clients.total
-      oauth_clients.by_registration
-      oauth_authorizations.over_time
+    oauth_identifiers = identifiers.grep(/\Aoauth_/).sort
+    assert_equal %w[
       oauth_authorizations.by_role
-    ].each { |identifier| assert_includes identifiers, identifier }
+      oauth_authorizations.over_time
+      oauth_clients.by_registration
+      oauth_clients.self_registered_over_time
+      oauth_clients.total
+    ], oauth_identifiers
+
+    readme = File.read(RecordingStudioOauth::Engine.root.join("README.md"))
+    oauth_identifiers.each do |identifier|
+      path = "#{OPERATIONS_ROOT}/metrics/#{identifier.tr(".", "/")}"
+      assert readme.include?(path), "README missing #{path}"
+    end
   end
 
   test "non-admin operations token is denied oauth metrics" do
@@ -110,11 +206,17 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
         as: :json
     assert_response :forbidden
 
+    get "#{OPERATIONS_ROOT}/metrics/oauth_clients/self_registered_over_time",
+        headers: auth(@workspace_operations_token),
+        as: :json
+    assert_response :forbidden
+
     get "#{OPERATIONS_ROOT}/metrics", headers: auth(@workspace_operations_token), as: :json
     assert_response :success
     identifiers = response.parsed_body.fetch("metrics").map { |row| row.fetch("identifier") }
     refute_includes identifiers, "oauth_clients.total"
     refute_includes identifiers, "oauth_authorizations.by_role"
+    refute_includes identifiers, "oauth_clients.self_registered_over_time"
   end
 
   test "public API token is denied operations oauth metrics" do
@@ -137,14 +239,12 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
   private
 
   def seed_clients_and_authorizations!
-    manual, = create_oauth_client(name: "Manual metrics #{SecureRandom.hex(4)}")
-    dcr, = create_oauth_client(name: "DCR metrics #{SecureRandom.hex(4)}")
-    dcr.update!(self_registered: true)
-    revoked, = create_oauth_client(name: "Revoked metrics #{SecureRandom.hex(4)}")
-    revoked.update!(self_registered: true)
-    revoked.revoke!
+    manual = nil
+    dcr = nil
+    revoked = nil
 
     travel_to Time.utc(2026, 9, 20, 12) do
+      manual, = create_oauth_client(name: "Manual metrics #{SecureRandom.hex(4)}")
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: manual,
         manager_actor: @staff,
@@ -155,6 +255,10 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
     end
 
     travel_to Time.utc(2026, 10, 5, 12) do
+      dcr, = create_oauth_client(name: "DCR metrics #{SecureRandom.hex(4)}")
+      dcr.update!(self_registered: true)
+      revoked, = create_oauth_client(name: "Revoked metrics #{SecureRandom.hex(4)}")
+      revoked.update!(self_registered: true)
       RecordingStudioOauth::OauthAuthorization.create!(
         oauth_client: dcr,
         manager_actor: @staff,
@@ -171,6 +275,8 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
       )
       revoked_grant.update!(revoked_at: Time.current)
     end
+
+    revoked.revoke!
   end
 
   def breakdown_counts(payload)
@@ -187,6 +293,17 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
 
   def authorizations_created_between(start_at, end_at)
     RecordingStudioOauth::OauthAuthorization.where(created_at: start_at...end_at).count
+  end
+
+  def self_registered_client!(label, confidential: false)
+    client, = create_oauth_client(name: "#{label} #{SecureRandom.hex(4)}", confidential: confidential)
+    client.update!(self_registered: true)
+    client
+  end
+
+  def series_value(data, date)
+    row = data.find { |entry| entry.fetch("date").to_s == date }
+    row ? row.fetch("value") : 0
   end
 
   def timeseries_counts(payload)

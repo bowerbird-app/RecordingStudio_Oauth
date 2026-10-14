@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.11.0
+
+No Oauth migration. Install Oauth `0.11.0` and move `recording_studio_metrics`
+to `~> 0.3` (tag `v0.3.1`). The new `oauth_clients.self_registered_over_time`
+metric registers automatically with the other OAuth metrics.
+
 ## 0.10.2
 
 No Oauth migration or host code change. Install Oauth `0.10.2` to get the

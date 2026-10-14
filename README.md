@@ -89,7 +89,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 ## Install
 
 1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.9`, Cache `~> 0.5`, Site Settings `~> 0.2`, Flatpack `~> 0.1.198`, Trashable `~> 0.10`.
-   Also add `recording_studio_metrics` `~> 0.2, >= 0.2.2` and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
+   Also add `recording_studio_metrics` `~> 0.3` (tag `v0.3.1`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
    Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, additive `recording_studio_trashable_kept_sql`). Pin git tag `v0.10.0` with `require: false` when Bundler would auto-require the gem.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
@@ -122,7 +122,7 @@ Staff Registered-app admin screens stay English. OAuth protocol error codes and 
 
 Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v4.6.0`, Accessible `v0.18.0`, Attachable `v0.15.0`, Admin `v2.2.0`, Site Settings `v0.2.0`, Flatpack `v0.1.213`, and Recording Studio Internationalization `v0.1.2` (dummy only).
 
-Dummy also pins Metrics `v0.2.2` and API `v0.8.0`.
+Dummy also pins Metrics `v0.3.1` and API `v0.8.0`.
 
 ## Central Connect relay
 
@@ -230,11 +230,12 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/by_registration` |
+| `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_clients/self_registered_over_time` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/over_time` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/by_role` |
 
-`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`.
+`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_clients.self_registered_over_time` (unit `count`) is new self-registered (dynamic client registration) apps by `created_at`. It takes `from` / `to` (or `start` / `end`) and `interval` (`day`, `week`, `month`, `year`), and `group_by=confidential` (the list's "Secret" column: public vs confidential client) or `group_by=api_key` (the list's "API" column, a named API label). Groups under the Metrics `min_group_size` (5) fold into `other`, so groups plus `other` equal the total. There is no grouping by name, client id or redirect URI, and no filters: the Registered apps list has none to mirror. Same Admin root `:view` check and site scope as that list. Revoked apps stay in the period they signed up in, so its buckets can add up to more than the self-registered row of `by_registration`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`.
 
 ## Version
 
-0.9.0
+0.11.0
