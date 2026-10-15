@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.12.2
+
+No Oauth migration. Install Oauth `0.12.2` to allow Recording Studio API
+`>= 0.5.2, < 0.12` (API 0.11.0). Dummy still pins API tag `v0.10.0` until
+0.11.0 is released.
+
 ## 0.11.0
 
 No Oauth migration. Install Oauth `0.11.0` and move `recording_studio_metrics`
