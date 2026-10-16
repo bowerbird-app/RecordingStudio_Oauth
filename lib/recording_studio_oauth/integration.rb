@@ -52,11 +52,15 @@ module RecordingStudioOauth
       return false unless parent.parent_recording_id.nil?
       return operations_client?(oauth_client) if admin_root_recordable_type?(parent.recordable_type)
 
-      true
+      connectable_root_recordable_type?(parent.recordable_type)
     end
 
     def admin_root_recordable_type?(recordable_type)
       Array(RecordingStudioOauth.configuration.admin_root_recordable_type_names).map(&:to_s).include?(recordable_type.to_s)
+    end
+
+    def connectable_root_recordable_type?(recordable_type)
+      Array(RecordingStudioOauth.configuration.connectable_root_recordable_type_names).map(&:to_s).include?(recordable_type.to_s)
     end
 
     def operations_client?(oauth_client)

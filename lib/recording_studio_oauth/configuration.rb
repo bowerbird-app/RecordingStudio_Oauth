@@ -7,6 +7,7 @@ module RecordingStudioOauth
     attr_accessor :authentication_method,
                   :current_actor_method,
                   :admin_root_recordable_type_names,
+                  :connectable_root_recordable_type_names,
                   :authorization_code_ttl,
                   :access_token_ttl,
                   :refresh_token_ttl,
@@ -25,6 +26,7 @@ module RecordingStudioOauth
       @authentication_method = :authenticate_user!
       @current_actor_method = :current_user
       @admin_root_recordable_type_names = ["AdminRoot"]
+      @connectable_root_recordable_type_names = ["Workspace"]
       @authorization_code_ttl = 10.minutes
       @access_token_ttl = 1.hour
       @refresh_token_ttl = 30.days
@@ -79,6 +81,7 @@ module RecordingStudioOauth
         authentication_method: authentication_method,
         current_actor_method: current_actor_method,
         admin_root_recordable_type_names: admin_root_recordable_type_names,
+        connectable_root_recordable_type_names: connectable_root_recordable_type_names,
         authorization_code_ttl: authorization_code_ttl,
         access_token_ttl: access_token_ttl,
         refresh_token_ttl: refresh_token_ttl,

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.4] - 2026-10-16
+
+### Fixed
+- Connect public rows are an allowlist of recordable types
+  (`config.connectable_root_recordable_type_names`, default `["Workspace"]`).
+  A parentless MessageGroup (or any other non-workspace root) is no longer a
+  Connect row. Nested grants stay excluded. AdminRoot is unchanged: operations
+  apps only, via `admin_root_recordable_type_names`.
+
+### Upgrade notes
+- Bump to `0.12.4`. No migration.
+- Hosts whose Connect roots are not named `Workspace` must set
+  `config.connectable_root_recordable_type_names` to those type names.
+  Adding a type includes it. Message groups stay off the list.
+
 ## [0.12.3] - 2026-10-16
 
 ### Fixed
