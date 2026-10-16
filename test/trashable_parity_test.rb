@@ -5,14 +5,14 @@ require "test_helper"
 # Proves Oauth call sites map onto RecordingStudioTrashable query-only sibling
 # APIs with main-compatible void / kept / active semantics (no invented wrappers).
 class TrashableParityTest < Minitest::Test
-  def test_gemspec_and_gemfile_pin_trashable_v0_10_query_only
+  def test_gemspec_and_gemfile_pin_trashable_v0_11_query_only
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
     gemfile = File.read(File.expand_path("../Gemfile", __dir__))
     dummy_gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0", require: false'
-    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0", require: false'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0", require: false'
+    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0", require: false'
   end
 
   def test_engine_requires_trashable_query_only
