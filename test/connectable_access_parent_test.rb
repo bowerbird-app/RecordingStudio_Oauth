@@ -4,7 +4,7 @@ require "test_helper"
 
 class ConnectableAccessParentTest < Minitest::Test
   AccessRecording = Struct.new(:parent_recording)
-  Parent = Struct.new(:recordable_type)
+  Parent = Struct.new(:recordable_type, :parent_recording_id)
   Client = Struct.new(:api_key)
 
   def test_workspace_parent_is_connectable_for_public_and_operations
@@ -12,6 +12,20 @@ class ConnectableAccessParentTest < Minitest::Test
 
     assert RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
     assert RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
+  def test_nested_message_group_parent_is_not_connectable
+    access = AccessRecording.new(Parent.new("MessageGroup", "workspace-root-id"))
+
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
+  def test_nested_folder_parent_is_not_connectable
+    access = AccessRecording.new(Parent.new("Folder", "workspace-root-id"))
+
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
   end
 
   def test_admin_root_is_connectable_only_for_operations_clients

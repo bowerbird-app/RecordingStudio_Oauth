@@ -56,12 +56,12 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
     assert_includes labels, @root_recording.recordable.name
     assert_includes labels, second_root.recordable.name
-    assert_includes labels, folder_name
+    assert_not_includes labels, folder_name
     assert_equal labels.length, labels.uniq.length
     %w[Admin View Edit].each { |role_label| refute_includes labels, role_label }
     assert_not_includes labels, admin_root_recording.recordable.name
     assert_not_includes response.body, "access_recording_id=#{admin_root_access.id}"
-    assert_includes response.body, "access_recording_id=#{folder_access.id}"
+    assert_not_includes response.body, "access_recording_id=#{folder_access.id}"
     assert_includes response.body, "access_recording_id=#{@access_recording.id}"
     assert_select "[role='listitem'] a[href*='access_recording_id']"
     assert_select "form[data-turbo=false]", count: 0
@@ -69,12 +69,9 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     css_select("[role='listitem']").each do |item|
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
-    assert_match(/\bConnect\b/, css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.text)
-    folder_button = css_select("[role='listitem']").find { |item| item.text.include?(folder_name) }.at_css("a")
-    assert_equal "default", folder_button["data-fp-style"]
+    refute_equal @root_recording.id, folder_recording.id
     assert_select "[role='tooltip']", count: 0
     assert_select "[data-controller='flat-pack--tooltip']", count: 0
-    refute_equal @root_recording.id, folder_recording.id
     assert_select "[data-controller='recording-studio-root-switchable--root-switch-dropdown']", count: 0
     assert_not_includes response.body, "Sign out"
   end
@@ -265,29 +262,39 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_equal "xyz", query.fetch("state")
   end
 
-  test "grant on folder access is a sibling of that access and depends on it" do
+  test "nested folder grant is omitted from Connect and cannot be posted" do
     folder_user = create_user(email: "folder-only-oauth@example.com")
     root_recording, folder_recording, folder_access = create_folder_access_for(
       user: folder_user,
       folder_name: "Release Notes",
       role: :admin
     )
+    workspace_access = grant_or_bootstrap_access!(
+      recording: root_recording,
+      actor: folder_user,
+      role: :view
+    )
     sign_in folder_user
 
-    post authorize_path, params: authorize_params.merge(
-      access_recording_id: folder_access.id,
-      role: "view",
-      decision: "continue"
-    )
+    get authorize_path, params: authorize_params
 
-    assert_response :redirect
-    authorization = RecordingStudioOauth::OauthAuthorization.find_by!(manager_actor: folder_user, oauth_client: @oauth_client)
-    granted = authorization.access_recording
+    assert_response :success
+    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    assert_includes labels, root_recording.recordable.name
+    refute_includes labels, "Release Notes"
+    refute_includes response.body, "access_recording_id=#{folder_access.id}"
+    assert_includes response.body, "access_recording_id=#{workspace_access.id}"
 
-    assert_equal folder_recording.id, granted.parent_recording_id
-    refute_equal root_recording.id, granted.parent_recording_id
-    assert_equal folder_access.id, granted.recordable.depends_on_recording_id
-    assert_equal folder_access.id, authorization.manager_access_recording_id
+    assert_no_difference -> { RecordingStudioOauth::OauthAuthorization.where(oauth_client: @oauth_client).count } do
+      post authorize_path, params: authorize_params.merge(
+        access_recording_id: folder_access.id,
+        role: "view",
+        decision: "connect"
+      )
+    end
+
+    assert_response :unprocessable_entity
+    refute_equal root_recording.id, folder_recording.id
   end
 
   test "same client and access reconnect does not stack a second grant" do

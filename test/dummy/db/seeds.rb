@@ -136,6 +136,6 @@ end
 puts "Seeded: admin@admin.com / Password"
 puts "Seeded: Seed Demo App client_id=#{oauth_client.client_id}"
 puts "Seeded: WordPress client_id=#{wordpress_client.client_id} redirect=#{wordpress_client.redirect_uris.first}"
-puts "Seeded: Studio Workspace (Connected), Docs Workspace (Reconnect), Product Docs (Connect)"
+puts "Seeded: Studio Workspace (Connected), Docs Workspace (Reconnect), Product Docs folder"
 puts "Seeded: site name Studio on Studio Workspace and Docs Workspace"
 puts "Seeded: Admin root for staff screens"
