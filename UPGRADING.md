@@ -1,5 +1,14 @@
 # Upgrading
 
+## 0.12.4
+
+No Oauth migration. Install Oauth `0.12.4`. Connect public rows use
+`config.connectable_root_recordable_type_names` (default `["Workspace"]`).
+A parentless MessageGroup is not a Connect row. Nested grants stay hidden.
+AdminRoot is still operations-only via `admin_root_recordable_type_names`.
+If your Connect roots are not named `Workspace`, set the allowlist to those
+type names.
+
 ## 0.12.3
 
 No Oauth migration. Install Oauth `0.12.3`. Connect lists grants whose parent

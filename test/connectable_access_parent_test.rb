@@ -14,6 +14,20 @@ class ConnectableAccessParentTest < Minitest::Test
     assert RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
   end
 
+  def test_parentless_message_group_is_not_connectable
+    access = AccessRecording.new(Parent.new("MessageGroup"))
+
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
+  def test_parentless_namespaced_message_group_is_not_connectable
+    access = AccessRecording.new(Parent.new("RecordingStudioMessages::MessageGroup"))
+
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
   def test_nested_message_group_parent_is_not_connectable
     access = AccessRecording.new(Parent.new("MessageGroup", "workspace-root-id"))
 
@@ -26,6 +40,24 @@ class ConnectableAccessParentTest < Minitest::Test
 
     refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
     refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
+  def test_parentless_folder_is_not_connectable_by_default
+    access = AccessRecording.new(Parent.new("Folder"))
+
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    refute RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  end
+
+  def test_host_can_allowlist_another_root_type
+    previous = RecordingStudioOauth.configuration.connectable_root_recordable_type_names
+    RecordingStudioOauth.configuration.connectable_root_recordable_type_names = %w[Workspace PressCenter]
+    access = AccessRecording.new(Parent.new("PressCenter"))
+
+    assert RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("public"))
+    assert RecordingStudioOauth::Integration.connectable_access_parent?(access, oauth_client: Client.new("operations"))
+  ensure
+    RecordingStudioOauth.configuration.connectable_root_recordable_type_names = previous
   end
 
   def test_admin_root_is_connectable_only_for_operations_clients
