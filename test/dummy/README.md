@@ -8,7 +8,7 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Accessible grants on Workspace, Folder, and AdminRoot
 - Named APIs `public` and `operations` (`api_key` is that label, not a secret)
 - Seed Demo App plus a public WordPress app whose redirect is the host relay
-- Studio Workspace, Docs Workspace, and Product Docs
+- Studio Workspace, Docs Workspace, and Product Docs (folder under Studio, not a Connect row)
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
 - Staff Admin Registered apps can add an app (New app), pick Public or Operations, show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger. Operations apps can Connect on Admin. Public apps cannot.

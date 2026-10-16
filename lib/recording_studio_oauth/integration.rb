@@ -49,6 +49,7 @@ module RecordingStudioOauth
       parent = access_recording.parent_recording
       return false if parent.nil?
       return false if parent.recordable_type == "RecordingStudio::Access"
+      return false unless parent.parent_recording_id.nil?
       return operations_client?(oauth_client) if admin_root_recordable_type?(parent.recordable_type)
 
       true

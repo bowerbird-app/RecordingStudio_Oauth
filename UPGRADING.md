@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.12.3
+
+No Oauth migration. Install Oauth `0.12.3`. Connect lists grants whose parent
+is a top-level root. Nested grants (folder, support ticket message group) no
+longer appear. Grant on the workspace, or on AdminRoot for operations apps,
+if the person should Connect there. Existing authorizations stay as they are.
+
 ## 0.12.2
 
 No Oauth migration. Install Oauth `0.12.2` to allow Recording Studio API
