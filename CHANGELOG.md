@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin Registered-apps dashboard charts for `oauth_clients.self_registered_over_time`,
   `oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
   Each chart reads `RecordingStudioMetrics` and links to the Registered apps screen.
+  Charts cover the last 365 days, not the 30-day default, so rows on Registered
+  apps still appear on the cards. Compact count cards sit on the first row. The
+  three charts sit on the row below.
 
 ### Upgrade notes
 - Bump to `0.12.5`. No migration.

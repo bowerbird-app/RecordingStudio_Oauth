@@ -227,9 +227,11 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 
 Staff Admin Registered apps charts `oauth_clients.self_registered_over_time`,
 `oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
-Each card opens the Registered apps list. Host dashboard sections can list the
-same widget keys (`oauth.self_registered_over_time`, `oauth.granted_over_time`,
-`oauth.revoked_over_time`).
+Count cards sit on the first row. Charts sit on the row below and cover the last
+12 months. Each card opens the Registered apps list. Host dashboard sections can
+list the same widget keys (`oauth.self_registered_over_time`,
+`oauth.granted_over_time`, `oauth.revoked_over_time`). Mark the two count widgets
+compact so they stay on the first row.
 
 | Method | Path |
 | --- | --- |

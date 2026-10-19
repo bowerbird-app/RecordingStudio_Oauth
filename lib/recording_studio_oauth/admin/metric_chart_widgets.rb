@@ -23,6 +23,7 @@ module RecordingStudioOauth
           info: "Connections ended that day."
         }
       ].freeze
+      PERIOD_LABEL = "Last 12 months"
 
       WIDGETS = SPECS.map do |spec|
         metric = spec.fetch(:metric)
@@ -30,10 +31,12 @@ module RecordingStudioOauth
           type :chart
           title spec.fetch(:title)
           info spec.fetch(:info)
+          metadata { { period_label: RecordingStudioOauth::Admin::MetricChartWidgets::PERIOD_LABEL } }
+          value { |context| RecordingStudioOauth::Admin::MetricChartWidgets.total(metric, context) }
           chart_type :area
           series { |context| RecordingStudioOauth::Admin::MetricChartWidgets.series(metric, context) }
+          chart_options { { height: 220 } }
           hide_change
-          hide_period
           blast_radius :site
           link_to { |context| context.admin_screen_path("oauth_clients") }
           link_label "Registered apps"
@@ -43,17 +46,48 @@ module RecordingStudioOauth
       module_function
 
       def series(identifier, context)
-        RecordingStudioMetrics::Admin.chart_series(
-          identifier,
-          admin_context: context,
-          interval: :day,
-          scope: :site,
-          site_authorized: true
-        )
+        format_series(raw_series(identifier, context))
+      end
+
+      def total(identifier, context)
+        series(identifier, context).sum { |row| Array(row[:data]).sum { |point| point[:y].to_i } }
       end
 
       def register!
         WIDGETS.each { |widget| RecordingStudioAdmin.register_widget(widget) }
+      end
+
+      def execute_params
+        {
+          interval: :day,
+          start_at: 365.days.ago,
+          scope: :site,
+          site_authorized: true
+        }
+      end
+
+      def raw_series(identifier, context)
+        RecordingStudioMetrics::Admin.chart_series(
+          identifier,
+          admin_context: context,
+          **execute_params
+        )
+      end
+
+      def format_series(rows)
+        Array(rows).map do |row|
+          {
+            name: row[:name] || row["name"],
+            data: Array(row[:data] || row["data"]).map { |point| format_point(point) }
+          }
+        end
+      end
+
+      def format_point(point)
+        return { x: point[0], y: point[1].to_i } unless point.is_a?(Hash)
+
+        keyed = point.transform_keys(&:to_sym)
+        { x: keyed[:x] || keyed[:date], y: (keyed[:y] || keyed[:value]).to_i }
       end
     end
   end

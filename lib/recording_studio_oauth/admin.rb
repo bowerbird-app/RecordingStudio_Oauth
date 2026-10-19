@@ -55,8 +55,8 @@ module RecordingStudioOauth
       title "Registered apps"
       subtitle "Apps people can Connect."
       blast_radius :site
-      widget "oauth.active_apps"
-      widget "oauth.active_connections"
+      widget "oauth.active_apps", view_variant: :compact
+      widget "oauth.active_connections", view_variant: :compact
       widget "oauth.self_registered_over_time"
       widget "oauth.granted_over_time"
       widget "oauth.revoked_over_time"
