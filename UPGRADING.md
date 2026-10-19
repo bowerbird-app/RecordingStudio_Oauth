@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.12.5
+
+No Oauth migration. Install Oauth `0.12.5`. Staff Admin Registered apps shows
+three charts (self-registered apps, connections granted, connections revoked).
+They read the existing OAuth metrics and open the Registered apps list. Add the
+same widget keys on a host dashboard section if you want them there too.
+
 ## 0.12.4
 
 No Oauth migration. Install Oauth `0.12.4`. Connect public rows use

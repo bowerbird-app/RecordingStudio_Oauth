@@ -225,6 +225,12 @@ RecordingStudioMetrics::Api.register!(api: :operations)
 
 Staff with AdminRoot `:view` can read them. A public token or a non-admin operations token is denied.
 
+Staff Admin Registered apps charts `oauth_clients.self_registered_over_time`,
+`oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
+Each card opens the Registered apps list. Host dashboard sections can list the
+same widget keys (`oauth.self_registered_over_time`, `oauth.granted_over_time`,
+`oauth.revoked_over_time`).
+
 | Method | Path |
 | --- | --- |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics` |
@@ -240,4 +246,4 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 
 ## Version
 
-0.12.4
+0.12.5

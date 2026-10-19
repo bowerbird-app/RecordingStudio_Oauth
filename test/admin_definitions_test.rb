@@ -19,6 +19,12 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, "class OauthClientsResource"
     assert_includes admin, "action :create"
     assert_includes admin, "register_resource(OauthClientsResource)"
+    charts = File.read(File.expand_path("../lib/recording_studio_oauth/admin/metric_chart_widgets.rb", __dir__))
+
+    assert_includes admin, "oauth.self_registered_over_time"
+    assert_includes admin, "oauth.granted_over_time"
+    assert_includes admin, "oauth.revoked_over_time"
+    assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
     refute_includes admin, "Revoke an app to stop new connections."
   end
 

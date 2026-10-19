@@ -57,6 +57,9 @@ module RecordingStudioOauth
       blast_radius :site
       widget "oauth.active_apps"
       widget "oauth.active_connections"
+      widget "oauth.self_registered_over_time"
+      widget "oauth.granted_over_time"
+      widget "oauth.revoked_over_time"
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
     end
 
@@ -191,6 +194,7 @@ module RecordingStudioOauth
 
       RecordingStudioAdmin.register_widget(ActiveAppsWidget)
       RecordingStudioAdmin.register_widget(ActiveConnectionsWidget)
+      MetricChartWidgets.register!
       RecordingStudioAdmin.register_section(OauthAppsSection)
       RecordingStudioAdmin.register_resource(OauthClientsResource)
       RecordingStudioAdmin.register_screen(OauthClientsScreen)
