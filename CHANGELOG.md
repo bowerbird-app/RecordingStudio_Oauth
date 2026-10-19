@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Each chart reads `RecordingStudioMetrics` and links to the Registered apps screen.
   Charts cover the last 365 days, not the 30-day default, so rows on Registered
   apps still appear on the cards. Compact count cards sit on the first row. The
-  three charts sit on the row below.
+  three charts sit on the row below. Connections granted and Connections revoked
+  open the list filtered to apps with a grant or revoke in that window. The list
+  filters Source (staff or self-registered), Status (active by default, or
+  revoked), and API (named APIs the host registered).
 
 ### Upgrade notes
 - Bump to `0.12.5`. No migration.

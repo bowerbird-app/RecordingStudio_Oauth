@@ -50,7 +50,7 @@ class AdminChartWidgetsTest < Minitest::Test
       assert_equal spec.fetch(:title), resolved.title
       assert_equal spec.fetch(:info), resolved.info
       assert_equal 1, resolved.value
-      assert_equal "/admin/screens/oauth_clients", resolved.link_to
+      assert_equal expected_clients_path(spec), resolved.link_to
       assert_equal "Registered apps", resolved.link_label
       assert_equal :site, widget.blast_radius
       assert_equal spec.fetch(:title), resolved.series.fetch(0).fetch(:name)
@@ -88,6 +88,10 @@ class AdminChartWidgetsTest < Minitest::Test
   end
 
   private
+
+  def expected_clients_path(spec)
+    RecordingStudioOauth::Admin::OauthClientsFilters.screen_path(admin_context, spec[:link_params] || {})
+  end
 
   def admin_context
     actor = Object.new

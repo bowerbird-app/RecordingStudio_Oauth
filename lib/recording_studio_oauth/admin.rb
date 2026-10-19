@@ -136,7 +136,19 @@ module RecordingStudioOauth
       title "Registered apps"
       subtitle "Add an app, or revoke one to stop new connections."
       blast_radius :site
-      query { |_context| OauthClient.order(:name) }
+      query { |context| OauthClientsFilters.filtered_clients(context) }
+
+      filter :source,
+             options: OauthClientsFilters::SOURCE_FILTERS.keys,
+             apply: ->(relation, value, _context) { OauthClientsFilters.apply_source(relation, value) }
+      filter :status,
+             options: OauthClientsFilters::STATUS_FILTERS,
+             default: :active,
+             apply: ->(relation, value, _context) { OauthClientsFilters.apply_status(relation, value) }
+      filter :api,
+             param: :api_key,
+             field: :api_key,
+             options: -> { RecordingStudioOauth::Integration.api_names }
 
       button :new,
              text: "New app",

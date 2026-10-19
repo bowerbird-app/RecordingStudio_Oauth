@@ -14,13 +14,15 @@ module RecordingStudioOauth
           key: "oauth.granted_over_time",
           metric: "oauth_authorizations.granted_over_time",
           title: "Connections granted",
-          info: "New connections by day. Revoked ones still count here."
+          info: "New connections by day. Revoked ones still count here.",
+          link_params: { connections: "granted" }
         },
         {
           key: "oauth.revoked_over_time",
           metric: "oauth_authorizations.revoked_over_time",
           title: "Connections revoked",
-          info: "Connections ended that day."
+          info: "Connections ended that day.",
+          link_params: { connections: "revoked" }
         }
       ].freeze
       PERIOD_LABEL = "Last 12 months"
@@ -38,7 +40,9 @@ module RecordingStudioOauth
           chart_options { { height: 220 } }
           hide_change
           blast_radius :site
-          link_to { |context| context.admin_screen_path("oauth_clients") }
+          link_to do |context|
+            RecordingStudioOauth::Admin::OauthClientsFilters.screen_path(context, spec[:link_params] || {})
+          end
           link_label "Registered apps"
         end
       end.freeze
