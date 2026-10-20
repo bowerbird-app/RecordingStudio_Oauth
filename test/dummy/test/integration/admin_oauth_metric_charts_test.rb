@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
@@ -73,7 +74,8 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "min-h-28"
     assert_includes response.body, "Self-registered apps"
     assert_includes response.body, "View connections"
-    assert_includes response.body, '"labels":{"show":false}'
+    assert_includes CGI.unescapeHTML(response.body),
+                    '"labels":{"style":{"colors":"var(--surface-muted-content-color)"},"show":false}'
     %w[View apps View connections More].each do |label|
       button = css_select("a, button").find { |element| element.text.strip == label }
       next unless button
