@@ -55,8 +55,11 @@ module RecordingStudioOauth
       title "Registered apps"
       subtitle "Apps people can Connect."
       blast_radius :site
-      widget "oauth.active_apps"
-      widget "oauth.active_connections"
+      widget "oauth.active_apps", view_variant: :compact
+      widget "oauth.active_connections", view_variant: :compact
+      widget "oauth.self_registered_over_time"
+      widget "oauth.granted_over_time"
+      widget "oauth.revoked_over_time"
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
     end
 
@@ -133,7 +136,19 @@ module RecordingStudioOauth
       title "Registered apps"
       subtitle "Add an app, or revoke one to stop new connections."
       blast_radius :site
-      query { |_context| OauthClient.order(:name) }
+      query { |context| OauthClientsFilters.filtered_clients(context) }
+
+      filter :source,
+             options: OauthClientsFilters::SOURCE_FILTERS.keys,
+             apply: ->(relation, value, _context) { OauthClientsFilters.apply_source(relation, value) }
+      filter :status,
+             options: OauthClientsFilters::STATUS_FILTERS,
+             default: :active,
+             apply: ->(relation, value, _context) { OauthClientsFilters.apply_status(relation, value) }
+      filter :api,
+             param: :api_key,
+             field: :api_key,
+             options: -> { RecordingStudioOauth::Integration.api_names }
 
       button :new,
              text: "New app",
@@ -191,6 +206,7 @@ module RecordingStudioOauth
 
       RecordingStudioAdmin.register_widget(ActiveAppsWidget)
       RecordingStudioAdmin.register_widget(ActiveConnectionsWidget)
+      MetricChartWidgets.register!
       RecordingStudioAdmin.register_section(OauthAppsSection)
       RecordingStudioAdmin.register_resource(OauthClientsResource)
       RecordingStudioAdmin.register_screen(OauthClientsScreen)

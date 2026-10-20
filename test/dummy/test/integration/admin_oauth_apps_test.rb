@@ -234,7 +234,10 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_predicate client.reload, :revoked?
 
-    get "/admin/screens/oauth_clients/table", params: { anchor_url: "http://www.example.com/admin/screens/oauth_clients" }
+    get "/admin/screens/oauth_clients/table", params: {
+      status: "revoked",
+      anchor_url: "http://www.example.com/admin/screens/oauth_clients"
+    }
 
     assert_response :success
     row = css_select("tr, [role='row']").find { |element| element.text.include?("Seed Demo App") }

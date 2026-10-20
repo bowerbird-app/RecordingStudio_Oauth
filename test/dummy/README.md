@@ -11,7 +11,7 @@ This Rails host proves `recording_studio_oauth` as an authorization server.
 - Studio Workspace, Docs Workspace, and Product Docs (folder under Studio, not a Connect row)
 - Site Settings name `Studio` on both workspace roots
 - Mounted OAuth, API, Admin, Accessible, Site Settings, and Attachable engines
-- Staff Admin Registered apps can add an app (New app), pick Public or Operations, show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger. Operations apps can Connect on Admin. Public apps cannot.
+- Staff Admin Registered apps can add an app (New app), pick Public or Operations, show credentials once, and revoke. Secret is a Public or Has a secret badge with a short tooltip. Status is an Active or Revoked badge. Revoked is danger. Operations apps can Connect on Admin. Public apps cannot. The Registered apps dashboard puts Registered apps and Active connections on the first row. Self-registered apps, connections granted, and connections revoked sit on the row below and cover the last 12 months. Each chart opens the Registered apps list. Granted and revoked charts filter that list to apps with a grant or revoke in the last 12 months. The list filters Source, Status (active by default), and API from the dummy's Public and Operations APIs.
 - RFC 8414 on the host `/.well-known` paths, including `/.well-known/oauth-authorization-server/recording_studio_oauth`
 - RFC 7591 self-registered apps at `POST /recording_studio_oauth/register` (dummy turns this on)
 - RFC 9728 path-inserted protected-resource metadata at `/.well-known/oauth-protected-resource/recording_studio_mcp`

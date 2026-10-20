@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.5] - 2026-10-19
+
+### Added
+- Admin Registered-apps dashboard charts for `oauth_clients.self_registered_over_time`,
+  `oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
+  Each chart reads `RecordingStudioMetrics` and links to the Registered apps screen.
+  Charts cover the last 365 days, not the 30-day default, so rows on Registered
+  apps still appear on the cards. Compact count cards sit on the first row. The
+  three charts sit on the row below. Connections granted and Connections revoked
+  open the list filtered to apps with a grant or revoke in that window. The list
+  filters Source (staff or self-registered), Status (active by default, or
+  revoked), and API (named APIs the host registered).
+
+### Upgrade notes
+- Bump to `0.12.5`. No migration.
+- Hosts that already mount staff Admin get the three charts on Registered apps
+  and on any host section that lists the new widget keys.
+
 ## [0.12.4] - 2026-10-16
 
 ### Fixed

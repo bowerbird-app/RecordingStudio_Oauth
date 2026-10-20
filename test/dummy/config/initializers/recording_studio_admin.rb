@@ -23,8 +23,11 @@ class DummyAdminRootSection < RecordingStudioAdmin::Section
   key "root"
   title "Admin"
   blast_radius :site
-  widget "oauth.active_apps"
-  widget "oauth.active_connections"
+  widget "oauth.active_apps", view_variant: :compact
+  widget "oauth.active_connections", view_variant: :compact
+  widget "oauth.self_registered_over_time"
+  widget "oauth.granted_over_time"
+  widget "oauth.revoked_over_time"
   link :oauth_apps, text: "Registered apps", url: ->(context) { context.admin_section_path("oauth_apps") }
 end
 
