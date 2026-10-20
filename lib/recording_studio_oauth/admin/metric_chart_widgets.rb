@@ -50,11 +50,13 @@ module RecordingStudioOauth
       module_function
 
       def series(identifier, context)
-        format_series(raw_series(identifier, context))
+        raw_series(identifier, context)
       end
 
       def total(identifier, context)
-        series(identifier, context).sum { |row| Array(row[:data]).sum { |point| point[:y].to_i } }
+        series(identifier, context).sum do |row|
+          Array(row[:data] || row["data"]).sum { |point| point_y(point) }
+        end
       end
 
       def register!
@@ -78,20 +80,10 @@ module RecordingStudioOauth
         )
       end
 
-      def format_series(rows)
-        Array(rows).map do |row|
-          {
-            name: row[:name] || row["name"],
-            data: Array(row[:data] || row["data"]).map { |point| format_point(point) }
-          }
-        end
-      end
+      def point_y(point)
+        return 0 unless point.is_a?(Hash)
 
-      def format_point(point)
-        return { x: point[0], y: point[1].to_i } unless point.is_a?(Hash)
-
-        keyed = point.transform_keys(&:to_sym)
-        { x: keyed[:x] || keyed[:date], y: (keyed[:y] || keyed[:value]).to_i }
+        (point[:y] || point["y"]).to_i
       end
     end
   end

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.7] - 2026-10-20
+
+### Changed
+- Allow `recording_studio_metrics` `>= 0.3, < 0.6` so hosts can run Metrics 0.5.0.
+  Development and dummy Gemfiles pin Metrics tag `v0.5.0` and API tag `v0.13.1`.
+- Admin Registered-apps charts pass `RecordingStudioMetrics::Admin.chart_series` through unchanged. Metrics 0.5.0 already emits `{ x:, y: }` points, so this gem no longer remaps `[date, value]` pairs.
+
+### Upgrade notes
+- Bump to `0.12.7`. No migration.
+- Pin Recording Studio Metrics at tag `v0.5.0` (or any `>= 0.3, < 0.6`). Charts expect `{ x:, y: }` points from `chart_series`.
+- Pin Recording Studio API at tag `v0.13.1` (or any `>= 0.5.2, < 0.14`).
+
 ## [0.12.6] - 2026-10-20
 
 ### Changed

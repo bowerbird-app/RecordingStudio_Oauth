@@ -28,6 +28,8 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, "oauth.granted_over_time"
     assert_includes admin, "oauth.revoked_over_time"
     assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
+    refute_includes charts, "format_point"
+    refute_includes charts, "format_series"
     refute_includes admin, "Revoke an app to stop new connections."
   end
 
