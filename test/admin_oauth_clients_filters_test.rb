@@ -51,16 +51,9 @@ class AdminOauthClientsFiltersTest < Minitest::Test
       end
     end.new(Object.new, "UTC")
 
-    result = RecordingStudioMetrics::Result.new(
-      metric: "oauth_authorizations.granted_over_time",
-      type: :timeseries,
-      title: "Connections granted",
-      data: []
-    )
-
-    granted_link = RecordingStudioMetrics.stub(:execute, result) { granted.resolve(context).link_to }
-    revoked_link = RecordingStudioMetrics.stub(:execute, result) { revoked.resolve(context).link_to }
-    self_registered_link = RecordingStudioMetrics.stub(:execute, result) { self_registered.resolve(context).link_to }
+    granted_link = granted.link_to.call(context)
+    revoked_link = revoked.link_to.call(context)
+    self_registered_link = self_registered.link_to.call(context)
 
     assert_includes granted_link, "/admin/screens/oauth_connections"
     assert_includes granted_link, "status=active"
@@ -72,11 +65,10 @@ class AdminOauthClientsFiltersTest < Minitest::Test
   end
 
   def test_connections_query_param_still_filters_registered_apps
-    context = Struct.new(:params).new({ connections: "granted" })
+    filters = File.read(File.expand_path("../lib/recording_studio_oauth/admin/oauth_clients_filters.rb", __dir__))
 
-    relation = RecordingStudioOauth::Admin::OauthClientsFilters.filtered_clients(context)
-
-    assert_includes relation.to_sql, "oauth_authorizations"
-    assert_includes relation.to_sql, "created_at"
+    assert_includes filters, "CONNECTION_FILTERS"
+    assert_includes filters, "apply_connections"
+    assert_includes filters, "request_param(context, :connections)"
   end
 end

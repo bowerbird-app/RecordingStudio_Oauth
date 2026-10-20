@@ -13,11 +13,11 @@ module RecordingStudioOauth
       module_function
 
       def filtered_clients(context)
-        apply_connections(OauthClient.active.order(:name), request_param(context, :connections))
+        apply_connections(RecordingStudioOauth::OauthClient.active.order(:name), request_param(context, :connections))
       end
 
       def filtered_connections(_context)
-        OauthAuthorization.active.includes(:oauth_client).order(created_at: :desc)
+        RecordingStudioOauth::OauthAuthorization.active.includes(:oauth_client).order(created_at: :desc)
       end
 
       def apply_source(relation, value)
@@ -41,7 +41,7 @@ module RecordingStudioOauth
         return relation unless CONNECTION_FILTERS.include?(value.to_s)
 
         started = MetricChartWidgets.execute_params[:start_at]
-        grants = OauthAuthorization.all
+        grants = RecordingStudioOauth::OauthAuthorization.all
         scoped = if value.to_s == "granted"
                    grants.where(created_at: started..)
                  else

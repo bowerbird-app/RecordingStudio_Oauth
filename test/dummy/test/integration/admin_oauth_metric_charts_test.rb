@@ -72,7 +72,7 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "min-h-28"
     assert_includes response.body, "Self-registered apps"
-    refute_includes response.body, "View connections"
+    assert_includes response.body, "View connections"
 
     series = RecordingStudioOauth::Admin::MetricChartWidgets.series(
       "oauth_clients.self_registered_over_time",

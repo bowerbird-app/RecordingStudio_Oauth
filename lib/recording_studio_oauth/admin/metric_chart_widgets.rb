@@ -9,7 +9,7 @@ module RecordingStudioOauth
           metric: "oauth_clients.self_registered_over_time",
           title: "Self-registered apps",
           info: "Apps that signed themselves up and can still Connect.",
-          count: -> { OauthClient.active.where(self_registered: true).count },
+          count: -> { RecordingStudioOauth::OauthClient.active.where(self_registered: true).count },
           screen: "oauth_clients",
           link_params: { source: "self_registered" },
           link_label: "Registered apps"
@@ -19,7 +19,7 @@ module RecordingStudioOauth
           metric: "oauth_authorizations.granted_over_time",
           title: "Connections granted",
           info: "Connections that are still on.",
-          count: -> { OauthAuthorization.active.count },
+          count: -> { RecordingStudioOauth::OauthAuthorization.active.count },
           screen: "oauth_connections",
           link_params: { status: "active" },
           link_label: "Connections"
@@ -29,7 +29,7 @@ module RecordingStudioOauth
           metric: "oauth_authorizations.revoked_over_time",
           title: "Connections revoked",
           info: "Connections that were ended.",
-          count: -> { OauthAuthorization.where.not(revoked_at: nil).count },
+          count: -> { RecordingStudioOauth::OauthAuthorization.where.not(revoked_at: nil).count },
           screen: "oauth_connections",
           link_params: { status: "revoked" },
           link_label: "Connections"

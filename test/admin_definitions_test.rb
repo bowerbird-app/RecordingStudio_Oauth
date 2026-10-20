@@ -35,7 +35,7 @@ class AdminDefinitionsTest < Minitest::Test
     refute_includes charts, "format_series"
     assert_includes charts, "OauthClient.active.where(self_registered: true)"
     assert_includes charts, "365.days.ago"
-    refute_includes admin, "link :connections"
+    assert_includes admin, "link :connections"
     refute_includes admin, "Revoke an app to stop new connections."
     active_connections = admin[admin.index("ActiveConnectionsWidget")...admin.index("class OauthAppsSection")]
     assert_includes active_connections, 'admin_screen_path("oauth_clients")'
