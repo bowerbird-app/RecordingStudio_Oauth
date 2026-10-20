@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.12.7
+
+No Oauth migration. Install Oauth `0.12.7` to allow Recording Studio Metrics
+`>= 0.3, < 0.6` (Metrics 0.5.0). Dummy and development pin Metrics tag `v0.5.0`
+and API tag `v0.13.1`. Registered-apps charts pass `{ x:, y: }` points from
+`chart_series` through unchanged.
+
 ## 0.12.6
 
 No Oauth migration. Install Oauth `0.12.6` to allow Recording Studio API
