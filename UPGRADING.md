@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.13.2
+
+No Oauth migration. Install Oauth `0.13.2`. Registered-apps charts
+(Self-registered apps, Connections granted, Connections revoked) show the last
+30 days and hide x-axis labels. Card numbers still count current list rows.
+Section actions stay secondary. Metrics timeseries APIs are unchanged.
+
 ## 0.13.1
 
 No Oauth migration. Install Oauth `0.13.1` to allow Recording Studio API

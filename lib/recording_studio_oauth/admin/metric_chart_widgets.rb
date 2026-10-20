@@ -35,7 +35,11 @@ module RecordingStudioOauth
           link_label: "Connections"
         }
       ].freeze
-      PERIOD_LABEL = "Last 12 months"
+      PERIOD_LABEL = "Last 30 days"
+      CHART_OPTIONS = {
+        height: 220,
+        xaxis: { labels: { show: false } }
+      }.freeze
 
       WIDGETS = SPECS.map do |spec|
         metric = spec.fetch(:metric)
@@ -47,7 +51,7 @@ module RecordingStudioOauth
           value { spec.fetch(:count).call }
           chart_type :area
           series { |context| RecordingStudioOauth::Admin::MetricChartWidgets.series(metric, context) }
-          chart_options { { height: 220 } }
+          chart_options { RecordingStudioOauth::Admin::MetricChartWidgets::CHART_OPTIONS }
           hide_change
           blast_radius :site
           link_to do |context|
@@ -80,7 +84,7 @@ module RecordingStudioOauth
       def execute_params
         {
           interval: :day,
-          start_at: 365.days.ago,
+          start_at: 30.days.ago,
           scope: :site,
           site_authorized: true
         }
