@@ -37,14 +37,15 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_api.git
-  revision: 83d6d89adfffb968bbbfadec255370c182940c13
-  tag: v0.10.0
+  revision: 128a3d9ae636d55ab77ac5a1f2110a1057adb4ca
+  tag: v0.13.0
   specs:
-    recording_studio_api (0.10.0)
+    recording_studio_api (0.13.0)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.11)
-      recording_studio_metrics (~> 0.3)
+      recording_studio_logs (~> 0.4.1)
+      recording_studio_metrics (>= 0.3.0, < 0.4)
       recording_studio_trashable (~> 0.10)
       redis (~> 5.3)
 
@@ -65,6 +66,15 @@ GIT
   tag: v0.5.0
   specs:
     recording_studio_cache (0.5.0)
+      rails (~> 8.1.0)
+      recording_studio (~> 4.2)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_logs.git
+  revision: 6f612ceba651b285f4452583617d5d5b866f3e56
+  tag: v0.4.1
+  specs:
+    recording_studio_logs (0.4.1)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
 
@@ -127,13 +137,13 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_oauth (0.12.5)
+    recording_studio_oauth (0.12.6)
       flat_pack (~> 0.1.198)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.11)
       recording_studio_admin (~> 2.0)
-      recording_studio_api (>= 0.5.2, < 0.12)
+      recording_studio_api (>= 0.5.2, < 0.14)
       recording_studio_cache (~> 0.5)
       recording_studio_metrics (~> 0.3)
       recording_studio_site_settings (~> 0.2)
@@ -570,6 +580,7 @@ DEPENDENCIES
   recording_studio_attachable!
   recording_studio_cache!
   recording_studio_internationalization!
+  recording_studio_logs!
   recording_studio_metrics!
   recording_studio_oauth!
   recording_studio_root_switchable!
@@ -702,12 +713,13 @@ CHECKSUMS
   recording_studio (4.7.0)
   recording_studio_accessible (0.18.0)
   recording_studio_admin (2.2.0)
-  recording_studio_api (0.10.0)
+  recording_studio_api (0.13.0)
   recording_studio_attachable (0.15.0)
   recording_studio_cache (0.5.0)
   recording_studio_internationalization (0.1.2)
+  recording_studio_logs (0.4.1)
   recording_studio_metrics (0.3.0)
-  recording_studio_oauth (0.12.5)
+  recording_studio_oauth (0.12.6)
   recording_studio_root_switchable (0.8.0)
   recording_studio_site_settings (0.2.0)
   recording_studio_trashable (0.11.0)
