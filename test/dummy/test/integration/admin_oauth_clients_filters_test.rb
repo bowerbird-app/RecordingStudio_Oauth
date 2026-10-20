@@ -95,6 +95,7 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     granted_client, = create_oauth_client(name: "Granted List App")
     revoked_client, = create_oauth_client(name: "Revoked List App")
     unused, = create_oauth_client(name: "Quiet List App")
+    old, = create_oauth_client(name: "Old Grant App")
 
     approve_delegated_oauth(oauth_client: granted_client, user: @user, access_recording: @workspace_access)
     revoked = approve_delegated_oauth(
@@ -103,6 +104,13 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
       access_recording: @workspace_access
     ).fetch(:authorization)
     RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: revoked)
+
+    old_grant = approve_delegated_oauth(
+      oauth_client: old,
+      user: @user,
+      access_recording: @workspace_access
+    ).fetch(:authorization)
+    old_grant.update!(created_at: 400.days.ago, revoked_at: 400.days.ago)
 
     get "/admin/sections/oauth_apps/widgets/oauth.granted_over_time"
 
@@ -128,6 +136,21 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     assert_includes response.body, revoked_client.name
     refute_includes response.body, granted_client.name
     refute_includes response.body, unused.name
+    assert_includes response.body, old.name
+
+    get_table(connections: "granted")
+
+    assert_includes response.body, granted_client.name
+    assert_includes response.body, revoked_client.name
+    refute_includes response.body, unused.name
+    refute_includes response.body, old.name
+
+    get_table(connections: "revoked")
+
+    assert_includes response.body, revoked_client.name
+    refute_includes response.body, granted_client.name
+    refute_includes response.body, unused.name
+    refute_includes response.body, old.name
   end
 
   private

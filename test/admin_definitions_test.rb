@@ -30,11 +30,15 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, "oauth.self_registered_over_time"
     assert_includes admin, "oauth.granted_over_time"
     assert_includes admin, "oauth.revoked_over_time"
-    refute_includes charts, "RecordingStudioMetrics::Admin.chart_series"
+    assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
     refute_includes charts, "format_point"
     refute_includes charts, "format_series"
     assert_includes charts, "OauthClient.active.where(self_registered: true)"
+    refute_includes admin, "link :connections"
     refute_includes admin, "Revoke an app to stop new connections."
+    active_connections = admin[admin.index("ActiveConnectionsWidget")...admin.index("class OauthAppsSection")]
+    assert_includes active_connections, 'admin_screen_path("oauth_clients")'
+    refute_includes active_connections, "oauth_connections"
   end
 
   def test_secret_column_uses_admin_badge_and_tooltip

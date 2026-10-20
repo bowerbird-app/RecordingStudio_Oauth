@@ -51,9 +51,16 @@ class AdminOauthClientsFiltersTest < Minitest::Test
       end
     end.new(Object.new, "UTC")
 
-    granted_link = granted.link_to.call(context)
-    revoked_link = revoked.link_to.call(context)
-    self_registered_link = self_registered.link_to.call(context)
+    result = RecordingStudioMetrics::Result.new(
+      metric: "oauth_authorizations.granted_over_time",
+      type: :timeseries,
+      title: "Connections granted",
+      data: []
+    )
+
+    granted_link = RecordingStudioMetrics.stub(:execute, result) { granted.resolve(context).link_to }
+    revoked_link = RecordingStudioMetrics.stub(:execute, result) { revoked.resolve(context).link_to }
+    self_registered_link = RecordingStudioMetrics.stub(:execute, result) { self_registered.resolve(context).link_to }
 
     assert_includes granted_link, "/admin/screens/oauth_connections"
     assert_includes granted_link, "status=active"

@@ -3,12 +3,13 @@
 ## 0.13.0
 
 No Oauth migration. Install Oauth `0.13.0`. Registered apps `New app` is
-secondary. List filters sit inline. Self-registered, granted, and revoked cards
-count the same current rows as their lists (not last-12-months event totals).
-Granted and revoked open the Connections list (`oauth_connections`) at Active
-or Revoked. Self-registered opens Registered apps with Source self-registered.
-Metrics timeseries APIs and the `recording_studio_metrics` `>= 0.3, < 0.6`
-range are unchanged.
+secondary. List filters sit inline. Self-registered, granted, and revoked keep
+their last-12-months area charts. Card numbers count the same current rows as
+their lists. Granted and revoked open the Connections list
+(`oauth_connections`) at Active or Revoked. Self-registered opens Registered
+apps with Source self-registered. `connections=granted` and
+`connections=revoked` still filter Registered apps. Metrics timeseries APIs and
+the `recording_studio_metrics` `>= 0.3, < 0.6` range are unchanged.
 
 ## 0.12.7
 

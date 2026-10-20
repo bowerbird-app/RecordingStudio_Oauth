@@ -47,9 +47,7 @@ module RecordingStudioOauth
       hide_change
       hide_period
       blast_radius :site
-      link_to do |context|
-        OauthClientsFilters.screen_path(context, { status: "active" }, screen: "oauth_connections")
-      end
+      link_to { |context| context.admin_screen_path("oauth_clients") }
     end
 
     class OauthAppsSection < RecordingStudioAdmin::Section
@@ -63,7 +61,6 @@ module RecordingStudioOauth
       widget "oauth.granted_over_time"
       widget "oauth.revoked_over_time"
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
-      link :connections, text: "View connections", url: ->(context) { context.admin_screen_path("oauth_connections") }
     end
 
     class OauthClientsResource < RecordingStudioAdmin::Resource
