@@ -97,6 +97,24 @@ class AdminChartWidgetsTest < Minitest::Test
     assert_includes charts, "OauthAuthorization.where.not(revoked_at: nil)"
   end
 
+  def test_chart_headline_uses_table_scope_not_series_total
+    widget = RecordingStudioAdmin.widget_for("oauth.granted_over_time")
+    result = RecordingStudioMetrics::Result.new(
+      metric: "oauth_authorizations.granted_over_time",
+      type: :timeseries,
+      title: "Connections granted",
+      data: [{ date: "2026-10-19", value: 99 }]
+    )
+
+    resolved = RecordingStudioMetrics.stub(:execute, result) do
+      widget.resolve(admin_context)
+    end
+
+    assert_equal RecordingStudioOauth::OauthAuthorization.active.count, resolved.value
+    refute_equal 99, resolved.value
+    assert_equal [{ x: "2026-10-19", y: 99 }], resolved.series.fetch(0).fetch(:data)
+  end
+
   private
 
   def expected_path(spec)

@@ -70,4 +70,13 @@ class AdminOauthClientsFiltersTest < Minitest::Test
     assert_includes self_registered_link, "/admin/screens/oauth_clients"
     assert_includes self_registered_link, "source=self_registered"
   end
+
+  def test_connections_query_param_still_filters_registered_apps
+    context = Struct.new(:params).new({ connections: "granted" })
+
+    relation = RecordingStudioOauth::Admin::OauthClientsFilters.filtered_clients(context)
+
+    assert_includes relation.to_sql, "oauth_authorizations"
+    assert_includes relation.to_sql, "created_at"
+  end
 end
