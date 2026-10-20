@@ -13,7 +13,11 @@ module RecordingStudioOauth
       module_function
 
       def filtered_clients(context)
-        apply_connections(OauthClient.active.order(:name), request_param(context, :connections))
+        apply_connections(RecordingStudioOauth::OauthClient.active.order(:name), request_param(context, :connections))
+      end
+
+      def filtered_connections(_context)
+        RecordingStudioOauth::OauthAuthorization.active.includes(:oauth_client).order(created_at: :desc)
       end
 
       def apply_source(relation, value)
@@ -37,7 +41,7 @@ module RecordingStudioOauth
         return relation unless CONNECTION_FILTERS.include?(value.to_s)
 
         started = MetricChartWidgets.execute_params[:start_at]
-        grants = OauthAuthorization.all
+        grants = RecordingStudioOauth::OauthAuthorization.all
         scoped = if value.to_s == "granted"
                    grants.where(created_at: started..)
                  else
@@ -46,8 +50,8 @@ module RecordingStudioOauth
         relation.unscope(where: :revoked_at).where(id: scoped.select(:oauth_client_id))
       end
 
-      def screen_path(context, extra = {})
-        path = context.admin_screen_path("oauth_clients")
+      def screen_path(context, extra = {}, screen: "oauth_clients")
+        path = context.admin_screen_path(screen)
         query = extra.compact
         return path if query.empty?
 

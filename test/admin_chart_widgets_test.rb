@@ -29,11 +29,19 @@ class AdminChartWidgetsTest < Minitest::Test
     assert_nil(usages.drop(2).map(&:view_variant).compact.first)
   end
 
-  def test_metric_chart_widgets_link_to_registered_apps_and_read_metrics
+  def test_metric_chart_widgets_link_to_matching_lists_and_read_metrics
     RecordingStudioOauth::Admin::MetricChartWidgets::SPECS.each do |spec|
       widget = RecordingStudioAdmin.widget_for(spec.fetch(:key))
 
       refute_nil widget, "expected #{spec.fetch(:key)} to be registered"
+      assert_equal :chart, widget.type
+      assert_equal :area, widget.chart_type
+      assert_equal spec.fetch(:title), widget.title
+      assert_equal spec.fetch(:info), widget.info
+      assert_equal expected_path(spec), widget.link_to.call(admin_context)
+      assert_equal spec.fetch(:link_label), widget.link_label
+      assert_equal :site, widget.blast_radius
+      assert_equal "Last 12 months", RecordingStudioOauth::Admin::MetricChartWidgets::PERIOD_LABEL
 
       result = RecordingStudioMetrics::Result.new(
         metric: spec.fetch(:metric),
@@ -41,21 +49,12 @@ class AdminChartWidgetsTest < Minitest::Test
         title: spec.fetch(:title),
         data: [{ date: "2026-10-19", value: 1 }]
       )
-      resolved = RecordingStudioMetrics.stub(:execute, result) do
-        widget.resolve(admin_context)
+      series = RecordingStudioMetrics.stub(:execute, result) do
+        RecordingStudioOauth::Admin::MetricChartWidgets.series(spec.fetch(:metric), admin_context)
       end
 
-      assert_equal :chart, resolved.type
-      assert_equal :area, resolved.chart_type
-      assert_equal spec.fetch(:title), resolved.title
-      assert_equal spec.fetch(:info), resolved.info
-      assert_equal 1, resolved.value
-      assert_equal expected_clients_path(spec), resolved.link_to
-      assert_equal "Registered apps", resolved.link_label
-      assert_equal :site, widget.blast_radius
-      assert_equal spec.fetch(:title), resolved.series.fetch(0).fetch(:name)
-      assert_equal [{ x: "2026-10-19", y: 1 }], resolved.series.fetch(0).fetch(:data)
-      assert_equal "Last 12 months", resolved.metadata[:period_label]
+      assert_equal spec.fetch(:title), series.fetch(0).fetch(:name)
+      assert_equal [{ x: "2026-10-19", y: 1 }], series.fetch(0).fetch(:data)
     end
   end
 
@@ -87,10 +86,33 @@ class AdminChartWidgetsTest < Minitest::Test
     assert_equal :site, captured[1][:context].scope
   end
 
+  def test_chart_headlines_use_table_scopes
+    charts = File.read(File.expand_path("../lib/recording_studio_oauth/admin/metric_chart_widgets.rb", __dir__))
+
+    assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
+    assert_includes charts, "365.days"
+    assert_includes charts, "OauthClient.active.where(self_registered: true)"
+    assert_includes charts, "OauthAuthorization.active.count"
+    assert_includes charts, "OauthAuthorization.where.not(revoked_at: nil)"
+  end
+
+  def test_chart_headline_uses_table_scope_not_series_total
+    widget = RecordingStudioAdmin.widget_for("oauth.granted_over_time")
+    charts = File.read(File.expand_path("../lib/recording_studio_oauth/admin/metric_chart_widgets.rb", __dir__))
+
+    assert_equal :chart, widget.type
+    refute_includes charts, "MetricChartWidgets.total(metric, context)"
+    assert_includes charts, "spec.fetch(:count).call"
+  end
+
   private
 
-  def expected_clients_path(spec)
-    RecordingStudioOauth::Admin::OauthClientsFilters.screen_path(admin_context, spec[:link_params] || {})
+  def expected_path(spec)
+    RecordingStudioOauth::Admin::OauthClientsFilters.screen_path(
+      admin_context,
+      spec.fetch(:link_params),
+      screen: spec.fetch(:screen)
+    )
   end
 
   def admin_context

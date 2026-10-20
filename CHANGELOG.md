@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-10-20
+
+### Fixed
+- Admin Registered apps `New app` is a normal button, not primary.
+- Registered apps shows Source, Status, and API filters inline. Status still
+  defaults to Active.
+- Self-registered apps, Connections granted, and Connections revoked keep their
+  area charts (last 12 months, Metrics `chart_series`, 365-day window). Card
+  numbers count the same current rows as their target lists, so older rows still
+  show on the headline.
+- Connections granted opens the Connections list at Active. Connections revoked
+  opens it at Revoked. Self-registered apps opens Registered apps filtered to
+  self-registered (Active by default). `connections=granted` and
+  `connections=revoked` still filter Registered apps.
+
+### Added
+- Staff Admin Connections list (`oauth_connections`): app, role, and status.
+  Status defaults to Active. Granted and revoked charts deep-link here.
+
+### Upgrade notes
+- Bump to `0.13.0`. No migration.
+- Widget keys are unchanged. Charts still read Metrics timeseries. Card numbers
+  are live list counts, not last-12-months totals. Host dashboards that listed
+  the same keys get the new counts and links. Metrics timeseries APIs are
+  unchanged. `recording_studio_metrics` stays `>= 0.3, < 0.6`.
+
 ## [0.12.7] - 2026-10-20
 
 ### Changed

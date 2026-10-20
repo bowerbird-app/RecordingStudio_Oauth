@@ -20,7 +20,7 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     Current.actor = nil if defined?(Current)
   end
 
-  test "registered apps screen offers source status and host API filters" do
+  test "registered apps screen offers source status and host API filters inline" do
     get "/admin/screens/oauth_clients"
 
     assert_response :success
@@ -33,6 +33,20 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "revoked"
     assert_includes response.body, "public"
     assert_includes response.body, "operations"
+    assert_includes response.body, 'data-recording-studio-admin--screen-filters-modal-filters-value="false"'
+    assert_includes response.body, 'id="screen-filters-form"'
+    refute_includes response.body, "screen-inline-filters-form"
+  end
+
+  test "new app is a secondary button" do
+    get "/admin/screens/oauth_clients"
+
+    assert_response :success
+    button = css_select("a, button").find { |element| element.text.strip == "New app" }
+
+    refute_nil button, "expected a New app control"
+    assert_equal "secondary", button["data-fp-style"]
+    refute_equal "primary", button["data-fp-style"]
   end
 
   test "status defaults to active and can show revoked" do
@@ -77,7 +91,7 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     refute_includes response.body, public_app.name
   end
 
-  test "granted and revoked widgets open clients with matching connections in the chart window" do
+  test "granted and revoked widgets open connections with matching status" do
     granted_client, = create_oauth_client(name: "Granted List App")
     revoked_client, = create_oauth_client(name: "Revoked List App")
     unused, = create_oauth_client(name: "Quiet List App")
@@ -101,12 +115,28 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     get "/admin/sections/oauth_apps/widgets/oauth.granted_over_time"
 
     assert_response :success
-    assert_includes response.body, "connections=granted"
+    assert_includes response.body, "/admin/screens/oauth_connections"
+    assert_includes response.body, "status=active"
+    refute_includes response.body, "status=revoked"
 
     get "/admin/sections/oauth_apps/widgets/oauth.revoked_over_time"
 
     assert_response :success
-    assert_includes response.body, "connections=revoked"
+    assert_includes response.body, "/admin/screens/oauth_connections"
+    assert_includes response.body, "status=revoked"
+
+    get_connections_table
+
+    assert_includes response.body, granted_client.name
+    refute_includes response.body, revoked_client.name
+    refute_includes response.body, unused.name
+
+    get_connections_table(status: "revoked")
+
+    assert_includes response.body, revoked_client.name
+    refute_includes response.body, granted_client.name
+    refute_includes response.body, unused.name
+    assert_includes response.body, old.name
 
     get_table(connections: "granted")
 
@@ -128,6 +158,12 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
   def get_table(extra = {})
     get "/admin/screens/oauth_clients/table",
         params: extra.merge(anchor_url: "http://www.example.com/admin/screens/oauth_clients")
+    assert_response :success
+  end
+
+  def get_connections_table(extra = {})
+    get "/admin/screens/oauth_connections/table",
+        params: extra.merge(anchor_url: "http://www.example.com/admin/screens/oauth_connections")
     assert_response :success
   end
 end

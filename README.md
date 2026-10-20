@@ -228,13 +228,16 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 Staff Admin Registered apps charts `oauth_clients.self_registered_over_time`,
 `oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
 Count cards sit on the first row. Charts sit on the row below and cover the last
-12 months. Each card opens the Registered apps list. Granted and revoked charts pass
-`connections=granted` or `connections=revoked` so the list matches that window.
-The list filters Source, Status (active by default), and API from the host's
-registered named APIs. Host dashboard sections can list the same widget keys
-(`oauth.self_registered_over_time`, `oauth.granted_over_time`,
-`oauth.revoked_over_time`). Mark the two count widgets compact so they stay on
-the first row.
+12 months. Chart headlines count the same current rows as their target lists
+(active self-registered apps, active connections, revoked connections).
+Self-registered opens Registered apps with Source self-registered. Granted
+opens Connections at Active. Revoked opens Connections at Revoked. Old
+`connections=granted` and `connections=revoked` links still filter Registered
+apps to that 12-month window. The list filters Source, Status (Active by
+default), and API inline. `New app` is a normal button. Host dashboard sections
+can list the same widget keys (`oauth.self_registered_over_time`,
+`oauth.granted_over_time`, `oauth.revoked_over_time`). Mark the two count
+widgets compact so they stay on the first row.
 
 | Method | Path |
 | --- | --- |
@@ -247,8 +250,8 @@ the first row.
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/revoked_over_time` |
 | `GET` | `/recording_studio_api/apis/operations/v1/metrics/oauth_authorizations/by_role` |
 
-`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_clients.self_registered_over_time` (unit `count`) is new self-registered (dynamic client registration) apps by `created_at`. It takes `from` / `to` (or `start` / `end`) and `interval` (`day`, `week`, `month`, `year`), and `group_by=confidential` (the list's "Secret" column: public vs confidential client) or `group_by=api_key` (the list's "API" column, a named API label). Groups under the Metrics `min_group_size` (5) fold into `other`, so groups plus `other` equal the total. There is no grouping by name, client id or redirect URI. Metrics still do not take the Registered apps Source, Status, or API list filters. Same Admin root `:view` check and site scope as that list. Revoked apps stay in the period they signed up in, so its buckets can add up to more than the self-registered row of `by_registration`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`. `oauth_authorizations.granted_over_time` (unit `count`) is grants by `created_at`, including ones revoked later. `oauth_authorizations.revoked_over_time` (unit `count`) is revocations by `revoked_at`. Both take `from` / `to` and `interval`, and `group_by=role` only (groups under `min_group_size` 5 fold into `other`). There is no grouping by app, actor or recording, and no filters, because no site list of authorizations exists to mirror. Same Admin root `:view` check and site scope as the other OAuth metrics.
+`oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_clients.self_registered_over_time` (unit `count`) is new self-registered (dynamic client registration) apps by `created_at`. It takes `from` / `to` (or `start` / `end`) and `interval` (`day`, `week`, `month`, `year`), and `group_by=confidential` (the list's "Secret" column: public vs confidential client) or `group_by=api_key` (the list's "API" column, a named API label). Groups under the Metrics `min_group_size` (5) fold into `other`, so groups plus `other` equal the total. There is no grouping by name, client id or redirect URI. Metrics still do not take the Registered apps Source, Status, or API list filters. Same Admin root `:view` check and site scope as that list. Revoked apps stay in the period they signed up in, so its buckets can add up to more than the self-registered row of `by_registration`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`. `oauth_authorizations.granted_over_time` (unit `count`) is grants by `created_at`, including ones revoked later. `oauth_authorizations.revoked_over_time` (unit `count`) is revocations by `revoked_at`. Both take `from` / `to` and `interval`, and `group_by=role` only (groups under `min_group_size` 5 fold into `other`). There is no grouping by app, actor or recording, and no filters, because the metrics APIs do not take list filters. Admin Connections (`oauth_connections`) lists current grants and revokes (Status Active by default) and does not apply those timeseries windows. Same Admin root `:view` check and site scope as the other OAuth metrics.
 
 ## Version
 
-0.12.7
+0.13.0
