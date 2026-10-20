@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.2] - 2026-10-20
+
+### Changed
+- Admin Registered-apps charts (Self-registered apps, Connections granted,
+  Connections revoked) default to the last 30 days and hide x-axis labels.
+  Card numbers still count current list rows. Section actions stay secondary.
+
+### Upgrade notes
+- Bump to `0.13.2`. No migration.
+- Widget keys are unchanged. Host dashboards that list the same keys get the
+  30-day window and hidden x-axis labels. Metrics timeseries APIs are unchanged.
+
 ## [0.13.1] - 2026-10-20
 
 ### Changed

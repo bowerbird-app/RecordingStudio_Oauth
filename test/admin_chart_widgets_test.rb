@@ -41,7 +41,11 @@ class AdminChartWidgetsTest < Minitest::Test
       assert_equal expected_path(spec), widget.link_to.call(admin_context)
       assert_equal spec.fetch(:link_label), widget.link_label
       assert_equal :site, widget.blast_radius
-      assert_equal "Last 12 months", RecordingStudioOauth::Admin::MetricChartWidgets::PERIOD_LABEL
+      assert_equal "Last 30 days", RecordingStudioOauth::Admin::MetricChartWidgets::PERIOD_LABEL
+      assert_equal(
+        { height: 220, xaxis: { labels: { show: false } } },
+        widget.chart_options.call
+      )
 
       result = RecordingStudioMetrics::Result.new(
         metric: spec.fetch(:metric),
@@ -81,7 +85,7 @@ class AdminChartWidgetsTest < Minitest::Test
 
     assert_equal "oauth_clients.self_registered_over_time", captured[0]
     assert_equal :day, captured[1][:interval]
-    assert_in_delta 365.days.ago.to_f, captured[1][:start_at].to_f, 2
+    assert_in_delta 30.days.ago.to_f, captured[1][:start_at].to_f, 2
     assert captured[1][:context].site_authorized?
     assert_equal :site, captured[1][:context].scope
   end
@@ -90,7 +94,8 @@ class AdminChartWidgetsTest < Minitest::Test
     charts = File.read(File.expand_path("../lib/recording_studio_oauth/admin/metric_chart_widgets.rb", __dir__))
 
     assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
-    assert_includes charts, "365.days"
+    assert_includes charts, "30.days"
+    assert_includes charts, "xaxis: { labels: { show: false } }"
     assert_includes charts, "OauthClient.active.where(self_registered: true)"
     assert_includes charts, "OauthAuthorization.active.count"
     assert_includes charts, "OauthAuthorization.where.not(revoked_at: nil)"

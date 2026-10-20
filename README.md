@@ -228,7 +228,7 @@ Staff with AdminRoot `:view` can read them. A public token or a non-admin operat
 Staff Admin Registered apps charts `oauth_clients.self_registered_over_time`,
 `oauth_authorizations.granted_over_time`, and `oauth_authorizations.revoked_over_time`.
 Count cards sit on the first row. Charts sit on the row below and cover the last
-12 months. Chart headlines count the same current rows as their target lists
+30 days, without x-axis labels. Chart headlines count the same current rows as their target lists
 (active self-registered apps, active connections, revoked connections).
 Self-registered opens Registered apps with Source self-registered. Granted
 opens Connections at Active. Revoked opens Connections at Revoked. Old
@@ -254,4 +254,4 @@ widgets compact so they stay on the first row.
 
 ## Version
 
-0.13.1
+0.13.2

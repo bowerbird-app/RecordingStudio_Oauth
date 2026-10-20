@@ -60,8 +60,8 @@ module RecordingStudioOauth
       widget "oauth.self_registered_over_time"
       widget "oauth.granted_over_time"
       widget "oauth.revoked_over_time"
-      link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
-      link :connections, text: "View connections", url: ->(context) { context.admin_screen_path("oauth_connections") }
+      link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }, style: :secondary
+      link :connections, text: "View connections", url: ->(context) { context.admin_screen_path("oauth_connections") }, style: :secondary
     end
 
     class OauthClientsResource < RecordingStudioAdmin::Resource

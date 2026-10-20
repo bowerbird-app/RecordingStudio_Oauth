@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
@@ -34,7 +35,7 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Connections granted"
     assert_includes response.body, "Connections revoked"
     assert_includes response.body, "min-h-28"
-    assert_includes response.body, "Last 12 months"
+    assert_includes response.body, "Last 30 days"
     assert_operator response.body.scan("grid-cols-1 md:grid-cols-2 lg:grid-cols-3").size, :>=, 2
 
     self_registered = RecordingStudioOauth::OauthClient.active.where(self_registered: true).count
@@ -73,6 +74,14 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "min-h-28"
     assert_includes response.body, "Self-registered apps"
     assert_includes response.body, "View connections"
+    assert_includes CGI.unescapeHTML(response.body),
+                    '"labels":{"style":{"colors":"var(--surface-muted-content-color)"},"show":false}'
+    %w[View apps View connections More].each do |label|
+      button = css_select("a, button").find { |element| element.text.strip == label }
+      next unless button
+
+      refute_equal "primary", button["data-fp-style"]
+    end
 
     series = RecordingStudioOauth::Admin::MetricChartWidgets.series(
       "oauth_clients.self_registered_over_time",
@@ -112,7 +121,7 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "DCR"
   end
 
-  test "chart widgets include rows older than the default thirty day metric window" do
+  test "chart widgets omit rows older than the default thirty day metric window" do
     happened = Time.utc(2026, 8, 20, 8)
     seed_chart_rows!(happened)
 
@@ -129,9 +138,9 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
       metrics_admin_context
     )
 
-    assert_operator series_value(series, "2026-08-20"), :>=, 1
-    assert_operator series_value(granted, "2026-08-20"), :>=, 1
-    assert_operator series_value(revoked, "2026-08-20"), :>=, 1
+    assert_equal 0, series_value(series, "2026-08-20")
+    assert_equal 0, series_value(granted, "2026-08-20")
+    assert_equal 0, series_value(revoked, "2026-08-20")
   end
 
   test "cards still count rows older than a twelve month timeseries window" do
