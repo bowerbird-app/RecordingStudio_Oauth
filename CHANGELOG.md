@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.6] - 2026-10-20
+
+### Changed
+- Allow `recording_studio_api` `>= 0.5.2, < 0.14` so hosts can run API 0.13.0.
+  Development and dummy Gemfiles pin API tag `v0.13.0` and Logs tag `v0.4.1`.
+
+### Upgrade notes
+- Bump to `0.12.6`. No migration.
+- Pin Recording Studio API at tag `v0.13.0` (or any `>= 0.5.2, < 0.14`).
+
 ## [0.12.5] - 2026-10-19
 
 ### Added

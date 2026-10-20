@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.12.5", ::RecordingStudioOauth::VERSION
+    assert_equal "0.12.6", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -16,7 +16,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.12"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.14"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", "~> 0.3"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
@@ -57,7 +57,8 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.10.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.13.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.4.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
@@ -115,7 +116,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "TokenAuthenticator"
-    assert_includes readme, ">= 0.5.2, < 0.12"
+    assert_includes readme, ">= 0.5.2, < 0.14"
     assert_includes readme, "name_for"
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"
