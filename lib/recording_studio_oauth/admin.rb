@@ -217,8 +217,10 @@ module RecordingStudioOauth
              apply: ->(relation, value, _context) { OauthClientsFilters.apply_status(relation, value) }
 
       table do
-        column :name,
+        default_sort :created_at, direction: :desc
+        column :app,
                title: "App",
+               sortable: false,
                value: ->(row, _context) { row.oauth_client&.name }
         column :role
         column :revoked_at,

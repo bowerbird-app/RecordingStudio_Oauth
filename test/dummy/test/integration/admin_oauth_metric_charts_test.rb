@@ -71,6 +71,12 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
         params: { status: "active", anchor_url: "http://www.example.com/admin/screens/oauth_connections" }
 
     assert_response :success
+    assert_includes response.body, "Live Grant"
+
+    get "/admin/screens/oauth_connections/table",
+        params: { status: "revoked", anchor_url: "http://www.example.com/admin/screens/oauth_connections" }
+
+    assert_response :success
     assert_includes response.body, "DCR"
   end
 
