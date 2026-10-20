@@ -8,6 +8,7 @@ class AdminOauthClientsFiltersTest < Minitest::Test
     keys = filters.map(&:key)
 
     assert_equal %i[source status api], keys
+    assert_equal :inline, RecordingStudioOauth::Admin::OauthClientsScreen.filter_presentation
 
     source = filters.find { |filter| filter.key == :source }
     status = filters.find { |filter| filter.key == :status }
@@ -22,29 +23,44 @@ class AdminOauthClientsFiltersTest < Minitest::Test
     refute_includes api.allowed_values, "featured_in"
   end
 
-  def test_granted_and_revoked_widgets_open_matching_client_filters
+  def test_new_app_button_is_secondary
+    button = RecordingStudioOauth::Admin::OauthClientsScreen.buttons_value.find { |item| item.name == :new }
+
+    assert_equal "New app", button.text
+    assert_equal :secondary, button.style
+  end
+
+  def test_connections_screen_defaults_status_to_active
+    filters = RecordingStudioOauth::Admin::OauthConnectionsScreen.filters
+    status = filters.find { |filter| filter.key == :status }
+
+    assert_equal [:status], filters.map(&:key)
+    assert_equal :inline, RecordingStudioOauth::Admin::OauthConnectionsScreen.filter_presentation
+    assert_equal %w[active revoked], status.allowed_values
+    assert_equal :active, status.options[:default]
+  end
+
+  def test_granted_and_revoked_widgets_open_matching_connection_filters
     RecordingStudioOauth::Admin.register!
     granted = RecordingStudioAdmin.widget_for("oauth.granted_over_time")
     revoked = RecordingStudioAdmin.widget_for("oauth.revoked_over_time")
+    self_registered = RecordingStudioAdmin.widget_for("oauth.self_registered_over_time")
     context = Struct.new(:current_actor, :timezone) do
       def admin_screen_path(key)
         "/admin/screens/#{key}"
       end
     end.new(Object.new, "UTC")
 
-    result = RecordingStudioMetrics::Result.new(
-      metric: "oauth_authorizations.granted_over_time",
-      type: :timeseries,
-      title: "Connections granted",
-      data: []
-    )
+    granted_link = granted.link_to.call(context)
+    revoked_link = revoked.link_to.call(context)
+    self_registered_link = self_registered.link_to.call(context)
 
-    granted_link = RecordingStudioMetrics.stub(:execute, result) { granted.resolve(context).link_to }
-    revoked_link = RecordingStudioMetrics.stub(:execute, result) { revoked.resolve(context).link_to }
-
-    assert_includes granted_link, "/admin/screens/oauth_clients"
-    assert_includes granted_link, "connections=granted"
-    refute_includes granted_link, "connections=revoked"
-    assert_includes revoked_link, "connections=revoked"
+    assert_includes granted_link, "/admin/screens/oauth_connections"
+    assert_includes granted_link, "status=active"
+    refute_includes granted_link, "status=revoked"
+    assert_includes revoked_link, "/admin/screens/oauth_connections"
+    assert_includes revoked_link, "status=revoked"
+    assert_includes self_registered_link, "/admin/screens/oauth_clients"
+    assert_includes self_registered_link, "source=self_registered"
   end
 end

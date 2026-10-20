@@ -47,7 +47,9 @@ module RecordingStudioOauth
       hide_change
       hide_period
       blast_radius :site
-      link_to { |context| context.admin_screen_path("oauth_clients") }
+      link_to do |context|
+        OauthClientsFilters.screen_path(context, { status: "active" }, screen: "oauth_connections")
+      end
     end
 
     class OauthAppsSection < RecordingStudioAdmin::Section
@@ -61,6 +63,7 @@ module RecordingStudioOauth
       widget "oauth.granted_over_time"
       widget "oauth.revoked_over_time"
       link :apps, text: "View apps", url: ->(context) { context.admin_screen_path("oauth_clients") }
+      link :connections, text: "View connections", url: ->(context) { context.admin_screen_path("oauth_connections") }
     end
 
     class OauthClientsResource < RecordingStudioAdmin::Resource
@@ -137,6 +140,7 @@ module RecordingStudioOauth
       subtitle "Add an app, or revoke one to stop new connections."
       blast_radius :site
       query { |context| OauthClientsFilters.filtered_clients(context) }
+      filter_presentation :inline
 
       filter :source,
              options: OauthClientsFilters::SOURCE_FILTERS.keys,
@@ -152,7 +156,6 @@ module RecordingStudioOauth
 
       button :new,
              text: "New app",
-             style: :primary,
              url: ->(_context) { RecordingStudioOauth::Admin.new_oauth_client_path }
 
       table do
@@ -200,6 +203,35 @@ module RecordingStudioOauth
       end
     end
 
+    class OauthConnectionsScreen < RecordingStudioAdmin::Screen
+      key "oauth_connections"
+      title "Connections"
+      subtitle "See who still has an app connected."
+      blast_radius :site
+      query { |context| OauthClientsFilters.filtered_connections(context) }
+      filter_presentation :inline
+
+      filter :status,
+             options: OauthClientsFilters::STATUS_FILTERS,
+             default: :active,
+             apply: ->(relation, value, _context) { OauthClientsFilters.apply_status(relation, value) }
+
+      table do
+        column :name,
+               title: "App",
+               value: ->(row, _context) { row.oauth_client&.name }
+        column :role
+        column :revoked_at,
+               title: "Status",
+               display: :badge,
+               value: ->(row, _context) { RecordingStudioOauth::Admin.status_cell(row)[:label] },
+               display_options: lambda { |row, _context, _value|
+                 cell = RecordingStudioOauth::Admin.status_cell(row)
+                 { text: cell[:label], style: cell[:style], size: :sm }
+               }
+      end
+    end
+
     def register!
       return unless defined?(RecordingStudioAdmin)
       return if @registered
@@ -210,6 +242,7 @@ module RecordingStudioOauth
       RecordingStudioAdmin.register_section(OauthAppsSection)
       RecordingStudioAdmin.register_resource(OauthClientsResource)
       RecordingStudioAdmin.register_screen(OauthClientsScreen)
+      RecordingStudioAdmin.register_screen(OauthConnectionsScreen)
       @registered = true
     end
   end

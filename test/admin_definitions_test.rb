@@ -8,8 +8,11 @@ class AdminDefinitionsTest < Minitest::Test
 
     assert_includes admin, "button :new"
     assert_includes admin, 'text: "New app"'
-    assert_includes admin, "style: :primary"
+    refute_includes admin, "style: :primary"
+    assert_includes admin, "filter_presentation :inline"
     assert_includes admin, "new_oauth_client_path"
+    assert_includes admin, "class OauthConnectionsScreen"
+    assert_includes admin, 'key "oauth_connections"'
     assert_includes admin, "column :self_registered"
     assert_includes admin, "column :api_key"
     assert_includes admin, "filter :source"
@@ -27,9 +30,10 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes admin, "oauth.self_registered_over_time"
     assert_includes admin, "oauth.granted_over_time"
     assert_includes admin, "oauth.revoked_over_time"
-    assert_includes charts, "RecordingStudioMetrics::Admin.chart_series"
+    refute_includes charts, "RecordingStudioMetrics::Admin.chart_series"
     refute_includes charts, "format_point"
     refute_includes charts, "format_series"
+    assert_includes charts, "OauthClient.active.where(self_registered: true)"
     refute_includes admin, "Revoke an app to stop new connections."
   end
 
