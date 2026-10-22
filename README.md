@@ -254,4 +254,4 @@ widgets compact so they stay on the first row.
 
 ## Version
 
-0.13.2
+0.13.3

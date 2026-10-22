@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.3] - 2026-10-22
+
+### Changed
+- Allow `recording_studio_api` `>= 0.5.2, < 0.17` so hosts can run API 0.16.0.
+
+### Upgrade notes
+- Bump to `0.13.3`. No migration.
+- Hosts may pin Recording Studio API at any `>= 0.5.2, < 0.17`. Development and dummy still pin API tag `v0.14.0`.
+
 ## [0.13.2] - 2026-10-20
 
 ### Changed
