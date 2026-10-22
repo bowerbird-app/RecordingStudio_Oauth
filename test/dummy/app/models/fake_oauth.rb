@@ -4,6 +4,9 @@ class FakeOauth
   CLIENT_ID = "dummy-fake-drive"
   CLIENT_SECRET = "dummy-fake-drive-secret"
   FAIL_REFRESH = "fail-refresh"
+  SERVER_ERROR_REFRESH = "server-error-refresh"
+  UNAUTHORIZED_CLIENT_REFRESH = "unauthorized-client-refresh"
+  NETWORK_REFRESH = "network-refresh"
 
   class << self
     def call(url, params)
@@ -16,8 +19,11 @@ class FakeOauth
       end
     end
 
-    def issue_code(access_token:, refresh_token:, user_id:, email:, expires_in: 3600, scope: "files.read")
-      verifier.generate(
+    def issue_code(access_token:, refresh_token:, user_id:, email:, expires_in: 3600, scope: "files.read",
+                   code_challenge: nil)
+      code = SecureRandom.urlsafe_base64(32)
+      store_code(
+        code,
         {
           "access_token" => access_token,
           "refresh_token" => refresh_token,
@@ -26,12 +32,17 @@ class FakeOauth
           "expires_in" => expires_in,
           "scope" => scope
         },
-        expires_in: 10.minutes
+        code_challenge
       )
+      code
     end
 
     def valid_client?(client_id)
       client_id.to_s == CLIENT_ID
+    end
+
+    def reset!
+      issued_codes.clear
     end
 
     private
@@ -39,17 +50,19 @@ class FakeOauth
     def redeem(params)
       return [401, { "error" => "invalid_client" }] unless credentials_match?(params)
 
-      payload = verifier.verified(params["code"].to_s)
-      return [400, { "error" => "invalid_grant" }] if payload.blank?
+      entry = take_code(params["code"].to_s)
+      return [400, { "error" => "invalid_grant" }] if entry.nil?
+      return [400, { "error" => "invalid_grant" }] unless verifier_matches?(params["code_verifier"], entry[:challenge])
 
-      [200, payload]
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
-      [400, { "error" => "invalid_grant" }]
+      [200, entry[:payload]]
     end
 
     def refresh(params)
       return [401, { "error" => "invalid_client" }] unless credentials_match?(params)
       return [400, { "error" => "invalid_grant" }] if params["refresh_token"].to_s == FAIL_REFRESH
+      return [500, { "error" => "server_error" }] if params["refresh_token"].to_s == SERVER_ERROR_REFRESH
+      return [401, { "error" => "unauthorized_client" }] if params["refresh_token"].to_s == UNAUTHORIZED_CLIENT_REFRESH
+      raise Errno::ECONNRESET if params["refresh_token"].to_s == NETWORK_REFRESH
 
       [
         200,
@@ -66,8 +79,20 @@ class FakeOauth
       params["client_id"].to_s == CLIENT_ID && params["client_secret"].to_s == CLIENT_SECRET
     end
 
-    def verifier
-      ActiveSupport::MessageVerifier.new(Rails.application.secret_key_base, digest: "SHA256", serializer: JSON)
+    def verifier_matches?(verifier, challenge)
+      RecordingStudioOauth::Pkce.s256_matches?(verifier, challenge)
+    end
+
+    def store_code(code, payload, challenge)
+      issued_codes[code] = { payload: payload, challenge: challenge.to_s }
+    end
+
+    def take_code(code)
+      issued_codes.delete(code)
+    end
+
+    def issued_codes
+      @issued_codes ||= {}
     end
   end
 end

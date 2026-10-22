@@ -2,12 +2,14 @@
 
 require "test_helper"
 require "devise/test/integration_helpers"
+require "uri"
 
 class OutboundOauthTest < ActionDispatch::IntegrationTest
   include OauthDummyHelpers
   include Devise::Test::IntegrationHelpers
 
   setup do
+    FakeOauth.reset!
     @user = create_user
     @root_recording, = create_access_recording_for(user: @user)
     @viewer = create_user(email: "viewer-#{SecureRandom.hex(4)}@example.com")
@@ -17,6 +19,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
   teardown do
     Current.actor = nil if defined?(Current)
+    FakeOauth.reset!
   end
 
   test "connect callback stores an encrypted workspace connection" do
@@ -37,6 +40,8 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_nil session[:access_token]
     assert_nil session["refresh_token"]
     assert_equal "acct-demo", connection.external_account_id
+    filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
+    assert_equal "[FILTERED]", filter.filter("code" => "visible-oauth-code")["code"]
   end
 
   test "user connection is stored for that person" do
@@ -50,17 +55,67 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_nil connection.root_recording_id
   end
 
+  test "GET connect is rejected" do
+    get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: "root",
+      root_recording_id: @root_recording.id
+    }
+
+    assert_response :not_found
+    assert_equal 0, RecordingStudioOauth::OutboundConnection.count
+  end
+
+  test "connect and disconnect without a CSRF token are rejected when forgery protection is on" do
+    follow_connect!(owner: "root", root_recording_id: @root_recording.id)
+    connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
+
+    with_forgery_protection do
+      post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+        owner: "root",
+        root_recording_id: @root_recording.id,
+        return_to: "/"
+      }
+      assert_response :unprocessable_content
+      assert_equal 1, RecordingStudioOauth::OutboundConnection.where(root_recording_id: @root_recording.id).count
+
+      delete recording_studio_oauth.outbound_connection_path(connection), params: { return_to: "/" }
+      assert_response :unprocessable_content
+      assert_equal "active", connection.reload.status
+    end
+  end
+
+  test "open redirect targets fall back to root and a workspace path is kept" do
+    ["//evil", "/\\evil", "https://evil", "javascript:alert(1)"].each do |target|
+      post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+        owner: "root",
+        root_recording_id: @root_recording.id,
+        return_to: target
+      }
+      assert_response :redirect
+      refute_includes response.redirect_url, "evil"
+      refute_includes response.redirect_url, "javascript"
+      query = authorize_query
+      handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(query.fetch("state"))
+      assert_equal "/", handshake.return_to
+    end
+
+    follow_connect!(owner: "root", root_recording_id: @root_recording.id, return_to: "/workspace")
+    assert_redirected_to "/workspace"
+  end
+
   test "viewer cannot create a workspace connection" do
     sign_in @viewer
 
-    get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
-      owner: "root",
-      root_recording_id: @root_recording.id,
-      return_to: "/"
-    }
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @viewer,
+      owner_kind: "root",
+      root: @root_recording,
+      callback_url: callback_url
+    )
 
-    assert_response :redirect
-    assert_match(/admin/i, flash[:alert].to_s)
+    refute result.success?
+    assert_equal :not_admin, result.error
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: @root_recording.id).count
   end
 
@@ -68,18 +123,193 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     shared = SharedRoot.create!(name: "Inbox #{SecureRandom.hex(4)}")
     shared_root = RecordingStudio.root_recording_for(shared)
 
-    get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
-      owner: "root",
-      root_recording_id: shared_root.id,
-      return_to: "/"
-    }
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "root",
+      root: shared_root,
+      callback_url: callback_url
+    )
 
-    assert_response :redirect
-    assert_match(/shared space/, flash[:alert].to_s)
+    refute result.success?
+    assert_equal :shared_root, result.error
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: shared_root.id).count
   end
 
-  test "refresh renews an expired token and marks needs_reconnect on failure" do
+  test "non-root recordings are rejected on start, callback, and lookup" do
+    folder_recording = create_folder_recording
+
+    start_result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "root",
+      root: folder_recording,
+      callback_url: callback_url
+    )
+    refute start_result.success?
+    assert_equal :invalid_root, start_result.error
+
+    handshake = RecordingStudioOauth::OutboundHandshake.issue!(
+      provider_key: "fake_drive",
+      owner_kind: "root",
+      root_recording_id: folder_recording.id,
+      actor: @user,
+      return_to: "/",
+      pkce: true
+    )
+    code = FakeOauth.issue_code(
+      access_token: "folder-access",
+      refresh_token: "folder-refresh",
+      user_id: "acct-folder",
+      email: "folder@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    finish = RecordingStudioOauth::Services::FinishOutboundConnect.call(
+      state: handshake.nonce,
+      code: code,
+      actor: @user,
+      callback_url: callback_url
+    )
+    refute finish.success?
+    assert_equal :invalid_root, finish.error
+    assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: folder_recording.id).count
+
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: folder_recording, actor: @user)
+  end
+
+  test "authorize URL uses PKCE S256 and extra params cannot override reserved keys" do
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: "user",
+      return_to: "/"
+    }
+    assert_response :redirect
+    query = authorize_query
+    assert_equal "S256", query["code_challenge_method"]
+    assert query["code_challenge"].present?
+    refute query.key?("code_verifier")
+
+    RecordingStudioOauth.register_outbound_provider(
+      key: :drive_override,
+      authorize_url: "https://example.test/auth",
+      token_url: "https://example.test/token",
+      client_id: "real-id",
+      client_secret: "real-secret",
+      extra_authorize_params: {
+        redirect_uri: "https://evil.test/cb",
+        state: "stolen",
+        client_id: "spoof",
+        response_type: "token",
+        code_challenge: "plain-challenge",
+        code_challenge_method: "plain",
+        prompt: "consent"
+      }
+    )
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "drive_override",
+      actor: @user,
+      owner_kind: "user",
+      callback_url: "https://app.test/recording_studio_oauth/outbound/callback"
+    )
+    assert result.success?
+    location = URI.parse(result.value.fetch(:location))
+    query = URI.decode_www_form(location.query.to_s).to_h
+    assert_equal "https://app.test/recording_studio_oauth/outbound/callback", query["redirect_uri"]
+    refute_equal "stolen", query["state"]
+    assert_equal "real-id", query["client_id"]
+    assert_equal "code", query["response_type"]
+    assert_equal "S256", query["code_challenge_method"]
+    refute_equal "plain-challenge", query["code_challenge"]
+    assert_equal "consent", query["prompt"]
+    refute query.key?("code_verifier")
+  end
+
+  test "wrong missing replay expired and stolen handshakes create no connection" do
+    assert_no_connection { finish_with(state: "missing-state", code: "any") }
+
+    start_connect!(owner: "user")
+    query = authorize_query
+    handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(query.fetch("state"))
+    code = FakeOauth.issue_code(
+      access_token: "user-access",
+      refresh_token: "user-refresh",
+      user_id: "acct-user",
+      email: "user@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    assert_no_connection { finish_with(state: "wrong-state", code: code) }
+
+    start_connect!(owner: "user")
+    query = authorize_query
+    follow_redirect!
+    callback_uri = URI.parse(response.redirect_url)
+    callback_params = Rack::Utils.parse_query(callback_uri.query)
+    follow_redirect!
+    assert_equal 1, RecordingStudioOauth::OutboundConnection.where(owner_actor: @user).count
+    assert_no_connection(from: 1) do
+      finish_with(state: callback_params["state"], code: callback_params["code"])
+    end
+
+    start_connect!(owner: "user")
+    query = authorize_query
+    handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(query.fetch("state"))
+    handshake.update_columns(expires_at: 1.minute.ago)
+    follow_redirect!
+    callback_uri = URI.parse(response.redirect_url)
+    callback_params = Rack::Utils.parse_query(callback_uri.query)
+    assert_no_connection(from: 1) do
+      finish_with(state: callback_params["state"], code: callback_params["code"])
+    end
+
+    start_connect!(owner: "user")
+    follow_redirect!
+    callback_uri = URI.parse(response.redirect_url)
+    callback_params = Rack::Utils.parse_query(callback_uri.query)
+    sign_in @viewer
+    assert_no_connection(from: 1) do
+      finish_with(state: callback_params["state"], code: callback_params["code"], actor: @viewer)
+    end
+  end
+
+  test "missing or wrong PKCE verifier is rejected" do
+    start_connect!(owner: "user")
+    query = authorize_query
+    handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(query.fetch("state"))
+    code = FakeOauth.issue_code(
+      access_token: "pkce-access",
+      refresh_token: "pkce-refresh",
+      user_id: "acct-pkce",
+      email: "pkce@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    provider = RecordingStudioOauth::Outbound.provider("fake_drive")
+    client = RecordingStudioOauth::Outbound::TokenClient.new(provider)
+
+    missing = client.exchange_code(
+      code: code,
+      redirect_uri: callback_url,
+      code_verifier: nil
+    )
+    refute missing.ok?
+    assert_equal 400, missing.status
+
+    replay_code = FakeOauth.issue_code(
+      access_token: "pkce-access-2",
+      refresh_token: "pkce-refresh-2",
+      user_id: "acct-pkce",
+      email: "pkce@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    wrong = client.exchange_code(
+      code: replay_code,
+      redirect_uri: callback_url,
+      code_verifier: "a" * 43
+    )
+    refute wrong.ok?
+    assert_equal 400, wrong.status
+    assert_equal 0, RecordingStudioOauth::OutboundConnection.where(owner_actor: @user).count
+  end
+
+  test "refresh renews an expired token and marks needs_reconnect only on permanent oauth failures" do
     follow_connect!(owner: "root", root_recording_id: @root_recording.id)
     connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
     old_token = connection.access_token
@@ -95,15 +325,38 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     failed = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
     assert_nil failed
     assert_equal "needs_reconnect", connection.reload.status
+
+    connection.update!(status: "active", refresh_token: FakeOauth::UNAUTHORIZED_CLIENT_REFRESH, expires_at: 1.minute.ago)
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
+    assert_equal "needs_reconnect", connection.reload.status
+
+    connection.update!(status: "active", refresh_token: FakeOauth::SERVER_ERROR_REFRESH, expires_at: 1.minute.ago)
+    result = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: connection)
+    refute result.success?
+    assert_equal :transient, result.error
+    assert_equal "active", connection.reload.status
   end
 
-  test "disconnect revokes and reconnect restores a live row" do
+  test "a user connection in needs_reconnect falls through to a usable root connection" do
+    follow_connect!(owner: "root", root_recording_id: @root_recording.id)
+    follow_connect!(owner: "user")
+    user_connection = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
+    root_connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
+    user_connection.update!(status: "needs_reconnect")
+
+    found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
+    assert_equal root_connection.id, found.id
+  end
+
+  test "disconnect nulls tokens and reconnect restores a live row" do
     follow_connect!(owner: "root", root_recording_id: @root_recording.id)
     connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
 
     delete recording_studio_oauth.outbound_connection_path(connection), params: { return_to: "/" }
     assert_response :redirect
     assert_equal "revoked", connection.reload.status
+    assert_nil connection.access_token
+    assert_nil connection.refresh_token
     assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
 
     follow_connect!(owner: "root", root_recording_id: @root_recording.id)
@@ -133,15 +386,27 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: stranger)
   end
 
-  test "viewer cannot disconnect a workspace connection" do
+  test "viewer cannot disconnect a workspace connection and a user connection stays owner-only" do
     follow_connect!(owner: "root", root_recording_id: @root_recording.id)
-    connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
-    sign_in @viewer
+    root_connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
+    follow_connect!(owner: "user")
+    user_connection = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
 
-    delete recording_studio_oauth.outbound_connection_path(connection), params: { return_to: "/" }
-    assert_response :redirect
-    assert_match(/can.t change this connection/i, flash[:alert].to_s)
-    assert_equal "active", connection.reload.status
+    viewer_root = RecordingStudioOauth::Services::DisconnectOutboundConnection.call(
+      connection: root_connection,
+      actor: @viewer
+    )
+    refute viewer_root.success?
+    assert_equal :forbidden, viewer_root.error
+    assert_equal "active", root_connection.reload.status
+
+    viewer_user = RecordingStudioOauth::Services::DisconnectOutboundConnection.call(
+      connection: user_connection,
+      actor: @viewer
+    )
+    refute viewer_user.success?
+    assert_equal :forbidden, viewer_user.error
+    assert_equal "active", user_connection.reload.status
   end
 
   test "inbound authorize route is unchanged" do
@@ -161,19 +426,74 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal "unknown redirect", response.body
   end
 
-  private
-
-  def follow_connect!(owner:, root_recording_id: nil)
-    get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
-      owner: owner,
-      root_recording_id: root_recording_id,
+  test "callback url comes from the route helper" do
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: "user",
       return_to: "/"
     }
+    query = authorize_query
+    assert_equal recording_studio_oauth.outbound_callback_url, query["redirect_uri"]
+  end
+
+  private
+
+  def follow_connect!(owner:, root_recording_id: nil, return_to: "/")
+    start_connect!(owner: owner, root_recording_id: root_recording_id, return_to: return_to)
     assert_response :redirect
     follow_redirect!
     assert_response :redirect
     follow_redirect!
     assert_response :redirect
+  end
+
+  def start_connect!(owner:, root_recording_id: nil, return_to: "/")
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: owner,
+      root_recording_id: root_recording_id,
+      return_to: return_to
+    }
+  end
+
+  def authorize_query
+    uri = URI.parse(response.redirect_url)
+    URI.decode_www_form(uri.query.to_s).to_h
+  end
+
+  def finish_with(state:, code:, actor: @user)
+    RecordingStudioOauth::Services::FinishOutboundConnect.call(
+      state: state,
+      code: code,
+      actor: actor,
+      callback_url: callback_url
+    )
+  end
+
+  def callback_url
+    "http://www.example.com/recording_studio_oauth/outbound/callback"
+  end
+
+  def assert_no_connection(from: 0)
+    result = yield
+    refute result.success? if result.respond_to?(:success?)
+    assert_equal from, RecordingStudioOauth::OutboundConnection.count
+  end
+
+  def create_folder_recording
+    folder = Folder.create!(name: "Folder #{SecureRandom.hex(4)}")
+    RecordingStudio.record!(
+      action: "created",
+      recordable: folder,
+      root_recording: @root_recording,
+      parent_recording: @root_recording
+    ).recording
+  end
+
+  def with_forgery_protection
+    previous = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    yield
+  ensure
+    ActionController::Base.allow_forgery_protection = previous
   end
 
   def raw_ciphertext(connection, attribute)

@@ -17,7 +17,7 @@ module RecordingStudioOauth
 
     validates :provider_key, presence: true
     validates :status, presence: true, inclusion: { in: STATUSES }
-    validates :access_token, presence: true
+    validates :access_token, presence: true, unless: :revoked?
     validate :exactly_one_owner
 
     scope :live, -> { where(status: %w[active needs_reconnect]) }

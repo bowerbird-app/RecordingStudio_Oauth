@@ -5,16 +5,23 @@ module RecordingStudioOauth
     module Access
       module_function
 
-      def may_manage_root?(actor:, root:)
-        return false if actor.nil? || root.nil?
+      def root_access_error(actor:, root:, role:)
+        return :root_required if root.nil?
+        return :invalid_root unless RecordingStudio.root_recording?(root)
+        return :shared_root if RecordingStudio.shared_root?(root)
+        return :unauthenticated if actor.nil?
 
-        RecordingStudioAccessible.authorized?(actor: actor, recording: root, role: :admin)
+        return if RecordingStudioAccessible.authorized?(actor: actor, recording: root, role: role)
+
+        role.to_s == "admin" ? :not_admin : :forbidden
+      end
+
+      def may_manage_root?(actor:, root:)
+        root_access_error(actor: actor, root: root, role: :admin).nil?
       end
 
       def may_use_root?(actor:, root:)
-        return false if actor.nil? || root.nil?
-
-        RecordingStudioAccessible.authorized?(actor: actor, recording: root, role: :view)
+        root_access_error(actor: actor, root: root, role: :view).nil?
       end
 
       def owned_by_actor?(connection, actor)
@@ -22,20 +29,6 @@ module RecordingStudioOauth
         return false if connection.owner_actor_id.blank?
 
         connection.owner_actor_type == actor.class.name && connection.owner_actor_id.to_s == actor.id.to_s
-      end
-
-      def connected_by?(connection, actor)
-        return false if actor.nil? || connection.nil?
-        return false if connection.connected_by_id.blank?
-
-        connection.connected_by_type == actor.class.name && connection.connected_by_id.to_s == actor.id.to_s
-      end
-
-      def shared_root?(root)
-        return false if root.nil?
-        return false unless RecordingStudio.respond_to?(:shared_root?)
-
-        RecordingStudio.shared_root?(root)
       end
     end
   end

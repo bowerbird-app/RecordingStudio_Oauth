@@ -30,7 +30,7 @@ class OutboundRegistryTest < Minitest::Test
       RecordingStudioOauth.register_outbound_provider(**valid_options, unexpected: true)
     end
 
-    assert_match(/unknown key/i, error.message)
+    assert_includes error.message.downcase, "unknown key"
   end
 
   def test_missing_key_raises
@@ -41,7 +41,29 @@ class OutboundRegistryTest < Minitest::Test
       RecordingStudioOauth.register_outbound_provider(**options)
     end
 
-    assert_match(/provider key is required/, error.message)
+    assert_equal "provider key is required", error.message
+  end
+
+  def test_http_authorize_url_raises_without_adapter
+    error = assert_raises(ArgumentError) do
+      RecordingStudioOauth.register_outbound_provider(**valid_options, authorize_url: "http://example.test/auth")
+    end
+
+    assert_equal "authorize_url must be https", error.message
+  end
+
+  def test_relative_urls_allowed_with_http_adapter
+    provider = RecordingStudioOauth.register_outbound_provider(
+      key: :fake,
+      authorize_url: "/fake/authorize",
+      token_url: "/fake/token",
+      revoke_url: "/fake/revoke",
+      client_id: "id",
+      client_secret: "secret",
+      http: ->(_url, _params) { [200, {}] }
+    )
+
+    assert_equal "/fake/authorize", provider.authorize_url
   end
 
   def test_pkce_and_refresh_default_on
@@ -55,6 +77,13 @@ class OutboundRegistryTest < Minitest::Test
 
     assert provider.pkce?
     assert provider.refresh?
+  end
+
+  def test_client_secret_is_redacted_from_inspect
+    provider = RecordingStudioOauth.register_outbound_provider(**valid_options)
+
+    refute_includes provider.inspect, "\"secret\""
+    assert_includes provider.inspect, "client_secret=[FILTERED]"
   end
 
   def test_connection_for_is_on_the_public_module

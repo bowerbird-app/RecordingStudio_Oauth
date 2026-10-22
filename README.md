@@ -285,14 +285,14 @@ endpoints.
 
 Routes on the engine mount:
 
-- `GET /outbound/:provider/connect?owner=root&root_recording_id=` (workspace, admin only)
-- `GET /outbound/:provider/connect?owner=user` (that person only)
+- `POST /outbound/:provider/connect?owner=root&root_recording_id=` (workspace, admin only)
+- `POST /outbound/:provider/connect?owner=user` (that person only)
 - `GET /outbound/callback`
 - `DELETE /outbound/connections/:id`
 
-PKCE lives in an encrypted handshake cookie. Access and refresh tokens never go
-in the session. They use Active Record encryption. Logs filter `access_token`
-and `refresh_token`.
+PKCE and state live on a server-side handshake row. Access and refresh tokens
+never go in the session. They use Active Record encryption. Logs filter `code`,
+`access_token`, and `refresh_token`.
 
 Look up a usable connection:
 

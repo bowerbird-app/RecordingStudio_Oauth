@@ -3,10 +3,14 @@
 ## 0.14.0
 
 Install Oauth `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
-and `bin/rails db:migrate`. That adds `recording_studio_oauth_outbound_connections`.
+and `bin/rails db:migrate`. That adds `recording_studio_oauth_outbound_connections`
+and `recording_studio_oauth_outbound_handshakes`.
 
 Configure Active Record encryption if the host does not already. This gem encrypts
-outbound access and refresh tokens with `encrypts`.
+outbound access tokens, refresh tokens, and handshake verifiers with `encrypts`.
+
+Start Connect with `POST /outbound/:provider/connect`. GET is rejected.
+Disconnect stays `DELETE /outbound/connections/:id`.
 
 Inbound OAuth behavior, routes, and tables are unchanged.
 

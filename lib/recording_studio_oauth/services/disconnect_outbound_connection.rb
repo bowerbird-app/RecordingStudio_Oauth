@@ -21,7 +21,7 @@ module RecordingStudioOauth
         revoke_at_provider
         connection.update!(
           status: "revoked",
-          access_token: "revoked",
+          access_token: nil,
           refresh_token: nil
         )
         success(connection)

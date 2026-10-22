@@ -7,8 +7,8 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.version     = RecordingStudioOauth::VERSION
   spec.authors     = ["Bowerbird"]
   spec.homepage    = "https://github.com/bowerbird-app/RecordingStudio_Oauth"
-  spec.summary     = "Authorization server for third-party apps in Recording Studio"
-  spec.description = "People Connect a registered app. The app gets its own Accessible grant. API stays the resource server and token URL."
+  spec.summary     = "Inbound Connect and outbound provider connections for Recording Studio"
+  spec.description = "People Connect a registered app inbound. This app also connects out to third-party providers and stores those tokens on OutboundConnection rows. API stays the inbound resource server and token URL."
   spec.license     = "MIT"
   spec.required_ruby_version = ">= 3.3.0"
 

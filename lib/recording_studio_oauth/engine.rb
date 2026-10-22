@@ -112,6 +112,7 @@ module RecordingStudioOauth
 
     initializer "recording_studio_oauth.filter_parameters" do |app|
       app.config.filter_parameters += %i[
+        code
         code_verifier
         oauth_client_secret
         session_token_secret

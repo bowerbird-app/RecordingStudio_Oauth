@@ -3,6 +3,9 @@
 module RecordingStudioOauth
   module Services
     class RefreshOutboundConnection < RecordingStudio::Services::BaseService
+      PERMANENT_ERRORS = %w[invalid_grant invalid_client unauthorized_client].freeze
+      PERMANENT_STATUSES = [400, 401].freeze
+
       def initialize(connection:, at: nil)
         @connection = connection
         @at = at
@@ -15,45 +18,57 @@ module RecordingStudioOauth
       def perform
         return success(nil) if connection.nil?
         return success(nil) if connection.revoked?
+        return success(connection) if connection.active? && !connection.expired?(at: time)
+        return mark_reconnect if connection.refresh_token.blank?
 
-        connection.with_lock do
-          connection.reload
-          return success(connection) if connection.active? && !connection.expired?(at: time)
-          return mark_reconnect if connection.refresh_token.blank?
+        provider = Outbound.provider(connection.provider_key)
+        return mark_reconnect if provider.nil? || !provider.refresh?
 
-          provider = Outbound.provider(connection.provider_key)
-          return mark_reconnect if provider.nil? || !provider.refresh?
+        token = Outbound::TokenClient.new(provider).refresh(refresh_token: connection.refresh_token)
+        return refresh_failure(token) unless token.ok?
+        return mark_reconnect if token.body["access_token"].to_s.blank?
 
-          token = Outbound::TokenClient.new(provider).refresh(refresh_token: connection.refresh_token)
-          return mark_reconnect unless token.ok?
-          return mark_reconnect if token.body["access_token"].to_s.blank?
-
-          updates = {
-            access_token: token.body["access_token"].to_s,
-            status: "active",
-            expires_at: expires_at_from(token.body)
-          }
-          updates[:refresh_token] = token.body["refresh_token"].to_s if token.body["refresh_token"].present?
-          updates[:granted_scopes] = token.body["scope"].to_s.split(/\s+/).reject(&:blank?) if token.body["scope"].present?
-          connection.update!(updates)
-        end
+        apply_token!(token.body)
+        return success(nil) if connection.revoked?
 
         success(connection)
       rescue ActiveRecord::ActiveRecordError
-        mark_reconnect_without_raise
+        failure(:save_failed)
+      end
+
+      def refresh_failure(token)
+        return mark_reconnect if permanent_oauth_failure?(token)
+
+        failure(:transient)
+      end
+
+      def permanent_oauth_failure?(token)
+        return false unless PERMANENT_STATUSES.include?(token.status)
+
+        PERMANENT_ERRORS.include?(token.body["error"].to_s)
+      end
+
+      def apply_token!(body)
+        updates = {
+          access_token: body["access_token"].to_s,
+          status: "active",
+          expires_at: expires_at_from(body)
+        }
+        updates[:refresh_token] = body["refresh_token"].to_s if body["refresh_token"].present?
+        updates[:granted_scopes] = body["scope"].to_s.split(/\s+/).reject(&:blank?) if body["scope"].present?
+        connection.with_lock do
+          connection.reload
+          return if connection.revoked?
+
+          connection.update!(updates)
+        end
       end
 
       def mark_reconnect
-        connection.update_columns(status: "needs_reconnect", updated_at: Time.current) unless connection.needs_reconnect?
-        connection.reload
-        success(nil)
-      end
-
-      def mark_reconnect_without_raise
-        return success(nil) if connection.nil?
-
-        mark_reconnect
-      rescue ActiveRecord::ActiveRecordError
+        unless connection.needs_reconnect?
+          connection.update_columns(status: "needs_reconnect", updated_at: Time.current)
+          connection.reload
+        end
         success(nil)
       end
 

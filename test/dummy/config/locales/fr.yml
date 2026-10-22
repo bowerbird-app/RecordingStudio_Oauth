@@ -59,6 +59,7 @@ fr:
           shared_root: "Cet espace partagé ne peut pas posséder une connexion. Reliez-la à votre compte."
           not_admin: "Seul un admin peut connecter ça pour tout l’espace."
           root_required: "Choisissez d’abord un espace."
+          invalid_root: "Choisissez un espace, pas un dossier imbriqué."
           invalid_owner: "Ce type de connexion n’est pas pris en charge."
           invalid_state: "Cette étape a expiré. Réessayez."
           missing_code: "L’autre application n’a pas renvoyé de code. Réessayez."

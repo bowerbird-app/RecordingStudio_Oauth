@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "recording_studio_oauth/outbound/provider"
+require "recording_studio_oauth/outbound/https_url"
 require "recording_studio_oauth/outbound/registry"
 require "recording_studio_oauth/outbound/access"
-require "recording_studio_oauth/outbound/handshake"
 require "recording_studio_oauth/outbound/token_client"
 
 module RecordingStudioOauth

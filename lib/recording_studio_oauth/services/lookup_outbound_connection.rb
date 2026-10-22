@@ -16,31 +16,43 @@ module RecordingStudioOauth
       def perform
         return success(nil) if actor.nil? || provider_key.blank?
 
-        connection = actor_connection || root_connection
-        return success(nil) if connection.nil?
-        return success(nil) if connection.revoked? || connection.needs_reconnect?
+        success(pick_user_connection || pick_root_connection)
+      end
 
-        connection = RefreshOutboundConnection.call(connection: connection).value if connection.expired? || !connection.active?
+      def pick_user_connection
+        row = actor_connection
+        return if row.nil? || row.revoked? || row.needs_reconnect?
 
-        success(connection)
+        usable_after_refresh(row)
+      end
+
+      def pick_root_connection
+        return unless Outbound::Access.may_use_root?(actor: actor, root: root)
+
+        row = root_connection
+        return if row.nil? || row.revoked? || row.needs_reconnect?
+
+        usable_after_refresh(row)
+      end
+
+      def usable_after_refresh(row)
+        return row if row.usable?
+
+        result = RefreshOutboundConnection.call(connection: row)
+        return result.value if result.success?
+
+        nil
       end
 
       def actor_connection
-        OutboundConnection.usable.for_provider(provider_key).find_by(
-          owner_actor_type: actor.class.name,
-          owner_actor_id: actor.id
-        ) || OutboundConnection.live.for_provider(provider_key).find_by(
+        OutboundConnection.live.for_provider(provider_key).find_by(
           owner_actor_type: actor.class.name,
           owner_actor_id: actor.id
         )
       end
 
       def root_connection
-        return if root.nil?
-        return unless Outbound::Access.may_use_root?(actor: actor, root: root)
-
-        found = OutboundConnection.usable.for_provider(provider_key).find_by(root_recording_id: root.id)
-        found || OutboundConnection.live.for_provider(provider_key).find_by(root_recording_id: root.id)
+        OutboundConnection.live.for_provider(provider_key).find_by(root_recording_id: root.id)
       end
 
       def service_args

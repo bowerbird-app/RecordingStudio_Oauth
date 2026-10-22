@@ -409,7 +409,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000002) do
     t.string "external_account_id"
     t.string "external_account_label"
     t.jsonb "granted_scopes", default: [], null: false
-    t.text "access_token", null: false
+    t.text "access_token"
     t.text "refresh_token"
     t.datetime "expires_at"
     t.string "status", default: "active", null: false
@@ -418,9 +418,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000002) do
     t.index ["provider_key", "owner_actor_type", "owner_actor_id"], name: "idx_rs_oauth_outbound_live_user", unique: true, where: "((owner_actor_id IS NOT NULL) AND ((status)::text = ANY ((ARRAY['active'::character varying, 'needs_reconnect'::character varying])::text[])))"
     t.index ["provider_key", "root_recording_id"], name: "idx_rs_oauth_outbound_live_root", unique: true, where: "((root_recording_id IS NOT NULL) AND ((status)::text = ANY ((ARRAY['active'::character varying, 'needs_reconnect'::character varying])::text[])))"
     t.index ["provider_key"], name: "idx_on_provider_key_ad5bab8401"
+    t.index ["root_recording_id"], name: "idx_on_root_recording_id_85327fae16"
     t.index ["status"], name: "index_recording_studio_oauth_outbound_connections_on_status"
     t.check_constraint "root_recording_id IS NOT NULL AND owner_actor_id IS NULL AND owner_actor_type IS NULL OR root_recording_id IS NULL AND owner_actor_id IS NOT NULL AND owner_actor_type IS NOT NULL", name: "chk_rs_oauth_outbound_owner"
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'needs_reconnect'::character varying, 'revoked'::character varying]::text[])", name: "chk_rs_oauth_outbound_status"
+  end
+
+  create_table "recording_studio_oauth_outbound_handshakes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "nonce_digest", null: false
+    t.string "provider_key", null: false
+    t.string "owner_kind", null: false
+    t.uuid "root_recording_id"
+    t.string "actor_type", null: false
+    t.uuid "actor_id", null: false
+    t.text "code_verifier"
+    t.string "return_to", default: "/", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "consumed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_recording_studio_oauth_outbound_handshakes_on_expires_at"
+    t.index ["nonce_digest"], name: "idx_rs_oauth_outbound_handshakes_nonce", unique: true
   end
 
   create_table "recording_studio_oauth_refresh_tokens", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -516,6 +534,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000002) do
   add_foreign_key "recording_studio_oauth_authorizations", "recording_studio_oauth_clients", column: "oauth_client_id"
   add_foreign_key "recording_studio_oauth_external_installs", "recording_studio_oauth_clients", column: "oauth_client_id"
   add_foreign_key "recording_studio_oauth_external_installs", "recording_studio_recordings", column: "root_recording_id"
+  add_foreign_key "recording_studio_oauth_outbound_connections", "recording_studio_recordings", column: "root_recording_id"
   add_foreign_key "recording_studio_oauth_refresh_tokens", "recording_studio_oauth_authorizations", column: "oauth_authorization_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "parent_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"

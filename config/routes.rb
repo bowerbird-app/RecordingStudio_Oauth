@@ -34,9 +34,9 @@ RecordingStudioOauth::Engine.routes.draw do
   get "/outbound/callback",
       to: "outbound_connections#callback",
       as: :outbound_callback
-  get "/outbound/:provider/connect",
-      to: "outbound_connections#connect",
-      as: :outbound_connect
+  post "/outbound/:provider/connect",
+       to: "outbound_connections#connect",
+       as: :outbound_connect
   delete "/outbound/connections/:id",
          to: "outbound_connections#destroy",
          as: :outbound_connection

@@ -2,6 +2,7 @@
 
 require "json"
 require "net/http"
+require "net/protocol"
 require "openssl"
 require "uri"
 
@@ -9,6 +10,21 @@ module RecordingStudioOauth
   module Outbound
     class TokenClient
       TIMEOUT = 10
+      NETWORK_ERRORS = [
+        Timeout::Error,
+        Errno::ECONNREFUSED,
+        Errno::EHOSTUNREACH,
+        Errno::ECONNRESET,
+        SocketError,
+        EOFError,
+        JSON::ParserError,
+        URI::InvalidURIError,
+        OpenSSL::SSL::SSLError,
+        Net::ReadTimeout,
+        Net::OpenTimeout,
+        Net::HTTPBadResponse,
+        Net::ProtocolError
+      ].freeze
 
       Result = Struct.new(:ok, :status, :body, keyword_init: true) do
         def ok?
@@ -61,22 +77,33 @@ module RecordingStudioOauth
         end
 
         post_form(url, params)
-      rescue Timeout::Error, Errno::ECONNREFUSED, Errno::EHOSTUNREACH, SocketError, JSON::ParserError, URI::InvalidURIError, OpenSSL::SSL::SSLError => e
+      rescue *NETWORK_ERRORS => e
         Result.new(ok: false, status: 0, body: { "error" => e.class.name })
       end
 
       def post_form(url, params)
-        uri = URI.parse(url.to_s)
+        response = http_post(URI.parse(url.to_s), params)
+        Result.new(
+          ok: response.code.to_i.between?(200, 299),
+          status: response.code.to_i,
+          body: parse_body(response.body)
+        )
+      end
+
+      def http_post(uri, params)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = uri.scheme == "https"
         http.open_timeout = TIMEOUT
         http.read_timeout = TIMEOUT
+        request = form_request(uri, params)
+        http.request(request)
+      end
+
+      def form_request(uri, params)
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data(params)
         request["Accept"] = "application/json"
-        response = http.request(request)
-        body = parse_body(response.body)
-        Result.new(ok: response.code.to_i.between?(200, 299), status: response.code.to_i, body: body)
+        request
       end
 
       def parse_body(raw)

@@ -21,7 +21,8 @@ class FakeOauthController < ApplicationController
       access_token: "fake-access-#{SecureRandom.hex(8)}",
       refresh_token: "fake-refresh-#{SecureRandom.hex(8)}",
       user_id: "acct-demo",
-      email: "demo@fake-drive.test"
+      email: "demo@fake-drive.test",
+      code_challenge: params[:code_challenge]
     )
     redirect_to recording_studio_oauth.outbound_callback_path(code: code, state: params[:state].to_s)
   end

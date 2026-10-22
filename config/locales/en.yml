@@ -59,6 +59,7 @@ en:
           shared_root: "This shared space can't own a connection. Connect it to your account instead."
           not_admin: "Only an admin can connect this for the whole workspace."
           root_required: "Pick a workspace first."
+          invalid_root: "Pick a workspace, not a nested folder."
           invalid_owner: "That connection type isn't supported."
           invalid_state: "That connect step expired. Try again."
           missing_code: "The other app didn't send a code back. Try again."

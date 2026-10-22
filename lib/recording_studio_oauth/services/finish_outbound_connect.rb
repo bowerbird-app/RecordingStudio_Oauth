@@ -3,8 +3,9 @@
 module RecordingStudioOauth
   module Services
     class FinishOutboundConnect < RecordingStudio::Services::BaseService
-      def initialize(handshake:, state:, code:, actor:, callback_url:)
-        @handshake = handshake
+      HandshakeGone = Class.new(StandardError)
+
+      def initialize(state:, code:, actor:, callback_url:)
         @state = state.to_s
         @code = code.to_s
         @actor = actor
@@ -13,39 +14,68 @@ module RecordingStudioOauth
 
       private
 
-      attr_reader :handshake, :state, :code, :actor, :callback_url
+      attr_reader :state, :code, :actor, :callback_url
 
       def perform
-        return failure(:invalid_state) if handshake.nil?
-        return failure(:invalid_state) unless handshake.matches_state?(state)
         return failure(:unauthenticated) if actor.nil?
-        return failure(:invalid_state) unless actor_matches_handshake?
+        return failure(:invalid_state) if state.blank?
         return failure(:missing_code) if code.blank?
 
-        provider = Outbound.provider(handshake.provider_key)
+        pending = load_pending_handshake
+        return failure(:invalid_state) if pending.nil?
+        return failure(:invalid_state) unless pending.matches_actor?(actor)
+
+        root_error = recheck_root(pending)
+        return failure(root_error) if root_error
+
+        provider = Outbound.provider(pending.provider_key)
         return failure(:unknown_provider) if provider.nil?
 
         token = Outbound::TokenClient.new(provider).exchange_code(
           code: code,
           redirect_uri: callback_url,
-          code_verifier: handshake.code_verifier
+          code_verifier: pending.code_verifier
         )
         return failure(:token_exchange_failed) unless token.ok?
         return failure(:token_exchange_failed) if token.body["access_token"].to_s.blank?
 
-        connection = upsert_connection!(provider, token.body)
-        success(connection: connection, return_to: handshake.return_to)
+        connection = consume_and_upsert!(pending, provider, token.body)
+        success(connection: connection, return_to: pending.return_to)
+      rescue HandshakeGone
+        failure(:invalid_state)
       rescue ActiveRecord::ActiveRecordError
         failure(:save_failed)
       end
 
-      def actor_matches_handshake?
-        handshake.actor_type == actor.class.name && handshake.actor_id.to_s == actor.id.to_s
+      def load_pending_handshake
+        pending = OutboundHandshake.find_by_state(state)
+        return if pending.nil? || pending.consumed? || pending.expired?
+
+        pending
       end
 
-      def upsert_connection!(provider, body)
-        attributes = connection_attributes(provider, body)
-        existing = live_connection
+      def recheck_root(pending)
+        return unless pending.root_owned?
+
+        root = RecordingStudio::Recording.find_by(id: pending.root_recording_id)
+        Outbound::Access.root_access_error(actor: actor, root: root, role: :admin)
+      end
+
+      def consume_and_upsert!(pending, provider, body)
+        connection = nil
+        OutboundHandshake.transaction do
+          locked = OutboundHandshake.lock.find_by(id: pending.id)
+          raise HandshakeGone if locked.nil? || locked.consumed? || locked.expired?
+
+          locked.consume!
+          connection = upsert_connection!(locked, provider, body)
+        end
+        connection
+      end
+
+      def upsert_connection!(handshake, provider, body)
+        attributes = connection_attributes(handshake, provider, body)
+        existing = live_connection(handshake)
         if existing
           existing.update!(attributes.merge(status: "active"))
           existing
@@ -54,17 +84,34 @@ module RecordingStudioOauth
         end
       end
 
-      def live_connection
+      def live_connection(handshake)
         scope = OutboundConnection.live.for_provider(handshake.provider_key)
-        if handshake.owner_kind == OutboundConnection::OWNER_ROOT
+        if handshake.root_owned?
           scope.find_by(root_recording_id: handshake.root_recording_id)
         else
           scope.find_by(owner_actor_type: handshake.actor_type, owner_actor_id: handshake.actor_id)
         end
       end
 
-      def connection_attributes(provider, body)
-        attrs = {
+      def connection_attributes(handshake, provider, body)
+        attrs = token_attributes(provider, body)
+        if handshake.root_owned?
+          attrs.merge(
+            root_recording_id: handshake.root_recording_id,
+            owner_actor_type: nil,
+            owner_actor_id: nil
+          )
+        else
+          attrs.merge(
+            root_recording_id: nil,
+            owner_actor_type: handshake.actor_type,
+            owner_actor_id: handshake.actor_id
+          )
+        end
+      end
+
+      def token_attributes(provider, body)
+        {
           connected_by_type: actor.class.name,
           connected_by_id: actor.id,
           access_token: body["access_token"].to_s,
@@ -74,16 +121,6 @@ module RecordingStudioOauth
           external_account_id: account_id_from(body),
           external_account_label: account_label_from(body)
         }
-        if handshake.owner_kind == OutboundConnection::OWNER_ROOT
-          attrs[:root_recording_id] = handshake.root_recording_id
-          attrs[:owner_actor_type] = nil
-          attrs[:owner_actor_id] = nil
-        else
-          attrs[:root_recording_id] = nil
-          attrs[:owner_actor_type] = handshake.actor_type
-          attrs[:owner_actor_id] = handshake.actor_id
-        end
-        attrs
       end
 
       def scopes_from(body, provider)
@@ -115,7 +152,7 @@ module RecordingStudioOauth
       end
 
       def service_args
-        { provider: handshake&.provider_key }
+        { provider: state.presence }
       end
     end
   end
