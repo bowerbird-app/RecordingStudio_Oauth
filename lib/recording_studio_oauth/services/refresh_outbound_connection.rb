@@ -33,7 +33,7 @@ module RecordingStudioOauth
         return mark_reconnect if token.body["access_token"].to_s.blank?
 
         apply_token!(token.body)
-        return success(nil) if connection.revoked?
+        return success(nil) unless connection.active?
 
         success(connection)
       rescue ActiveRecord::ActiveRecordError

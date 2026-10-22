@@ -64,10 +64,12 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
 
   test "mark_reconnect no-ops when the row is revoked during refresh" do
     @connection.update!(refresh_token: FakeOauth::FAIL_REFRESH)
-    during_refresh_mutate!(-> { revoke_row! }) do
+    result = during_refresh_mutate!(-> { revoke_row! }) do
       RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
     end
 
+    assert result.success?
+    assert_nil result.value
     row = reload_row
     assert_equal "revoked", row.status
     assert_nil row.access_token
@@ -101,10 +103,12 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
   end
 
   test "apply_token no-ops when the row is revoked during refresh" do
-    during_refresh_mutate!(-> { revoke_row! }) do
+    result = during_refresh_mutate!(-> { revoke_row! }) do
       RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
     end
 
+    assert result.success?
+    assert_nil result.value
     row = reload_row
     assert_equal "revoked", row.status
     assert_nil row.access_token
@@ -113,10 +117,12 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
 
   test "apply_token no-ops when status moved during refresh" do
     snapshot = row_snapshot
-    during_refresh_mutate!(-> { @connection.update!(status: "needs_reconnect") }) do
+    result = during_refresh_mutate!(-> { @connection.update!(status: "needs_reconnect") }) do
       RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
     end
 
+    assert result.success?
+    assert_nil result.value
     row = reload_row
     assert_equal "needs_reconnect", row.status
     assert_equal snapshot.fetch(:access_token), row.access_token
