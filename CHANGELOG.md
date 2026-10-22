@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Allow `recording_studio_api` `>= 0.5.2, < 0.17` so hosts can run API 0.16.0.
+- CI Ruby pin is 3.3.12. Ubuntu 26.04 runners no longer provide 3.3.6.
 
 ### Upgrade notes
 - Bump to `0.13.3`. No migration.
