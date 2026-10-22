@@ -71,9 +71,9 @@ module RecordingStudioOauth
       def mark_reconnect
         connection.with_lock do
           connection.reload
-          unless stale_write? || connection.needs_reconnect?
-            connection.update_columns(status: "needs_reconnect", updated_at: Time.current)
-          end
+          next if stale_write? || connection.needs_reconnect?
+
+          connection.update_columns(status: "needs_reconnect", updated_at: Time.current)
         end
         connection.reload
         success(nil)

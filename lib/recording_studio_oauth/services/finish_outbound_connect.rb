@@ -75,7 +75,7 @@ module RecordingStudioOauth
           raise HandshakeGone if locked.nil? || locked.consumed? || locked.expired?
 
           live = live_connection(locked)
-          live.lock! if live
+          live&.lock!
           locked.consume!
           @pending_handshake = locked
         end

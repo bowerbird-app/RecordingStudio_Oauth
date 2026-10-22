@@ -5,6 +5,7 @@ require "uri"
 module RecordingStudioOauth
   module ReturnUrlRules
     MAX_LENGTH = 2048
+    UNSAFE_RELATIVE = %r{[[:cntrl:]]|\s|\\|://}
 
     module_function
 
@@ -30,9 +31,8 @@ module RecordingStudioOauth
     end
 
     def relative_path_shape?(raw)
-      return false if raw.blank? || raw.bytesize > MAX_LENGTH
-      return false if raw.match?(/[[:cntrl:]]/) || raw.match?(/\s/)
-      return false if raw.include?("\\") || raw.include?("://")
+      return false unless raw.present? && raw.bytesize <= MAX_LENGTH
+      return false if raw.match?(UNSAFE_RELATIVE)
 
       raw.start_with?("/") && !raw.start_with?("//")
     end

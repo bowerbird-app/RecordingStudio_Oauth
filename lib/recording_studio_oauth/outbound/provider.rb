@@ -24,7 +24,7 @@ module RecordingStudioOauth
           "client_id=#{client_id.inspect} client_secret=[FILTERED]>"
       end
 
-      alias to_s inspect
+      alias_method :to_s, :inspect
 
       def pretty_print(printer)
         printer.text inspect

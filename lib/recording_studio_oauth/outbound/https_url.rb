@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "uri"
+require "recording_studio_oauth/return_url_rules"
 
 module RecordingStudioOauth
   module Outbound
@@ -29,9 +30,7 @@ module RecordingStudioOauth
 
       def relative_path?(value)
         raw = value.to_s
-        return false if raw.match?(/[[:cntrl:]]/) || raw.match?(/\s/)
-        return false if raw.include?("://")
-        return false unless raw.start_with?("/") && !raw.start_with?("//")
+        return false unless ReturnUrlRules.relative_path_shape?(raw)
 
         uri = URI.parse(raw)
         uri.scheme.blank? && uri.host.blank?

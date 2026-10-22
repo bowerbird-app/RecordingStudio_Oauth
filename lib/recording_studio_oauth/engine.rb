@@ -111,7 +111,7 @@ module RecordingStudioOauth
     end
 
     rake_tasks do
-      Dir.glob(File.join(root, "lib/tasks", "*.rake")).sort.each { |path| load path }
+      Dir.glob(File.join(root, "lib/tasks", "*.rake")).each { |path| load path }
     end
 
     initializer "recording_studio_oauth.filter_parameters" do |app|
