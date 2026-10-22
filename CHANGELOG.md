@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-10-22
+
+### Added
+- Outbound OAuth connections. A host or addon gem registers a provider. People
+  connect this app out to that provider. Tokens are stored encrypted on an
+  `OutboundConnection` row, not in the session. Lookup is
+  `RecordingStudioOauth.connection_for(provider:, root:, actor:)`.
+- Dummy `fake_drive` provider with local authorize, token, and revoke endpoints.
+- Handshake cleanup. `OutboundHandshake.stale` is consumed or expired rows.
+  `OutboundHandshake.cleanup_stale` deletes them. The rake task is
+  `recording_studio_oauth:cleanup_outbound_handshakes`. Handshake
+  `root_recording_id` has a foreign key to recordings with `on_delete: :cascade`.
+
+### Changed
+- Outbound logs filter the `code` param exactly (`/\Acode\z/`), plus
+  `:access_token` and `:refresh_token`. Keys that only contain "code" are not
+  filtered.
+- Finish outbound connect consumes the handshake before the token HTTP call.
+- Refresh of an outbound token compare-and-swaps under `with_lock`. It does not
+  revive a revoked row or overwrite a newer token.
+
+### Upgrade notes
+- Bump to `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
+  and migrate. That adds `recording_studio_oauth_outbound_connections` and
+  `recording_studio_oauth_outbound_handshakes`, then the handshake root foreign
+  key.
+- Turn on Active Record encryption in the host if it is not on already. Access
+  tokens, refresh tokens, and handshake verifiers use `encrypts`.
+- Hosts start outbound Connect with `POST /outbound/:provider/connect`. GET is
+  rejected. Disconnect stays `DELETE /outbound/connections/:id`.
+- Inbound OAuth (clients, Connect, tokens, routes, tables) is unchanged.
+- Register providers with `RecordingStudioOauth.register_outbound_provider`.
+  Unknown registration keys raise. Client id and secret come from the
+  registration call or from
+  `Rails.application.credentials.dig(:recording_studio_oauth, :outbound, :provider_key)`.
+- ParameterFilter now matches `code` as a whole key, plus `:access_token` and
+  `:refresh_token`. `code_challenge` and `country_code` are not filtered by this
+  gem.
+- Run `bin/rails recording_studio_oauth:cleanup_outbound_handshakes` (or
+  `OutboundHandshake.cleanup_stale`) when you want to delete expired or consumed
+  handshake rows. Deleting a root recording cascades to those rows.
+
 ## [0.13.2] - 2026-10-20
 
 ### Changed
@@ -553,11 +595,28 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.14.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.2...v0.14.0
+[0.13.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.1...v0.13.2
+[0.13.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.0...v0.13.1
+[0.13.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.7...v0.13.0
+[0.12.7]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.6...v0.12.7
+[0.12.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.5...v0.12.6
+[0.12.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.4...v0.12.5
+[0.12.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.3...v0.12.4
+[0.12.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.2...v0.12.3
+[0.12.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.1...v0.12.2
+[0.12.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.12.0...v0.12.1
+[0.12.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.11.1...v0.12.0
+[0.11.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.11.0...v0.11.1
+[0.11.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.10.5...v0.11.0
+[0.10.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.10.2...v0.10.5
+[0.10.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.8.2...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.7.2...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.7.0
+[0.6.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.6.1...v0.6.2

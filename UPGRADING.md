@@ -1,5 +1,62 @@
 # Upgrading
 
+## 0.14.0
+
+Install Oauth `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
+and `bin/rails db:migrate`. That adds `recording_studio_oauth_outbound_connections`
+and `recording_studio_oauth_outbound_handshakes`, plus a foreign key from
+handshake `root_recording_id` to recordings (`on_delete: :cascade`).
+
+Configure Active Record encryption if the host does not already. This gem encrypts
+outbound access tokens, refresh tokens, and handshake verifiers with `encrypts`.
+
+Start Connect with `POST /outbound/:provider/connect`. GET is rejected.
+Disconnect stays `DELETE /outbound/connections/:id`.
+
+Inbound OAuth behavior, routes, and tables are unchanged.
+
+Register an outbound provider in an initializer:
+
+```ruby
+RecordingStudioOauth.register_outbound_provider(
+  key: :google_drive,
+  authorize_url: "https://accounts.google.com/o/oauth2/v2/auth",
+  token_url: "https://oauth2.googleapis.com/token",
+  scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+  pkce: true,
+  refresh: true,
+  revoke_url: "https://oauth2.googleapis.com/revoke"
+)
+```
+
+Put `client_id` and `client_secret` in
+`credentials.recording_studio_oauth.outbound.google_drive`, or pass them as
+registration arguments.
+
+Look up a usable token with
+`RecordingStudioOauth.connection_for(provider:, root:, actor:)`.
+That returns the actor's own user-level connection when it exists, otherwise the
+root-level connection if the actor has at least view access. It refreshes an
+expired token. It returns `nil` when there is no usable connection.
+
+Root admins create and disconnect a root-level connection. Anyone with view
+access may use it. A user-level connection is only for that person. Roots with
+`shared: true` cannot own a root-level connection.
+
+The callback consumes the handshake row before it calls the provider token
+endpoint. A failed exchange does not un-consume that row.
+
+Refresh locks the connection row before it writes. If another process revoked
+the row, changed status, or rotated the refresh token during the provider call,
+this attempt writes nothing.
+
+Logs filter the `code` query param as an exact key (`/\Acode\z/`). They do not
+filter `code_challenge` or `country_code`.
+
+Delete expired or consumed handshake rows with
+`bin/rails recording_studio_oauth:cleanup_outbound_handshakes` or
+`RecordingStudioOauth::OutboundHandshake.cleanup_stale`.
+
 ## 0.13.2
 
 No Oauth migration. Install Oauth `0.13.2`. Registered-apps charts

@@ -5,6 +5,7 @@ require "uri"
 module RecordingStudioOauth
   module ReturnUrlRules
     MAX_LENGTH = 2048
+    UNSAFE_RELATIVE = %r{[[:cntrl:]]|\s|\\|://}
 
     module_function
 
@@ -15,6 +16,25 @@ module RecordingStudioOauth
       return true if Array(exact_urls).any? { |exact| exact.to_s == url }
 
       Array(patterns).any? { |pattern| glob_match?(pattern.to_s, url) }
+    end
+
+    def safe_relative_path(value)
+      raw = value.to_s
+      return unless relative_path_shape?(raw)
+
+      uri = URI.parse(raw)
+      return if uri.scheme.present? || uri.host.present? || uri.userinfo.present?
+
+      raw
+    rescue URI::InvalidURIError
+      nil
+    end
+
+    def relative_path_shape?(raw)
+      return false unless raw.present? && raw.bytesize <= MAX_LENGTH
+      return false if raw.match?(UNSAFE_RELATIVE)
+
+      raw.start_with?("/") && !raw.start_with?("//")
     end
 
     def safe_http_url(value)
