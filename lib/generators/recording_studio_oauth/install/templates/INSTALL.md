@@ -4,8 +4,8 @@ Next steps:
 
 1. Review config/initializers/recording_studio_oauth.rb and set any required options. `config.allow_registration` is the starting value for a new app. It starts off. `config.allow_self_registered_apps` lets MCP clients register themselves at `{mount}/register`. It starts off.
 2. If you use environment-specific settings, create config/recording_studio_oauth.yml.
-3. Install the engine migrations with `bin/rails generate recording_studio_oauth:migrations`.
-4. Apply the migrations with `bin/rails db:migrate`.
+3. Install the engine migrations with `bin/rails generate recording_studio_oauth:migrations`. That copies the outbound connections table as well as the inbound OAuth tables.
+4. Apply the migrations with `bin/rails db:migrate`. Hosts that already installed Oauth still run the new outbound connections migration. Configure Active Record encryption so access and refresh tokens encrypt at rest.
 5. Install Recording Studio Site Settings (and Attachable) so Connect can read a site name.
 6. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
 7. Mount routes are added at the configured mount path, including `ProtectedResourceRegistry.draw_origin_well_known` for origin path-inserted authorization-server and protected-resource metadata. Adjust auth, layout, and current actor integration to match your host app.

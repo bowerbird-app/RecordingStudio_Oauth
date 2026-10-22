@@ -11,6 +11,7 @@ require "recording_studio_oauth/register_rate_limit"
 require "recording_studio_oauth/central_relay_state"
 require "recording_studio_oauth/central_relay"
 require "recording_studio_oauth/registration_policy"
+require "recording_studio_oauth/outbound"
 
 module RecordingStudioOauth
   class << self
@@ -55,6 +56,14 @@ module RecordingStudioOauth
 
     def record_external_install(**)
       Services::RecordExternalInstall.call(**)
+    end
+
+    def register_outbound_provider(**)
+      Outbound.register_provider(**)
+    end
+
+    def connection_for(provider:, root:, actor:)
+      Outbound.connection_for(provider: provider, root: root, actor: actor)
     end
   end
 end

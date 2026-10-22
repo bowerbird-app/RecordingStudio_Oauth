@@ -49,3 +49,21 @@ en:
         return_not_allowed: "That return address is not allowed."
         relay_not_set_up: "This app is not set up for the central relay."
         proof_key_required: "Connect needs a proof key."
+      outbound:
+        flashes:
+          connected: "You're connected."
+          disconnected: "Connection removed."
+        errors:
+          unknown_provider: "That app isn't set up here."
+          unauthenticated: "Sign in first."
+          shared_root: "This shared space can't own a connection. Connect it to your account instead."
+          not_admin: "Only an admin can connect this for the whole workspace."
+          root_required: "Pick a workspace first."
+          invalid_owner: "That connection type isn't supported."
+          invalid_state: "That connect step expired. Try again."
+          missing_code: "The other app didn't send a code back. Try again."
+          token_exchange_failed: "The other app didn't finish connecting. Try again."
+          save_failed: "We couldn't save that connection. Try again."
+          not_found: "That connection is gone."
+          forbidden: "You can't change this connection."
+          invalid_request: "That connect request didn't work. Try again."

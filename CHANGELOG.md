@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-10-22
+
+### Added
+- Outbound OAuth connections. A host or addon gem registers a provider. People
+  connect this app out to that provider. Tokens are stored encrypted on an
+  `OutboundConnection` row, not in the session. Lookup is
+  `RecordingStudioOauth.connection_for(provider:, root:, actor:)`.
+- Dummy `fake_drive` provider with local authorize, token, and revoke endpoints.
+
+### Upgrade notes
+- Bump to `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
+  and migrate. That adds `recording_studio_oauth_outbound_connections`.
+- Turn on Active Record encryption in the host if it is not on already. Access
+  and refresh tokens use `encrypts`.
+- Inbound OAuth (clients, Connect, tokens, routes, tables) is unchanged.
+- Register providers with `RecordingStudioOauth.register_outbound_provider`.
+  Unknown registration keys raise. Client id and secret come from the
+  registration call or from
+  `Rails.application.credentials.dig(:recording_studio_oauth, :outbound, :provider_key)`.
+
 ## [0.13.2] - 2026-10-20
 
 ### Changed

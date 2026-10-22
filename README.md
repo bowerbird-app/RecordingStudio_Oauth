@@ -252,6 +252,71 @@ widgets compact so they stay on the first row.
 
 `oauth_clients.total` is the Admin Registered-apps count (`OauthClient.active`). `oauth_clients.by_registration` splits that set on `self_registered`. `oauth_clients.self_registered_over_time` (unit `count`) is new self-registered (dynamic client registration) apps by `created_at`. It takes `from` / `to` (or `start` / `end`) and `interval` (`day`, `week`, `month`, `year`), and `group_by=confidential` (the list's "Secret" column: public vs confidential client) or `group_by=api_key` (the list's "API" column, a named API label). Groups under the Metrics `min_group_size` (5) fold into `other`, so groups plus `other` equal the total. There is no grouping by name, client id or redirect URI. Metrics still do not take the Registered apps Source, Status, or API list filters. Same Admin root `:view` check and site scope as that list. Revoked apps stay in the period they signed up in, so its buckets can add up to more than the self-registered row of `by_registration`. `oauth_authorizations.over_time` is new grants by `created_at`. `oauth_authorizations.by_role` uses `OauthAuthorization.active`. `oauth_authorizations.granted_over_time` (unit `count`) is grants by `created_at`, including ones revoked later. `oauth_authorizations.revoked_over_time` (unit `count`) is revocations by `revoked_at`. Both take `from` / `to` and `interval`, and `group_by=role` only (groups under `min_group_size` 5 fold into `other`). There is no grouping by app, actor or recording, and no filters, because the metrics APIs do not take list filters. Admin Connections (`oauth_connections`) lists current grants and revokes (Status Active by default) and does not apply those timeseries windows. Same Admin root `:view` check and site scope as the other OAuth metrics.
 
+## Outbound connections
+
+This gem is also the **connection layer** when this app talks to a third-party
+provider such as Google Drive. Later addon gems register a provider here, store
+tokens here, and look up a live access token here. Attachable and a Plugins
+directory stay out of this gem.
+
+A connection is a normal table, not a Recording. Tokens are infrastructure, not
+tree content. The row belongs to a **workspace root** or to a **person**. Those
+are two explicit owners, not one polymorphic owner. Access rules and unique
+indexes differ, so mixing them in one association would hide that.
+
+Register a provider. Unknown keys raise.
+
+```ruby
+RecordingStudioOauth.register_outbound_provider(
+  key: :google_drive,
+  authorize_url: "https://accounts.google.com/o/oauth2/v2/auth",
+  token_url: "https://oauth2.googleapis.com/token",
+  scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+  pkce: true,
+  refresh: true,
+  revoke_url: "https://oauth2.googleapis.com/revoke"
+)
+```
+
+Read `client_id` and `client_secret` from
+`credentials.recording_studio_oauth.outbound.google_drive`, or pass them in the
+register call. Dummy registers `:fake_drive` with local `/fake_oauth/*`
+endpoints.
+
+Routes on the engine mount:
+
+- `GET /outbound/:provider/connect?owner=root&root_recording_id=` (workspace, admin only)
+- `GET /outbound/:provider/connect?owner=user` (that person only)
+- `GET /outbound/callback`
+- `DELETE /outbound/connections/:id`
+
+PKCE lives in an encrypted handshake cookie. Access and refresh tokens never go
+in the session. They use Active Record encryption. Logs filter `access_token`
+and `refresh_token`.
+
+Look up a usable connection:
+
+```ruby
+connection = RecordingStudioOauth.connection_for(
+  provider: :google_drive,
+  root: workspace_root_recording,
+  actor: current_user
+)
+connection&.access_token
+```
+
+Resolution: the actor's own user-level connection for that provider, else the
+root-level one if the actor may use it. Expired tokens refresh. A failed refresh
+marks `needs_reconnect` and lookup returns `nil`. Refresh does not raise into
+callers.
+
+Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
+
+- Only root admins can create or disconnect a root-level connection.
+- Anyone with at least view access can use a root-level connection.
+- A user-level connection is only usable by the person who made it.
+- Roots with `shared: true` cannot own a root-level connection.
+
 ## Version
 
-0.13.2
+0.14.0

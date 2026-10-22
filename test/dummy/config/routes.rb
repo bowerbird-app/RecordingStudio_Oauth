@@ -27,5 +27,9 @@ Rails.application.routes.draw do
 
   post "demo/connect", to: "home#connect_demo", as: :demo_connect
 
+  get "fake_oauth/authorize", to: "fake_oauth#authorize"
+  post "fake_oauth/token", to: "fake_oauth#token"
+  post "fake_oauth/revoke", to: "fake_oauth#revoke"
+
   root "home#index"
 end

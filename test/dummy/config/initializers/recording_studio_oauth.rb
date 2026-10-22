@@ -13,3 +13,16 @@ RecordingStudioOauth.configure do |config|
   config.allow_registration = false
   config.allow_self_registered_apps = true
 end
+
+RecordingStudioOauth.register_outbound_provider(
+  key: :fake_drive,
+  authorize_url: "/fake_oauth/authorize",
+  token_url: "/fake_oauth/token",
+  revoke_url: "/fake_oauth/revoke",
+  scopes: ["files.read"],
+  client_id: FakeOauth::CLIENT_ID,
+  client_secret: FakeOauth::CLIENT_SECRET,
+  pkce: true,
+  refresh: true,
+  http: FakeOauth
+)
