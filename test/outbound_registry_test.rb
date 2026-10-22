@@ -27,7 +27,7 @@ class OutboundRegistryTest < Minitest::Test
 
   def test_unknown_registration_key_raises
     error = assert_raises(ArgumentError) do
-      RecordingStudioOauth.register_outbound_provider(**valid_options.merge(unexpected: true))
+      RecordingStudioOauth.register_outbound_provider(**valid_options, unexpected: true)
     end
 
     assert_match(/unknown key/i, error.message)

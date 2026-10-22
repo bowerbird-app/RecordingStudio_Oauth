@@ -28,6 +28,7 @@ Metrics/ClassLength:
     - 'app/models/recording_studio_oauth/oauth_client.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 Metrics/MethodLength:
   Exclude:
@@ -43,6 +44,7 @@ Metrics/MethodLength:
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/protected_resource_registry.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 Metrics/AbcSize:
   Exclude:
@@ -55,18 +57,21 @@ Metrics/AbcSize:
     - 'lib/recording_studio_oauth/configuration.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'test/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 Metrics/PerceivedComplexity:
   Exclude:
     - 'test/**/*'
     - 'app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 Metrics/BlockLength:
   Exclude:
@@ -75,6 +80,7 @@ Metrics/BlockLength:
     - 'lib/recording_studio_oauth/admin.rb'
     - 'lib/recording_studio_oauth/engine.rb'
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
 
 # Allow empty blocks in tests (common for stubs/mocks)
 Lint/EmptyBlock:
@@ -95,4 +101,5 @@ Naming/VariableNumber:
 Lint/MissingSuper:
   Exclude:
     - 'lib/recording_studio_oauth/services/**/*'
+    - 'lib/recording_studio_oauth/outbound/**/*'
     - 'test/services/**/*'

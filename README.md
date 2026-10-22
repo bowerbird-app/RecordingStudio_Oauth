@@ -259,7 +259,7 @@ provider such as Google Drive. Later addon gems register a provider here, store
 tokens here, and look up a live access token here. Attachable and a Plugins
 directory stay out of this gem.
 
-A connection is a normal table, not a Recording. Tokens are infrastructure, not
+`OutboundConnection` is a normal table, not a Recording. Tokens are infrastructure, not
 tree content. The row belongs to a **workspace root** or to a **person**. Those
 are two explicit owners, not one polymorphic owner. Access rules and unique
 indexes differ, so mixing them in one association would hide that.

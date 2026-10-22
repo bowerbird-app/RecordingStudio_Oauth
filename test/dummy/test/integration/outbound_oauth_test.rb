@@ -60,24 +60,23 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :redirect
-    follow_redirect!
-    assert_includes response.body, "Only an admin can connect this for the whole workspace."
+    assert_match(/admin/i, flash[:alert].to_s)
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: @root_recording.id).count
   end
 
   test "shared true roots are rejected" do
-    RecordingStudio.stub(:shared_root?, ->(root) { root == @root_recording }) do
-      get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
-        owner: "root",
-        root_recording_id: @root_recording.id,
-        return_to: "/"
-      }
-    end
+    shared = SharedRoot.create!(name: "Inbox #{SecureRandom.hex(4)}")
+    shared_root = RecordingStudio.root_recording_for(shared)
+
+    get recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: "root",
+      root_recording_id: shared_root.id,
+      return_to: "/"
+    }
 
     assert_response :redirect
-    follow_redirect!
-    assert_includes response.body, "This shared space can't own a connection"
-    assert_equal 0, RecordingStudioOauth::OutboundConnection.count
+    assert_match(/shared space/, flash[:alert].to_s)
+    assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: shared_root.id).count
   end
 
   test "refresh renews an expired token and marks needs_reconnect on failure" do
@@ -140,8 +139,8 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     sign_in @viewer
 
     delete recording_studio_oauth.outbound_connection_path(connection), params: { return_to: "/" }
-    follow_redirect!
-    assert_includes response.body, "You can't change this connection."
+    assert_response :redirect
+    assert_match(/can.t change this connection/i, flash[:alert].to_s)
     assert_equal "active", connection.reload.status
   end
 

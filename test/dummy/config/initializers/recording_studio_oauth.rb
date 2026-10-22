@@ -14,6 +14,8 @@ RecordingStudioOauth.configure do |config|
   config.allow_self_registered_apps = true
 end
 
+require Rails.root.join("app/models/fake_oauth")
+
 RecordingStudioOauth.register_outbound_provider(
   key: :fake_drive,
   authorize_url: "/fake_oauth/authorize",

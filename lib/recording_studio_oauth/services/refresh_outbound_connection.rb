@@ -34,9 +34,7 @@ module RecordingStudioOauth
             expires_at: expires_at_from(token.body)
           }
           updates[:refresh_token] = token.body["refresh_token"].to_s if token.body["refresh_token"].present?
-          if token.body["scope"].present?
-            updates[:granted_scopes] = token.body["scope"].to_s.split(/\s+/).reject(&:blank?)
-          end
+          updates[:granted_scopes] = token.body["scope"].to_s.split(/\s+/).reject(&:blank?) if token.body["scope"].present?
           connection.update!(updates)
         end
 

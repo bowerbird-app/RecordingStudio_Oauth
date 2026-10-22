@@ -23,13 +23,6 @@ module Dummy
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
 
-    secret = credentials.secret_key_base.to_s
-    if secret.present? && config.active_record.encryption.primary_key.blank?
-      config.active_record.encryption.primary_key = secret[0, 32]
-      config.active_record.encryption.deterministic_key = (secret[32, 32].presence || secret[0, 32])
-      config.active_record.encryption.key_derivation_salt = secret[-32, 32].presence || secret[0, 32]
-    end
-
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.

@@ -20,9 +20,7 @@ module RecordingStudioOauth
         return success(nil) if connection.nil?
         return success(nil) if connection.revoked? || connection.needs_reconnect?
 
-        if connection.expired? || !connection.active?
-          connection = RefreshOutboundConnection.call(connection: connection).value
-        end
+        connection = RefreshOutboundConnection.call(connection: connection).value if connection.expired? || !connection.active?
 
         success(connection)
       end

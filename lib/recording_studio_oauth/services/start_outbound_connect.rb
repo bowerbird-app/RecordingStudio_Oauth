@@ -5,7 +5,7 @@ require "uri"
 module RecordingStudioOauth
   module Services
     class StartOutboundConnect < RecordingStudio::Services::BaseService
-      def initialize(provider:, actor:, owner_kind:, root: nil, return_to: "/", callback_url:)
+      def initialize(provider:, actor:, owner_kind:, callback_url:, root: nil, return_to: "/")
         @provider_key = provider.to_s
         @actor = actor
         @owner_kind = owner_kind.to_s

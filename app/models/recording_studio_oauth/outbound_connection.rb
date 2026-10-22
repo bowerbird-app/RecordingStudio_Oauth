@@ -59,12 +59,9 @@ module RecordingStudioOauth
     private
 
     def exactly_one_owner
-      if root_recording_id.present? && owner_actor_id.blank? && owner_actor_type.blank?
-        return
-      end
-      if root_recording_id.blank? && owner_actor_id.present? && owner_actor_type.present?
-        return
-      end
+      root_only = root_recording_id.present? && owner_actor_id.blank? && owner_actor_type.blank?
+      user_only = root_recording_id.blank? && owner_actor_id.present? && owner_actor_type.present?
+      return if root_only || user_only
 
       errors.add(:base, "Connection must belong to a workspace or a person, not both")
     end

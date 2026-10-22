@@ -81,7 +81,7 @@ module RecordingStudioOauth
 
     def callback_absolute_url
       origin = RecordingStudioOauth.configuration.public_origin.to_s.strip.presence
-      return "#{origin.chomp("/")}#{engine_mount}/outbound/callback" if origin.present?
+      return "#{origin.chomp('/')}#{engine_mount}/outbound/callback" if origin.present?
 
       outbound_callback_url
     end

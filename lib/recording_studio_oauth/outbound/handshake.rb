@@ -38,9 +38,7 @@ module RecordingStudioOauth
       end
 
       def self.generate_verifier
-        value = SecureRandom.urlsafe_base64(32)
-        value = value.ljust(43, "a")
-        value
+        SecureRandom.urlsafe_base64(32).ljust(43, "a")
       end
 
       def payload
