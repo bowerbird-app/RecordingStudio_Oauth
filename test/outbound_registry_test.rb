@@ -68,6 +68,18 @@ class OutboundRegistryTest < Minitest::Test
     assert_nil RecordingStudioOauth::Outbound.provider("drive")
   end
 
+  def test_callable_http_does_not_skip_https_on_authorize_url
+    assert_raises(ArgumentError) do
+      RecordingStudioOauth.register_outbound_provider(
+        **valid_options,
+        authorize_url: "http://example.test/auth",
+        http: ->(_url, _params) { [200, {}] }
+      )
+    end
+
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
+  end
+
   def test_relative_urls_allowed_with_http_adapter
     provider = RecordingStudioOauth.register_outbound_provider(
       key: :fake,

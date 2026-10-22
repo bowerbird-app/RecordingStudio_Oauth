@@ -19,8 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `root_recording_id` has a foreign key to recordings with `on_delete: :cascade`.
 
 ### Changed
-- Outbound logs filter the `code` param exactly (`/\Acode\z/`), not keys that
-  contain "code".
+- Outbound logs filter the `code` param exactly (`/\Acode\z/`), plus
+  `:access_token` and `:refresh_token`. Keys that only contain "code" are not
+  filtered.
 - Finish outbound connect consumes the handshake before the token HTTP call.
 - Refresh of an outbound token compare-and-swaps under `with_lock`. It does not
   revive a revoked row or overwrite a newer token.
@@ -39,8 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Unknown registration keys raise. Client id and secret come from the
   registration call or from
   `Rails.application.credentials.dig(:recording_studio_oauth, :outbound, :provider_key)`.
-- ParameterFilter now matches `code` as a whole key. `code_challenge` and
-  `country_code` are not filtered by this gem.
+- ParameterFilter now matches `code` as a whole key, plus `:access_token` and
+  `:refresh_token`. `code_challenge` and `country_code` are not filtered by this
+  gem.
 - Run `bin/rails recording_studio_oauth:cleanup_outbound_handshakes` (or
   `OutboundHandshake.cleanup_stale`) when you want to delete expired or consumed
   handshake rows. Deleting a root recording cascades to those rows.

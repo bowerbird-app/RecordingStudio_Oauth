@@ -18,7 +18,7 @@ module RecordingStudioOauth
 
       def assert!(name, value, options = {})
         return if relative_path?(value)
-        return if options[:http].respond_to?(:call)
+        return if name != :authorize_url && options[:http].respond_to?(:call)
 
         uri = URI.parse(value.to_s)
         return if uri.scheme == "https" && uri.host.present?

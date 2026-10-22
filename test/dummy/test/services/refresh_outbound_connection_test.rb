@@ -51,6 +51,15 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
     assert_equal "active", @connection.reload.status
   end
 
+  test "a timed out token request is transient and leaves status active" do
+    @connection.update!(refresh_token: FakeOauth::TIMEOUT_REFRESH, expires_at: 1.minute.ago)
+
+    result = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    refute result.success?
+    assert_equal :transient, result.error
+    assert_equal "active", @connection.reload.status
+  end
+
   test "a database error is transient and leaves status alone" do
     @connection.define_singleton_method(:update!) do |*|
       raise ActiveRecord::ActiveRecordError, "write failed"
@@ -148,6 +157,23 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
     refute result.success?
     assert_equal :transient, result.error
     assert_equal "active", @connection.reload.status
+  end
+
+  test "a non-json token body is a failure not a raise" do
+    response = Struct.new(:code, :body).new("200", "<html>502 Bad Gateway</html>")
+    original_new = RecordingStudioOauth::Outbound::TokenClient.method(:new)
+    RecordingStudioOauth::Outbound::TokenClient.define_singleton_method(:new) do |provider|
+      client = original_new.call(provider.with(http: nil))
+      client.define_singleton_method(:http_post) { |*| response }
+      client
+    end
+
+    result = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    refute result.success?
+    assert_equal :transient, result.error
+    assert_equal "active", @connection.reload.status
+  ensure
+    RecordingStudioOauth::Outbound::TokenClient.define_singleton_method(:new, original_new)
   end
 
   private

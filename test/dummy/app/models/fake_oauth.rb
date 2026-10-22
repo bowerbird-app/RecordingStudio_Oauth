@@ -9,6 +9,7 @@ class FakeOauth
   INVALID_CLIENT_REFRESH = "invalid-client-refresh"
   INVALID_GRANT_500_REFRESH = "invalid-grant-500-refresh"
   NETWORK_REFRESH = "network-refresh"
+  TIMEOUT_REFRESH = "timeout-refresh"
 
   class << self
     def call(url, params)
@@ -67,6 +68,7 @@ class FakeOauth
       return [401, { "error" => "invalid_client" }] if params["refresh_token"].to_s == INVALID_CLIENT_REFRESH
       return [500, { "error" => "invalid_grant" }] if params["refresh_token"].to_s == INVALID_GRANT_500_REFRESH
       raise Errno::ECONNRESET if params["refresh_token"].to_s == NETWORK_REFRESH
+      raise Errno::ETIMEDOUT if params["refresh_token"].to_s == TIMEOUT_REFRESH
 
       [
         200,

@@ -72,7 +72,7 @@ module RecordingStudioOauth
         end
 
         post_form(url, params)
-      rescue *NETWORK_ERRORS => e
+      rescue *NETWORK_ERRORS, JSON::ParserError, URI::InvalidURIError => e
         Result.new(ok: false, status: 0, body: { "error" => e.class.name })
       end
 
