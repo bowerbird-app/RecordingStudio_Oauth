@@ -150,6 +150,17 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal "/recording_studio_oauth/outbound/callback", recording_studio_oauth.outbound_callback_path
   end
 
+  test "fake authorize rejects a redirect that is not the outbound callback" do
+    get "/fake_oauth/authorize", params: {
+      client_id: FakeOauth::CLIENT_ID,
+      redirect_uri: "https://evil.test/steal",
+      state: "nope"
+    }
+
+    assert_response :bad_request
+    assert_equal "unknown redirect", response.body
+  end
+
   private
 
   def follow_connect!(owner:, root_recording_id: nil)

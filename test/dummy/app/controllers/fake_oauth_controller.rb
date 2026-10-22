@@ -12,13 +12,18 @@ class FakeOauthController < ApplicationController
       return
     end
 
+    unless callback_path_allowed?
+      render plain: "unknown redirect", status: :bad_request
+      return
+    end
+
     code = FakeOauth.issue_code(
       access_token: "fake-access-#{SecureRandom.hex(8)}",
       refresh_token: "fake-refresh-#{SecureRandom.hex(8)}",
       user_id: "acct-demo",
       email: "demo@fake-drive.test"
     )
-    redirect_to callback_location(code), allow_other_host: true
+    redirect_to recording_studio_oauth.outbound_callback_path(code: code, state: params[:state].to_s)
   end
 
   def token
@@ -33,12 +38,13 @@ class FakeOauthController < ApplicationController
 
   private
 
-  def callback_location(code)
+  def callback_path_allowed?
     uri = URI.parse(params[:redirect_uri].to_s)
-    query = URI.decode_www_form(uri.query.to_s)
-    query << ["code", code]
-    query << ["state", params[:state].to_s]
-    uri.query = URI.encode_www_form(query)
-    uri.to_s
+    return false if uri.scheme.present? && !%w[http https].include?(uri.scheme)
+    return false if uri.host.present? && uri.host != request.host
+
+    uri.path == recording_studio_oauth.outbound_callback_path
+  rescue URI::InvalidURIError
+    false
   end
 end
