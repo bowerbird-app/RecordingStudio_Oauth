@@ -147,19 +147,14 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
   private
 
   def during_refresh_mutate!(mutator)
-    client_class = RecordingStudioOauth::Outbound::TokenClient
-    original_new = client_class.method(:new)
-    client_class.stub(:new, lambda { |provider|
-      client = original_new.call(provider)
-      original_refresh = client.method(:refresh)
-      client.define_singleton_method(:refresh) do |refresh_token:|
-        mutator.call
-        original_refresh.call(refresh_token: refresh_token)
-      end
-      client
-    }) do
-      yield
+    original = FakeOauth.method(:call)
+    FakeOauth.define_singleton_method(:call) do |url, params|
+      mutator.call
+      original.call(url, params)
     end
+    yield
+  ensure
+    FakeOauth.singleton_class.send(:define_method, :call, original)
   end
 
   def revoke_row!

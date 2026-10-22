@@ -29,7 +29,7 @@ module RecordingStudioOauth
 
       def relative_path?(value)
         raw = value.to_s
-        return false if raw.match?(/[[:space:][:cntrl:]]/)
+        return false if raw.match?(/[[:cntrl:]]/) || raw.match?(/\s/)
         return false if raw.include?("://")
         return false unless raw.start_with?("/") && !raw.start_with?("//")
 

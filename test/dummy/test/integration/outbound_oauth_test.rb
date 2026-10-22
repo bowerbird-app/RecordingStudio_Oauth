@@ -534,6 +534,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
   end
 
   test "before_service receives the provider key not the handshake nonce" do
+    original = RecordingStudio::Hooks.method(:run)
     start = RecordingStudioOauth::Services::StartOutboundConnect.call(
       provider: "fake_drive",
       actor: @user,
@@ -549,19 +550,19 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
       code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
     )
     seen = nil
-    original = RecordingStudio::Hooks.method(:run)
-    RecordingStudio::Hooks.stub(:run, lambda { |event, *rest|
+    RecordingStudio::Hooks.define_singleton_method(:run) do |event, *rest|
       if event == :before_service && rest.first == RecordingStudioOauth::Services::FinishOutboundConnect
         seen = rest.last
       end
       original.call(event, *rest)
-    }) do
-      finish = finish_with(state: handshake.nonce, code: code)
-      assert finish.success?
     end
+    finish = finish_with(state: handshake.nonce, code: code)
+    assert finish.success?
 
     assert_equal "fake_drive", seen[:provider]
     refute_equal handshake.nonce, seen[:provider]
+  ensure
+    RecordingStudio::Hooks.singleton_class.send(:define_method, :run, original)
   end
 
   test "a consumed handshake that failed token exchange cannot be retried with a new code" do
@@ -592,6 +593,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
   end
 
   test "RecordNotUnique on create updates the live row" do
+    klass = RecordingStudioOauth::Services::FinishOutboundConnect
     follow_connect!(owner: "user")
     live = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
     handshake = RecordingStudioOauth::OutboundHandshake.issue!(
@@ -609,26 +611,22 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
       code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
     )
 
-    original_new = RecordingStudioOauth::Services::FinishOutboundConnect.method(:new)
-    RecordingStudioOauth::Services::FinishOutboundConnect.stub(:new, lambda { |**kwargs|
-      instance = original_new.call(**kwargs)
+    original_new = klass.method(:new)
+    klass.define_singleton_method(:new) do |*args, **kwargs, &block|
+      instance = original_new.call(*args, **kwargs, &block)
       instance.define_singleton_method(:live_connection) { |_handshake| nil }
       instance
-    }) do
-      RecordingStudioOauth::OutboundConnection.stub(
-        :create!,
-        ->(*) { raise ActiveRecord::RecordNotUnique, "idx_rs_oauth_outbound_live_user" }
-      ) do
-        result = finish_with(state: handshake.nonce, code: code)
-        refute_equal :save_failed, result.error
-        assert result.success?
-        assert_equal live.id, result.value.fetch(:connection).id
-      end
     end
+    result = finish_with(state: handshake.nonce, code: code)
+    refute_equal :save_failed, result.error
+    assert result.success?
+    assert_equal live.id, result.value.fetch(:connection).id
 
     live.reload
     assert_equal "active", live.status
     assert_equal "unique-access", live.access_token
+  ensure
+    klass.singleton_class.send(:remove_method, :new) if klass.singleton_class.private_method_defined?(:new, false) || klass.singleton_class.method_defined?(:new, false)
   end
 
   test "callback url comes from the route helper" do

@@ -31,7 +31,7 @@ module RecordingStudioOauth
 
     def relative_path_shape?(raw)
       return false if raw.blank? || raw.bytesize > MAX_LENGTH
-      return false if raw.match?(/[[:space:][:cntrl:]]/)
+      return false if raw.match?(/[[:cntrl:]]/) || raw.match?(/\s/)
       return false if raw.include?("\\") || raw.include?("://")
 
       raw.start_with?("/") && !raw.start_with?("//")
