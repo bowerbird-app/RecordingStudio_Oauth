@@ -1,5 +1,10 @@
 # Upgrading
 
+## 0.14.1
+
+No Oauth migration. Install Oauth `0.14.1` to allow Recording Studio Metrics
+`>= 0.3, < 1.0`. Dummy and development pin Metrics tag `v0.5.0`. No code change.
+
 ## 0.14.0
 
 Install Oauth `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`

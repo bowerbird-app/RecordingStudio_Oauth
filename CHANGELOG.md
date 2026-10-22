@@ -605,6 +605,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.14.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.2...v0.14.0
 [0.13.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.13.0...v0.13.1
