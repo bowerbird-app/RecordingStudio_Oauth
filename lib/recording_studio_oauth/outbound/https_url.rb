@@ -8,22 +8,35 @@ module RecordingStudioOauth
       module_function
 
       def assert_endpoints!(options)
-        return if options[:http]
-
-        assert!(:authorize_url, options[:authorize_url])
-        assert!(:token_url, options[:token_url])
+        assert!(:authorize_url, options[:authorize_url], options)
+        assert!(:token_url, options[:token_url], options)
         return if options[:revoke_url].to_s.strip.blank?
 
-        assert!(:revoke_url, options[:revoke_url])
+        assert!(:revoke_url, options[:revoke_url], options)
       end
 
-      def assert!(name, value)
+      def assert!(name, value, options = {})
+        return if relative_path?(value)
+        return if options[:http].respond_to?(:call)
+
         uri = URI.parse(value.to_s)
         return if uri.scheme == "https" && uri.host.present?
 
         raise ArgumentError, "#{name} must be https"
       rescue URI::InvalidURIError
         raise ArgumentError, "#{name} must be https"
+      end
+
+      def relative_path?(value)
+        raw = value.to_s
+        return false if raw.match?(/[[:space:][:cntrl:]]/)
+        return false if raw.include?("://")
+        return false unless raw.start_with?("/") && !raw.start_with?("//")
+
+        uri = URI.parse(raw)
+        uri.scheme.blank? && uri.host.blank?
+      rescue URI::InvalidURIError
+        false
       end
     end
   end

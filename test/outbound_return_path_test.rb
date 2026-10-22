@@ -12,4 +12,10 @@ class OutboundReturnPathTest < Minitest::Test
       assert_nil RecordingStudioOauth::ReturnUrlRules.safe_relative_path(value), value
     end
   end
+
+  def test_rejects_whitespace_and_control_characters
+    [" /workspace", "/workspace\n", "/workspace\t", "/workspace\r", "/workspace\u007F"].each do |value|
+      assert_nil RecordingStudioOauth::ReturnUrlRules.safe_relative_path(value)
+    end
+  end
 end

@@ -14,10 +14,16 @@ module RecordingStudioOauth
 
     attr_accessor :nonce
 
+    belongs_to :root_recording, class_name: "RecordingStudio::Recording", optional: true, inverse_of: false
+
     validates :nonce_digest, presence: true
     validates :provider_key, presence: true
     validates :owner_kind, presence: true, inclusion: { in: OWNER_KINDS }
     validates :actor_type, :actor_id, :expires_at, presence: true
+
+    scope :stale, lambda {
+      where("consumed_at IS NOT NULL OR expires_at <= ?", Time.current)
+    }
 
     def self.issue!(**args)
       nonce = SecureRandom.urlsafe_base64(24)
@@ -40,7 +46,7 @@ module RecordingStudioOauth
       {
         nonce_digest: TokenDigest.digest(nonce),
         code_verifier: args[:pkce] ? generate_verifier : nil,
-        return_to: args[:return_to].to_s.presence || "/",
+        return_to: ReturnUrlRules.safe_relative_path(args[:return_to]) || "/",
         expires_at: TTL.from_now
       }
     end
@@ -85,6 +91,10 @@ module RecordingStudioOauth
 
     def consume!
       update!(consumed_at: Time.current)
+    end
+
+    def self.cleanup_stale
+      stale.delete_all
     end
   end
 end

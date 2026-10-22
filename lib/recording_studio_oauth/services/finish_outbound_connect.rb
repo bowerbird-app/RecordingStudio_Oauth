@@ -21,7 +21,7 @@ module RecordingStudioOauth
         return failure(:invalid_state) if state.blank?
         return failure(:missing_code) if code.blank?
 
-        pending = load_pending_handshake
+        pending = pending_handshake
         return failure(:invalid_state) if pending.nil?
         return failure(:invalid_state) unless pending.matches_actor?(actor)
 
@@ -31,6 +31,8 @@ module RecordingStudioOauth
         provider = Outbound.provider(pending.provider_key)
         return failure(:unknown_provider) if provider.nil?
 
+        consume_handshake!(pending)
+
         token = Outbound::TokenClient.new(provider).exchange_code(
           code: code,
           redirect_uri: callback_url,
@@ -39,12 +41,18 @@ module RecordingStudioOauth
         return failure(:token_exchange_failed) unless token.ok?
         return failure(:token_exchange_failed) if token.body["access_token"].to_s.blank?
 
-        connection = consume_and_upsert!(pending, provider, token.body)
+        connection = upsert_connection!(pending, provider, token.body)
         success(connection: connection, return_to: pending.return_to)
       rescue HandshakeGone
         failure(:invalid_state)
       rescue ActiveRecord::ActiveRecordError
         failure(:save_failed)
+      end
+
+      def pending_handshake
+        return @pending_handshake if defined?(@pending_handshake)
+
+        @pending_handshake = load_pending_handshake
       end
 
       def load_pending_handshake
@@ -61,16 +69,16 @@ module RecordingStudioOauth
         Outbound::Access.root_access_error(actor: actor, root: root, role: :admin)
       end
 
-      def consume_and_upsert!(pending, provider, body)
-        connection = nil
+      def consume_handshake!(pending)
         OutboundHandshake.transaction do
           locked = OutboundHandshake.lock.find_by(id: pending.id)
           raise HandshakeGone if locked.nil? || locked.consumed? || locked.expired?
 
+          live = live_connection(locked)
+          live.lock! if live
           locked.consume!
-          connection = upsert_connection!(locked, provider, body)
+          @pending_handshake = locked
         end
-        connection
       end
 
       def upsert_connection!(handshake, provider, body)
@@ -80,16 +88,30 @@ module RecordingStudioOauth
           existing.update!(attributes.merge(status: "active"))
           existing
         else
-          OutboundConnection.create!(attributes.merge(status: "active", provider_key: provider.key))
+          create_live_connection!(handshake, provider, attributes)
         end
       end
 
+      def create_live_connection!(handshake, provider, attributes)
+        OutboundConnection.create!(attributes.merge(status: "active", provider_key: provider.key))
+      rescue ActiveRecord::RecordNotUnique
+        live = live_connection_scope(handshake).first
+        raise unless live
+
+        live.update!(attributes.merge(status: "active"))
+        live
+      end
+
       def live_connection(handshake)
+        live_connection_scope(handshake).first
+      end
+
+      def live_connection_scope(handshake)
         scope = OutboundConnection.live.for_provider(handshake.provider_key)
         if handshake.root_owned?
-          scope.find_by(root_recording_id: handshake.root_recording_id)
+          scope.where(root_recording_id: handshake.root_recording_id)
         else
-          scope.find_by(owner_actor_type: handshake.actor_type, owner_actor_id: handshake.actor_id)
+          scope.where(owner_actor_type: handshake.actor_type, owner_actor_id: handshake.actor_id)
         end
       end
 
@@ -152,7 +174,7 @@ module RecordingStudioOauth
       end
 
       def service_args
-        { provider: state.presence }
+        { provider: pending_handshake&.provider_key }
       end
     end
   end

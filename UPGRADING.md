@@ -4,7 +4,8 @@
 
 Install Oauth `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
 and `bin/rails db:migrate`. That adds `recording_studio_oauth_outbound_connections`
-and `recording_studio_oauth_outbound_handshakes`.
+and `recording_studio_oauth_outbound_handshakes`, plus a foreign key from
+handshake `root_recording_id` to recordings (`on_delete: :cascade`).
 
 Configure Active Record encryption if the host does not already. This gem encrypts
 outbound access tokens, refresh tokens, and handshake verifiers with `encrypts`.
@@ -41,6 +42,20 @@ expired token. It returns `nil` when there is no usable connection.
 Root admins create and disconnect a root-level connection. Anyone with view
 access may use it. A user-level connection is only for that person. Roots with
 `shared: true` cannot own a root-level connection.
+
+The callback consumes the handshake row before it calls the provider token
+endpoint. A failed exchange does not un-consume that row.
+
+Refresh locks the connection row before it writes. If another process revoked
+the row, changed status, or rotated the refresh token during the provider call,
+this attempt writes nothing.
+
+Logs filter the `code` query param as an exact key (`/\Acode\z/`). They do not
+filter `code_challenge` or `country_code`.
+
+Delete expired or consumed handshake rows with
+`bin/rails recording_studio_oauth:cleanup_outbound_handshakes` or
+`RecordingStudioOauth::OutboundHandshake.cleanup_stale`.
 
 ## 0.13.2
 

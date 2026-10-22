@@ -4,6 +4,8 @@ require "json"
 require "net/http"
 require "net/protocol"
 require "openssl"
+require "socket"
+require "timeout"
 require "uri"
 
 module RecordingStudioOauth
@@ -12,17 +14,10 @@ module RecordingStudioOauth
       TIMEOUT = 10
       NETWORK_ERRORS = [
         Timeout::Error,
-        Errno::ECONNREFUSED,
-        Errno::EHOSTUNREACH,
-        Errno::ECONNRESET,
+        SystemCallError,
+        IOError,
         SocketError,
-        EOFError,
-        JSON::ParserError,
-        URI::InvalidURIError,
         OpenSSL::SSL::SSLError,
-        Net::ReadTimeout,
-        Net::OpenTimeout,
-        Net::HTTPBadResponse,
         Net::ProtocolError
       ].freeze
 

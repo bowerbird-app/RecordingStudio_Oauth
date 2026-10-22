@@ -13,11 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OutboundConnection` row, not in the session. Lookup is
   `RecordingStudioOauth.connection_for(provider:, root:, actor:)`.
 - Dummy `fake_drive` provider with local authorize, token, and revoke endpoints.
+- Handshake cleanup. `OutboundHandshake.stale` is consumed or expired rows.
+  `OutboundHandshake.cleanup_stale` deletes them. The rake task is
+  `recording_studio_oauth:cleanup_outbound_handshakes`. Handshake
+  `root_recording_id` has a foreign key to recordings with `on_delete: :cascade`.
+
+### Changed
+- Outbound logs filter the `code` param exactly (`/\Acode\z/`), not keys that
+  contain "code".
+- Finish outbound connect consumes the handshake before the token HTTP call.
+- Refresh of an outbound token compare-and-swaps under `with_lock`. It does not
+  revive a revoked row or overwrite a newer token.
 
 ### Upgrade notes
 - Bump to `0.14.0`. Run `bin/rails generate recording_studio_oauth:migrations`
   and migrate. That adds `recording_studio_oauth_outbound_connections` and
-  `recording_studio_oauth_outbound_handshakes`.
+  `recording_studio_oauth_outbound_handshakes`, then the handshake root foreign
+  key.
 - Turn on Active Record encryption in the host if it is not on already. Access
   tokens, refresh tokens, and handshake verifiers use `encrypts`.
 - Hosts start outbound Connect with `POST /outbound/:provider/connect`. GET is
@@ -27,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Unknown registration keys raise. Client id and secret come from the
   registration call or from
   `Rails.application.credentials.dig(:recording_studio_oauth, :outbound, :provider_key)`.
+- ParameterFilter now matches `code` as a whole key. `code_challenge` and
+  `country_code` are not filtered by this gem.
+- Run `bin/rails recording_studio_oauth:cleanup_outbound_handshakes` (or
+  `OutboundHandshake.cleanup_stale`) when you want to delete expired or consumed
+  handshake rows. Deleting a root recording cascades to those rows.
 
 ## [0.13.2] - 2026-10-20
 

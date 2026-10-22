@@ -4,6 +4,8 @@ require "test_helper"
 require "net/http"
 require "net/protocol"
 require "openssl"
+require "socket"
+require "timeout"
 
 class OutboundTokenClientTest < Minitest::Test
   def test_network_errors_return_status_zero
@@ -18,22 +20,26 @@ class OutboundTokenClientTest < Minitest::Test
     end
   end
 
+  def test_errno_etimedout_is_a_network_error
+    client = RecordingStudioOauth::Outbound::TokenClient.new(provider)
+    result = client.stub(:post_form, ->(*) { raise Errno::ETIMEDOUT }) { client.refresh(refresh_token: "rt") }
+
+    refute result.ok?
+    assert_equal 0, result.status
+    assert_equal "Errno::ETIMEDOUT", result.body["error"]
+  end
+
   private
 
   def network_errors
     [
       Timeout::Error.new,
       Errno::ECONNREFUSED.new,
-      Errno::EHOSTUNREACH.new,
-      Errno::ECONNRESET.new,
+      Errno::ETIMEDOUT.new,
       SocketError.new("no host"),
       EOFError.new,
-      JSON::ParserError.new("nope"),
-      URI::InvalidURIError.new,
+      IOError.new,
       OpenSSL::SSL::SSLError.new,
-      Net::ReadTimeout.new,
-      Net::OpenTimeout.new,
-      Net::HTTPBadResponse.new("bad"),
       Net::ProtocolError.new("proto")
     ]
   end

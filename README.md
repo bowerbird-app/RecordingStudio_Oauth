@@ -290,9 +290,19 @@ Routes on the engine mount:
 - `GET /outbound/callback`
 - `DELETE /outbound/connections/:id`
 
-PKCE and state live on a server-side handshake row. Access and refresh tokens
-never go in the session. They use Active Record encryption. Logs filter `code`,
-`access_token`, and `refresh_token`.
+PKCE and state live on a server-side handshake row. The callback consumes that
+row before it exchanges the authorization code. A failed token request leaves
+the handshake consumed, so the same state cannot be retried. Access and refresh
+tokens never go in the session. They use Active Record encryption.
+
+Logs filter the `code` parameter exactly (`/\Acode\z/`), plus `access_token` and
+`refresh_token`. Keys that only contain "code", such as `code_challenge` or
+`country_code`, stay visible.
+
+Expired or consumed handshake rows are junk. Delete them with
+`bin/rails recording_studio_oauth:cleanup_outbound_handshakes`, or call
+`RecordingStudioOauth::OutboundHandshake.cleanup_stale`. Deleting a root
+recording also deletes its handshake rows (foreign key `on_delete: :cascade`).
 
 Look up a usable connection:
 
@@ -306,8 +316,12 @@ connection&.access_token
 ```
 
 Resolution: the actor's own user-level connection for that provider, else the
-root-level one if the actor may use it. Expired tokens refresh. A failed refresh
-marks `needs_reconnect` and lookup returns `nil`. Refresh does not raise into
+root-level one if the actor may use it. Expired tokens refresh. Refresh writes
+under a row lock and no-ops if the row was revoked, the status moved, or the
+refresh token rotated while the provider call was in flight. A permanent OAuth
+failure (HTTP 400 or 401 with `invalid_grant`, `invalid_client`, or
+`unauthorized_client`) marks `needs_reconnect` and lookup returns `nil`. A 500
+body that says `invalid_grant` stays transient. Refresh does not raise into
 callers.
 
 Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.

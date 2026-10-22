@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "pp"
+require "stringio"
 
 class OutboundRegistryTest < Minitest::Test
+  SECRET = "drv-client-secret-fixture"
+
   def setup
     RecordingStudioOauth::Outbound.reset_providers!
   end
@@ -19,37 +23,49 @@ class OutboundRegistryTest < Minitest::Test
     assert_equal "https://example.test/token", provider.token_url
     assert_equal ["files.read"], provider.scopes
     assert_equal "id", provider.client_id
-    assert_equal "secret", provider.client_secret
+    assert_equal SECRET, provider.client_secret
     assert provider.pkce?
     assert provider.refresh?
     assert_equal "https://example.test/revoke", provider.revoke_url
   end
 
   def test_unknown_registration_key_raises
-    error = assert_raises(ArgumentError) do
+    assert_raises(ArgumentError) do
       RecordingStudioOauth.register_outbound_provider(**valid_options, unexpected: true)
     end
 
-    assert_includes error.message.downcase, "unknown key"
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
   end
 
   def test_missing_key_raises
     options = valid_options
     options.delete(:key)
 
-    error = assert_raises(ArgumentError) do
+    assert_raises(ArgumentError) do
       RecordingStudioOauth.register_outbound_provider(**options)
     end
 
-    assert_equal "provider key is required", error.message
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
   end
 
   def test_http_authorize_url_raises_without_adapter
-    error = assert_raises(ArgumentError) do
+    assert_raises(ArgumentError) do
       RecordingStudioOauth.register_outbound_provider(**valid_options, authorize_url: "http://example.test/auth")
     end
 
-    assert_equal "authorize_url must be https", error.message
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
+  end
+
+  def test_http_true_does_not_skip_https
+    assert_raises(ArgumentError) do
+      RecordingStudioOauth.register_outbound_provider(
+        **valid_options,
+        authorize_url: "http://example.test/auth",
+        http: true
+      )
+    end
+
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
   end
 
   def test_relative_urls_allowed_with_http_adapter
@@ -59,7 +75,7 @@ class OutboundRegistryTest < Minitest::Test
       token_url: "/fake/token",
       revoke_url: "/fake/revoke",
       client_id: "id",
-      client_secret: "secret",
+      client_secret: SECRET,
       http: ->(_url, _params) { [200, {}] }
     )
 
@@ -72,7 +88,7 @@ class OutboundRegistryTest < Minitest::Test
       authorize_url: "https://example.test/auth",
       token_url: "https://example.test/token",
       client_id: "id",
-      client_secret: "secret"
+      client_secret: SECRET
     )
 
     assert provider.pkce?
@@ -82,8 +98,27 @@ class OutboundRegistryTest < Minitest::Test
   def test_client_secret_is_redacted_from_inspect
     provider = RecordingStudioOauth.register_outbound_provider(**valid_options)
 
-    refute_includes provider.inspect, "\"secret\""
+    refute_includes provider.inspect, SECRET
     assert_includes provider.inspect, "client_secret=[FILTERED]"
+  end
+
+  def test_client_secret_is_redacted_from_to_s_pretty_print_and_to_h
+    provider = RecordingStudioOauth.register_outbound_provider(**valid_options)
+
+    refute_includes provider.to_s, SECRET
+    assert_includes provider.to_s, "[FILTERED]"
+
+    refute_includes provider.pretty_inspect, SECRET
+    assert_includes provider.pretty_inspect, "[FILTERED]"
+
+    printed = StringIO.new
+    PP.pp(provider, printed)
+    refute_includes printed.string, SECRET
+    assert_includes printed.string, "[FILTERED]"
+
+    hash = provider.to_h
+    assert_equal "[FILTERED]", hash[:client_secret]
+    refute_includes hash.inspect, SECRET
   end
 
   def test_connection_for_is_on_the_public_module
@@ -100,7 +135,7 @@ class OutboundRegistryTest < Minitest::Test
       token_url: "https://example.test/token",
       scopes: ["files.read"],
       client_id: "id",
-      client_secret: "secret",
+      client_secret: SECRET,
       pkce: true,
       refresh: true,
       revoke_url: "https://example.test/revoke"

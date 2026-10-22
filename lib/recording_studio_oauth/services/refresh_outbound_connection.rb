@@ -19,12 +19,16 @@ module RecordingStudioOauth
         return success(nil) if connection.nil?
         return success(nil) if connection.revoked?
         return success(connection) if connection.active? && !connection.expired?(at: time)
+
+        @attempt_refresh_token = connection.refresh_token
+        @attempt_status = connection.status
+
         return mark_reconnect if connection.refresh_token.blank?
 
         provider = Outbound.provider(connection.provider_key)
         return mark_reconnect if provider.nil? || !provider.refresh?
 
-        token = Outbound::TokenClient.new(provider).refresh(refresh_token: connection.refresh_token)
+        token = Outbound::TokenClient.new(provider).refresh(refresh_token: @attempt_refresh_token)
         return refresh_failure(token) unless token.ok?
         return mark_reconnect if token.body["access_token"].to_s.blank?
 
@@ -58,18 +62,27 @@ module RecordingStudioOauth
         updates[:granted_scopes] = body["scope"].to_s.split(/\s+/).reject(&:blank?) if body["scope"].present?
         connection.with_lock do
           connection.reload
-          return if connection.revoked?
+          next if stale_write?
 
           connection.update!(updates)
         end
       end
 
       def mark_reconnect
-        unless connection.needs_reconnect?
-          connection.update_columns(status: "needs_reconnect", updated_at: Time.current)
+        connection.with_lock do
           connection.reload
+          unless stale_write? || connection.needs_reconnect?
+            connection.update_columns(status: "needs_reconnect", updated_at: Time.current)
+          end
         end
+        connection.reload
         success(nil)
+      end
+
+      def stale_write?
+        connection.revoked? ||
+          connection.status != @attempt_status ||
+          connection.refresh_token != @attempt_refresh_token
       end
 
       def expires_at_from(body)

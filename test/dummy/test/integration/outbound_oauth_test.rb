@@ -41,7 +41,14 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_nil session["refresh_token"]
     assert_equal "acct-demo", connection.external_account_id
     filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
-    assert_equal "[FILTERED]", filter.filter("code" => "visible-oauth-code")["code"]
+    filtered = filter.filter(
+      "code" => "visible-oauth-code",
+      "code_challenge" => "pkce-challenge",
+      "country_code" => "NZ"
+    )
+    assert_equal "[FILTERED]", filtered["code"]
+    assert_equal "pkce-challenge", filtered["code_challenge"]
+    assert_equal "NZ", filtered["country_code"]
   end
 
   test "user connection is stored for that person" do
@@ -103,6 +110,29 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_redirected_to "/workspace"
   end
 
+  test "return_to with whitespace or control characters stores slash" do
+    [" /workspace", "/workspace\n", "/workspace\t", "/workspace\u007F"].each do |target|
+      post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+        owner: "root",
+        root_recording_id: @root_recording.id,
+        return_to: target
+      }
+      assert_response :redirect
+      handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(authorize_query.fetch("state"))
+      assert_equal "/", handshake.return_to
+    end
+
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "user",
+      callback_url: callback_url,
+      return_to: " /workspace"
+    )
+    assert result.success?
+    assert_equal "/", result.value.fetch(:handshake).return_to
+  end
+
   test "viewer cannot create a workspace connection" do
     sign_in @viewer
 
@@ -119,7 +149,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: @root_recording.id).count
   end
 
-  test "shared true roots are rejected" do
+  test "shared true roots are rejected on start callback and lookup" do
     shared = SharedRoot.create!(name: "Inbox #{SecureRandom.hex(4)}")
     shared_root = RecordingStudio.root_recording_for(shared)
 
@@ -134,6 +164,37 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     refute result.success?
     assert_equal :shared_root, result.error
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: shared_root.id).count
+
+    handshake = RecordingStudioOauth::OutboundHandshake.issue!(
+      provider_key: "fake_drive",
+      owner_kind: "root",
+      root_recording_id: shared_root.id,
+      actor: @user,
+      return_to: "/",
+      pkce: true
+    )
+    code = FakeOauth.issue_code(
+      access_token: "shared-access",
+      refresh_token: "shared-refresh",
+      user_id: "acct-shared",
+      email: "shared@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    finish = assert_no_connection do
+      finish_with(state: handshake.nonce, code: code)
+    end
+    assert_equal :shared_root, finish.error
+
+    RecordingStudioOauth::OutboundConnection.create!(
+      provider_key: "fake_drive",
+      root_recording_id: shared_root.id,
+      connected_by: @user,
+      access_token: "live-shared",
+      refresh_token: "live-shared-refresh",
+      status: "active",
+      granted_scopes: ["files.read"]
+    )
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: shared_root, actor: @user)
   end
 
   test "non-root recordings are rejected on start, callback, and lookup" do
@@ -174,7 +235,35 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal :invalid_root, finish.error
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: folder_recording.id).count
 
+    follow_connect!(owner: "root", root_recording_id: @root_recording.id)
+    assert RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
     assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: folder_recording, actor: @user)
+  end
+
+  test "admin rights lost between start and callback create no connection" do
+    root_recording, access_recording = create_access_recording_for(user: @user)
+    start = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "root",
+      root: root_recording,
+      callback_url: callback_url
+    )
+    assert start.success?
+    handshake = start.value.fetch(:handshake)
+    code = FakeOauth.issue_code(
+      access_token: "lost-admin-access",
+      refresh_token: "lost-admin-refresh",
+      user_id: "acct-lost-admin",
+      email: "lost-admin@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    RecordingStudioTrashable.void_recording!(access_recording)
+
+    finish = assert_no_connection do
+      finish_with(state: handshake.nonce, code: code)
+    end
+    assert_equal :not_admin, finish.error
   end
 
   test "authorize URL uses PKCE S256 and extra params cannot override reserved keys" do
@@ -245,9 +334,18 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     callback_params = Rack::Utils.parse_query(callback_uri.query)
     follow_redirect!
     assert_equal 1, RecordingStudioOauth::OutboundConnection.where(owner_actor: @user).count
-    assert_no_connection(from: 1) do
-      finish_with(state: callback_params["state"], code: callback_params["code"])
+    consumed = RecordingStudioOauth::OutboundHandshake.find_by_state(callback_params["state"])
+    fresh_code = FakeOauth.issue_code(
+      access_token: "replay-access",
+      refresh_token: "replay-refresh",
+      user_id: "acct-replay",
+      email: "replay@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(consumed.code_verifier)
+    )
+    replay = assert_no_connection(from: 1) do
+      finish_with(state: callback_params["state"], code: fresh_code)
     end
+    assert_equal :invalid_state, replay.error
 
     start_connect!(owner: "user")
     query = authorize_query
@@ -334,6 +432,16 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     result = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: connection)
     refute result.success?
     assert_equal :transient, result.error
+    assert_equal "active", connection.reload.status
+
+    connection.update!(status: "active", refresh_token: FakeOauth::INVALID_CLIENT_REFRESH, expires_at: 1.minute.ago)
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
+    assert_equal "needs_reconnect", connection.reload.status
+
+    connection.update!(status: "active", refresh_token: FakeOauth::INVALID_GRANT_500_REFRESH, expires_at: 1.minute.ago)
+    grant_500 = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: connection)
+    refute grant_500.success?
+    assert_equal :transient, grant_500.error
     assert_equal "active", connection.reload.status
   end
 
@@ -423,7 +531,104 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :bad_request
-    assert_equal "unknown redirect", response.body
+  end
+
+  test "before_service receives the provider key not the handshake nonce" do
+    start = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "user",
+      callback_url: callback_url
+    )
+    handshake = start.value.fetch(:handshake)
+    code = FakeOauth.issue_code(
+      access_token: "hook-access",
+      refresh_token: "hook-refresh",
+      user_id: "acct-hook",
+      email: "hook@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    seen = nil
+    original = RecordingStudio::Hooks.method(:run)
+    RecordingStudio::Hooks.stub(:run, lambda { |event, *rest|
+      if event == :before_service && rest.first == RecordingStudioOauth::Services::FinishOutboundConnect
+        seen = rest.last
+      end
+      original.call(event, *rest)
+    }) do
+      finish = finish_with(state: handshake.nonce, code: code)
+      assert finish.success?
+    end
+
+    assert_equal "fake_drive", seen[:provider]
+    refute_equal handshake.nonce, seen[:provider]
+  end
+
+  test "a consumed handshake that failed token exchange cannot be retried with a new code" do
+    handshake = RecordingStudioOauth::OutboundHandshake.issue!(
+      provider_key: "fake_drive",
+      owner_kind: "user",
+      actor: @user,
+      return_to: "/",
+      pkce: true
+    )
+    failed = assert_no_connection do
+      finish_with(state: handshake.nonce, code: "not-a-code")
+    end
+    assert_equal :token_exchange_failed, failed.error
+    assert handshake.reload.consumed?
+
+    retry_code = FakeOauth.issue_code(
+      access_token: "retry-access",
+      refresh_token: "retry-refresh",
+      user_id: "acct-retry",
+      email: "retry@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+    retry_result = assert_no_connection do
+      finish_with(state: handshake.nonce, code: retry_code)
+    end
+    assert_equal :invalid_state, retry_result.error
+  end
+
+  test "RecordNotUnique on create updates the live row" do
+    follow_connect!(owner: "user")
+    live = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
+    handshake = RecordingStudioOauth::OutboundHandshake.issue!(
+      provider_key: "fake_drive",
+      owner_kind: "user",
+      actor: @user,
+      return_to: "/",
+      pkce: true
+    )
+    code = FakeOauth.issue_code(
+      access_token: "unique-access",
+      refresh_token: "unique-refresh",
+      user_id: "acct-unique",
+      email: "unique@fake-drive.test",
+      code_challenge: RecordingStudioOauth::Pkce.s256_challenge(handshake.code_verifier)
+    )
+
+    original_new = RecordingStudioOauth::Services::FinishOutboundConnect.method(:new)
+    RecordingStudioOauth::Services::FinishOutboundConnect.stub(:new, lambda { |**kwargs|
+      instance = original_new.call(**kwargs)
+      instance.define_singleton_method(:live_connection) { |_handshake| nil }
+      instance
+    }) do
+      RecordingStudioOauth::OutboundConnection.stub(
+        :create!,
+        ->(*) { raise ActiveRecord::RecordNotUnique, "idx_rs_oauth_outbound_live_user" }
+      ) do
+        result = finish_with(state: handshake.nonce, code: code)
+        refute_equal :save_failed, result.error
+        assert result.success?
+        assert_equal live.id, result.value.fetch(:connection).id
+      end
+    end
+
+    live.reload
+    assert_equal "active", live.status
+    assert_equal "unique-access", live.access_token
   end
 
   test "callback url comes from the route helper" do
@@ -474,8 +679,10 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
   def assert_no_connection(from: 0)
     result = yield
-    refute result.success? if result.respond_to?(:success?)
+    assert_respond_to result, :success?
+    refute result.success?
     assert_equal from, RecordingStudioOauth::OutboundConnection.count
+    result
   end
 
   def create_folder_recording

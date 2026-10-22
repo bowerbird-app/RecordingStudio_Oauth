@@ -23,6 +23,16 @@ module RecordingStudioOauth
           "authorize_url=#{authorize_url.inspect} token_url=#{token_url.inspect} " \
           "client_id=#{client_id.inspect} client_secret=[FILTERED]>"
       end
+
+      alias to_s inspect
+
+      def pretty_print(printer)
+        printer.text inspect
+      end
+
+      def to_h
+        super.merge(client_secret: "[FILTERED]")
+      end
     end
   end
 end

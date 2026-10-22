@@ -61,4 +61,121 @@ class RefreshOutboundConnectionTest < ActiveSupport::TestCase
     assert_equal :save_failed, result.error
     assert_equal "active", RecordingStudioOauth::OutboundConnection.find(@connection.id).status
   end
+
+  test "mark_reconnect no-ops when the row is revoked during refresh" do
+    @connection.update!(refresh_token: FakeOauth::FAIL_REFRESH)
+    during_refresh_mutate!(-> { revoke_row! }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "revoked", row.status
+    assert_nil row.access_token
+    assert_nil row.refresh_token
+  end
+
+  test "mark_reconnect no-ops when status moved during refresh" do
+    @connection.update!(refresh_token: FakeOauth::FAIL_REFRESH)
+    snapshot = row_snapshot
+    during_refresh_mutate!(-> { @connection.update!(status: "needs_reconnect") }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "needs_reconnect", row.status
+    assert_equal snapshot.fetch(:access_token), row.access_token
+    assert_equal FakeOauth::FAIL_REFRESH, row.refresh_token
+  end
+
+  test "mark_reconnect no-ops when refresh_token rotated during refresh" do
+    @connection.update!(refresh_token: FakeOauth::FAIL_REFRESH)
+    snapshot = row_snapshot
+    during_refresh_mutate!(-> { @connection.update!(refresh_token: "rotated-refresh") }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "active", row.status
+    assert_equal snapshot.fetch(:access_token), row.access_token
+    assert_equal "rotated-refresh", row.refresh_token
+  end
+
+  test "apply_token no-ops when the row is revoked during refresh" do
+    during_refresh_mutate!(-> { revoke_row! }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "revoked", row.status
+    assert_nil row.access_token
+    assert_nil row.refresh_token
+  end
+
+  test "apply_token no-ops when status moved during refresh" do
+    snapshot = row_snapshot
+    during_refresh_mutate!(-> { @connection.update!(status: "needs_reconnect") }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "needs_reconnect", row.status
+    assert_equal snapshot.fetch(:access_token), row.access_token
+    assert_equal snapshot.fetch(:refresh_token), row.refresh_token
+  end
+
+  test "apply_token no-ops when refresh_token rotated during refresh" do
+    snapshot = row_snapshot
+    during_refresh_mutate!(-> { @connection.update!(refresh_token: "rotated-refresh") }) do
+      RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    end
+
+    row = reload_row
+    assert_equal "active", row.status
+    assert_equal snapshot.fetch(:access_token), row.access_token
+    assert_equal "rotated-refresh", row.refresh_token
+  end
+
+  test "500 with invalid_grant is transient and leaves status active" do
+    @connection.update!(refresh_token: FakeOauth::INVALID_GRANT_500_REFRESH)
+
+    result = RecordingStudioOauth::Services::RefreshOutboundConnection.call(connection: @connection)
+    refute result.success?
+    assert_equal :transient, result.error
+    assert_equal "active", @connection.reload.status
+  end
+
+  private
+
+  def during_refresh_mutate!(mutator)
+    client_class = RecordingStudioOauth::Outbound::TokenClient
+    original_new = client_class.method(:new)
+    client_class.stub(:new, lambda { |provider|
+      client = original_new.call(provider)
+      original_refresh = client.method(:refresh)
+      client.define_singleton_method(:refresh) do |refresh_token:|
+        mutator.call
+        original_refresh.call(refresh_token: refresh_token)
+      end
+      client
+    }) do
+      yield
+    end
+  end
+
+  def revoke_row!
+    @connection.update!(status: "revoked", access_token: nil, refresh_token: nil)
+  end
+
+  def reload_row
+    RecordingStudioOauth::OutboundConnection.find(@connection.id)
+  end
+
+  def row_snapshot
+    row = reload_row
+    {
+      status: row.status,
+      access_token: row.access_token,
+      refresh_token: row.refresh_token
+    }
+  end
 end

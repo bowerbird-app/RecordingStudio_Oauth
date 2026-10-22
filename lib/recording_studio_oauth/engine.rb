@@ -110,15 +110,19 @@ module RecordingStudioOauth
       end
     end
 
+    rake_tasks do
+      Dir.glob(File.join(root, "lib/tasks", "*.rake")).sort.each { |path| load path }
+    end
+
     initializer "recording_studio_oauth.filter_parameters" do |app|
-      app.config.filter_parameters += %i[
-        code
-        code_verifier
-        oauth_client_secret
-        session_token_secret
-        client_secret
-        access_token
-        refresh_token
+      app.config.filter_parameters += [
+        /\Acode\z/,
+        :code_verifier,
+        :oauth_client_secret,
+        :session_token_secret,
+        :client_secret,
+        :access_token,
+        :refresh_token
       ]
     end
 

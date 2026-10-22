@@ -6,6 +6,8 @@ class FakeOauth
   FAIL_REFRESH = "fail-refresh"
   SERVER_ERROR_REFRESH = "server-error-refresh"
   UNAUTHORIZED_CLIENT_REFRESH = "unauthorized-client-refresh"
+  INVALID_CLIENT_REFRESH = "invalid-client-refresh"
+  INVALID_GRANT_500_REFRESH = "invalid-grant-500-refresh"
   NETWORK_REFRESH = "network-refresh"
 
   class << self
@@ -62,6 +64,8 @@ class FakeOauth
       return [400, { "error" => "invalid_grant" }] if params["refresh_token"].to_s == FAIL_REFRESH
       return [500, { "error" => "server_error" }] if params["refresh_token"].to_s == SERVER_ERROR_REFRESH
       return [401, { "error" => "unauthorized_client" }] if params["refresh_token"].to_s == UNAUTHORIZED_CLIENT_REFRESH
+      return [401, { "error" => "invalid_client" }] if params["refresh_token"].to_s == INVALID_CLIENT_REFRESH
+      return [500, { "error" => "invalid_grant" }] if params["refresh_token"].to_s == INVALID_GRANT_500_REFRESH
       raise Errno::ECONNRESET if params["refresh_token"].to_s == NETWORK_REFRESH
 
       [
