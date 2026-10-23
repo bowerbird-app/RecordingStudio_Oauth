@@ -88,7 +88,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.15`, Cache `~> 0.5`, Site Settings `~> 0.2`, Flatpack `~> 0.1.198`, Trashable `~> 0.10`.
+1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.17`, Cache `~> 0.5`, Site Settings `~> 0.2`, Flatpack `~> 0.1.198`, Trashable `~> 0.10`.
    Also add `recording_studio_metrics` `>= 0.3, < 1.0` (tag `v0.5.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
    Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, additive `recording_studio_trashable_kept_sql`). Pin git tag `v0.10.0` with `require: false` when Bundler would auto-require the gem.
 2. Run `bin/rails generate recording_studio_oauth:install`.
@@ -359,4 +359,4 @@ exists. `connection_id_for` returns that live row's id, or `nil`.
 
 ## Version
 
-0.15.0
+0.15.1
