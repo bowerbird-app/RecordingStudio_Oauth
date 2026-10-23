@@ -1,5 +1,22 @@
 # Upgrading
 
+## 0.15.0
+
+No Oauth migration. Install Oauth `0.15.0`.
+
+Ask connect vs reconnect without touching tokens:
+
+```ruby
+RecordingStudioOauth.connection_status(provider:, root:, actor:)
+# :missing, :active, or :needs_reconnect
+
+RecordingStudioOauth.connection_id_for(provider:, root:, actor:)
+# id for DELETE /outbound/connections/:id, or nil
+```
+
+Those helpers use the same ownership and access rules as
+`connection_for`. They never refresh. `connection_for` is unchanged.
+
 ## 0.14.1
 
 No Oauth migration. Install Oauth `0.14.1` to allow Recording Studio Metrics
