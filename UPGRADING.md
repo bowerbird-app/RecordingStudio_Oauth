@@ -1,5 +1,10 @@
 # Upgrading
 
+## 0.15.1
+
+No Oauth migration. Install Oauth `0.15.1` to allow Recording Studio API
+`>= 0.5.2, < 0.17`. Dummy and development still pin API tag `v0.14.0`. No code change.
+
 ## 0.15.0
 
 No Oauth migration. Install Oauth `0.15.0`.
