@@ -78,6 +78,71 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
     assert_equal root.id, found.id
   end
 
+  test "connected_user_count is live personal rows on that workspace" do
+    other_root, = create_access_recording_for(user: @user, workspace_name: "Other #{SecureRandom.hex(4)}")
+    second = create_user(email: "second-#{SecureRandom.hex(4)}@example.com")
+    grant_view_or_edit_on_new_workspace!(recording: @root_recording, actor: second, role: :view)
+
+    assert_equal 0, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 0, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: nil)
+    assert_equal 0, RecordingStudioOauth.connected_user_count(provider: "", root: @root_recording)
+
+    create_user_connection(actor: @user)
+    assert_equal 1, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+
+    create_user_connection(actor: second)
+    assert_equal 2, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+
+    create_root_connection(status: "active")
+    assert_equal 2, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+
+    create_user_connection(actor: @user, root: other_root)
+    assert_equal 2, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 1, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: other_root)
+
+    create_user_connection(actor: create_user(email: "reconnect-#{SecureRandom.hex(4)}@example.com"), status: "needs_reconnect")
+    assert_equal 3, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+
+    revoked_actor = create_user(email: "revoked-#{SecureRandom.hex(4)}@example.com")
+    create_user_connection(actor: revoked_actor, status: "revoked")
+    assert_equal 3, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 3, RecordingStudioOauth::Outbound.connected_user_count(provider: :fake_drive, root: @root_recording)
+  end
+
+  test "leftover null-root personal rows are not returned for any root" do
+    leftover = RecordingStudioOauth::OutboundConnection.create!(
+      provider_key: "fake_drive",
+      owner_actor: @user,
+      connected_by: @user,
+      access_token: "leftover-#{SecureRandom.hex(4)}",
+      refresh_token: "leftover-refresh-#{SecureRandom.hex(4)}",
+      status: "needs_reconnect",
+      granted_scopes: ["files.read"]
+    )
+    other_root, = create_access_recording_for(user: @user, workspace_name: "Other leftover #{SecureRandom.hex(4)}")
+
+    assert_nil leftover.root_recording_id
+    assert leftover.user_owned?
+    refute leftover.root_owned?
+    assert_equal :missing, status_for(@user)
+    assert_nil id_for(@user)
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user)
+    assert_equal 0, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+  end
+
+  test "root_owned finder does not return a personal row on that root" do
+    create_user_connection(actor: @user)
+
+    found = RecordingStudioOauth::Outbound::LiveConnection.root_owned(
+      provider_key: "fake_drive",
+      root: @root_recording,
+      actor: @user
+    )
+    assert_nil found
+    assert_equal :active, status_for(@user)
+  end
+
   private
 
   def status_for(actor)
@@ -88,10 +153,11 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
     RecordingStudioOauth.connection_id_for(provider: :fake_drive, root: @root_recording, actor: actor)
   end
 
-  def create_user_connection(actor:, status: "active")
+  def create_user_connection(actor:, status: "active", root: @root_recording)
     RecordingStudioOauth::OutboundConnection.create!(
       provider_key: "fake_drive",
       owner_actor: actor,
+      root_recording_id: root&.id,
       connected_by: actor,
       access_token: "user-#{SecureRandom.hex(4)}",
       refresh_token: "user-refresh-#{SecureRandom.hex(4)}",
