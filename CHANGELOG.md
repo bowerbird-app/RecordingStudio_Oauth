@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-10-23
+
+### Added
+- A personal outbound connection stores the workspace root chosen at Connect.
+  The same person can connect the same provider to more than one workspace.
+  Lookup only returns that personal row when the passed root matches.
+- `RecordingStudioOauth.connected_user_count(provider:, root:)` counts live
+  personal connections (`active` or `needs_reconnect`) for that provider on
+  that workspace. It does not count workspace-owned rows, revoked rows, or
+  other workspaces. It does not read tokens or Accessible.
+
+### Changed
+- User Connect requires a workspace root and at least view access. Shared
+  roots stay rejected. Root admins still create workspace-owned rows. Viewers
+  still use those rows. Viewers may also Connect a personal row on that
+  workspace.
+- Live uniqueness is one workspace-owned row per provider plus root, and one
+  personal row per provider plus person plus root.
+- `POST /outbound/:provider/connect` with no `owner` starts a personal
+  handshake. Sending `root_recording_id` does not imply workspace ownership.
+
+### Upgrade notes
+- Bump to `0.16.0`. Run `bin/rails generate recording_studio_oauth:migrations`
+  and migrate.
+- Active personal rows that have no `root_recording_id` become
+  `needs_reconnect`. They are not deleted and they are not attached to a
+  workspace. Lookup never returns them. After a successful personal Connect
+  on a workspace, leftover live null-root personal rows for that person and
+  provider are revoked.
+- Hosts that posted `owner=user` without a root must pass the current
+  workspace `root_recording_id`. Do not treat `root_recording_id` as implying
+  workspace ownership. Pass `owner=root` for a workspace connection.
+
 ## [0.15.1] - 2026-10-23
 
 ### Changed
@@ -631,6 +664,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.16.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.14.0...v0.14.1
