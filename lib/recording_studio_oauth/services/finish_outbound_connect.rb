@@ -42,6 +42,7 @@ module RecordingStudioOauth
         return failure(:token_exchange_failed) if token.body["access_token"].to_s.blank?
 
         connection = upsert_connection!(pending, provider, token.body)
+        revoke_leftover_null_root_user_rows!(pending)
         success(connection: connection, return_to: pending.return_to)
       rescue HandshakeGone
         failure(:invalid_state)
@@ -63,10 +64,9 @@ module RecordingStudioOauth
       end
 
       def recheck_root(pending)
-        return unless pending.root_owned?
-
         root = RecordingStudio::Recording.find_by(id: pending.root_recording_id)
-        Outbound::Access.root_access_error(actor: actor, root: root, role: :admin)
+        role = pending.root_owned? ? :admin : :view
+        Outbound::Access.root_access_error(actor: actor, root: root, role: role)
       end
 
       def consume_handshake!(pending)
@@ -109,9 +109,13 @@ module RecordingStudioOauth
       def live_connection_scope(handshake)
         scope = OutboundConnection.live.for_provider(handshake.provider_key)
         if handshake.root_owned?
-          scope.where(root_recording_id: handshake.root_recording_id)
+          scope.where(root_recording_id: handshake.root_recording_id, owner_actor_id: nil)
         else
-          scope.where(owner_actor_type: handshake.actor_type, owner_actor_id: handshake.actor_id)
+          scope.where(
+            owner_actor_type: handshake.actor_type,
+            owner_actor_id: handshake.actor_id,
+            root_recording_id: handshake.root_recording_id
+          )
         end
       end
 
@@ -125,10 +129,23 @@ module RecordingStudioOauth
           )
         else
           attrs.merge(
-            root_recording_id: nil,
+            root_recording_id: handshake.root_recording_id,
             owner_actor_type: handshake.actor_type,
             owner_actor_id: handshake.actor_id
           )
+        end
+      end
+
+      def revoke_leftover_null_root_user_rows!(handshake)
+        return if handshake.root_owned?
+
+        leftovers = OutboundConnection.live.for_provider(handshake.provider_key).where(
+          owner_actor_type: handshake.actor_type,
+          owner_actor_id: handshake.actor_id,
+          root_recording_id: nil
+        )
+        leftovers.find_each do |row|
+          row.update!(status: "revoked", access_token: nil, refresh_token: nil)
         end
       end
 

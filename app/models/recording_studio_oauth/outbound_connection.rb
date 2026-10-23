@@ -18,22 +18,22 @@ module RecordingStudioOauth
     validates :provider_key, presence: true
     validates :status, presence: true, inclusion: { in: STATUSES }
     validates :access_token, presence: true, unless: :revoked?
-    validate :exactly_one_owner
+    validate :allowed_owner_shape
 
     scope :live, -> { where(status: %w[active needs_reconnect]) }
     scope :usable, -> { where(status: "active") }
     scope :for_provider, ->(key) { where(provider_key: key.to_s) }
 
     def root_owned?
-      root_recording_id.present?
+      owner_actor_id.blank? && root_recording_id.present?
     end
 
     def user_owned?
-      owner_actor_id.present?
+      owner_actor_id.present? && owner_actor_type.present?
     end
 
     def owner_kind
-      root_owned? ? OWNER_ROOT : OWNER_USER
+      user_owned? ? OWNER_USER : OWNER_ROOT
     end
 
     def active?
@@ -58,12 +58,24 @@ module RecordingStudioOauth
 
     private
 
-    def exactly_one_owner
-      root_only = root_recording_id.present? && owner_actor_id.blank? && owner_actor_type.blank?
-      user_only = root_recording_id.blank? && owner_actor_id.present? && owner_actor_type.present?
-      return if root_only || user_only
+    def allowed_owner_shape
+      return if owner_shape_allowed?
 
-      errors.add(:base, "Connection must belong to a workspace or a person, not both")
+      errors.add(:base, "This is not a valid workspace or personal connection.")
+    end
+
+    def owner_shape_allowed?
+      if root_recording_id.present?
+        owner_actor_id.present? == owner_actor_type.present?
+      else
+        leftover_null_root_user?
+      end
+    end
+
+    def leftover_null_root_user?
+      owner_actor_id.present? &&
+        owner_actor_type.present? &&
+        status.in?(%w[needs_reconnect revoked])
     end
   end
 end
