@@ -135,6 +135,8 @@ class OutboundRegistryTest < Minitest::Test
 
   def test_connection_for_is_on_the_public_module
     assert_respond_to RecordingStudioOauth, :connection_for
+    assert_respond_to RecordingStudioOauth, :connection_status
+    assert_respond_to RecordingStudioOauth, :connection_id_for
     assert_respond_to RecordingStudioOauth, :register_outbound_provider
   end
 

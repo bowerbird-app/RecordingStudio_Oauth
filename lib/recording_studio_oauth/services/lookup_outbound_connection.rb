@@ -20,16 +20,14 @@ module RecordingStudioOauth
       end
 
       def pick_user_connection
-        row = actor_connection
+        row = Outbound::LiveConnection.user_owned(provider_key: provider_key, actor: actor)
         return if row.nil? || row.revoked? || row.needs_reconnect?
 
         usable_after_refresh(row)
       end
 
       def pick_root_connection
-        return unless Outbound::Access.may_use_root?(actor: actor, root: root)
-
-        row = root_connection
+        row = Outbound::LiveConnection.root_owned(provider_key: provider_key, root: root, actor: actor)
         return if row.nil? || row.revoked? || row.needs_reconnect?
 
         usable_after_refresh(row)
@@ -42,17 +40,6 @@ module RecordingStudioOauth
         return result.value if result.success?
 
         nil
-      end
-
-      def actor_connection
-        OutboundConnection.live.for_provider(provider_key).find_by(
-          owner_actor_type: actor.class.name,
-          owner_actor_id: actor.id
-        )
-      end
-
-      def root_connection
-        OutboundConnection.live.for_provider(provider_key).find_by(root_recording_id: root.id)
       end
 
       def service_args

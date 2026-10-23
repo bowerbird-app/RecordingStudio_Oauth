@@ -315,6 +315,25 @@ connection = RecordingStudioOauth.connection_for(
 connection&.access_token
 ```
 
+Ask whether that person already has a live connection, without tokens and
+without a refresh:
+
+```ruby
+status = RecordingStudioOauth.connection_status(
+  provider: :google_drive,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# :missing, :active, or :needs_reconnect
+
+connection_id = RecordingStudioOauth.connection_id_for(
+  provider: :google_drive,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# DELETE /outbound/connections/:id
+```
+
 Resolution: the actor's own user-level connection for that provider, else the
 root-level one if the actor may use it. Expired tokens refresh. Refresh writes
 under a row lock and no-ops if the row was revoked, the status moved, or the
@@ -331,6 +350,13 @@ Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
 - A user-level connection is only usable by the person who made it.
 - Roots with `shared: true` cannot own a root-level connection.
 
+`connection_status` uses the same ownership and access rules. It returns
+`:missing` when there is no live row the actor may use, `:needs_reconnect`
+when that row needs a new Connect, and `:active` otherwise. An expired token
+still counts as `:active` here; `connection_for` is the call that refreshes.
+A live user-owned row is reported even when a usable root-owned row also
+exists. `connection_id_for` returns that live row's id, or `nil`.
+
 ## Version
 
-0.14.1
+0.15.0
