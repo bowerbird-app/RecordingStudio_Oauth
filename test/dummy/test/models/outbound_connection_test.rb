@@ -22,7 +22,7 @@ class OutboundConnectionTest < ActiveSupport::TestCase
     )
 
     refute row.valid?
-    assert_includes row.errors[:base], "Connection must belong to a workspace or a person, not both"
+    assert_includes row.errors[:base], "This is not a valid workspace or personal connection."
 
     row.root_recording_id = @root_recording.id
     assert row.valid?

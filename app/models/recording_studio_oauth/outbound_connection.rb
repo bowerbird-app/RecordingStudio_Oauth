@@ -18,7 +18,7 @@ module RecordingStudioOauth
     validates :provider_key, presence: true
     validates :status, presence: true, inclusion: { in: STATUSES }
     validates :access_token, presence: true, unless: :revoked?
-    validate :exactly_one_owner
+    validate :allowed_owner_shape
 
     scope :live, -> { where(status: %w[active needs_reconnect]) }
     scope :usable, -> { where(status: "active") }
@@ -58,10 +58,10 @@ module RecordingStudioOauth
 
     private
 
-    def exactly_one_owner
+    def allowed_owner_shape
       return if owner_shape_allowed?
 
-      errors.add(:base, "Connection must belong to a workspace or a person, not both")
+      errors.add(:base, "This is not a valid workspace or personal connection.")
     end
 
     def owner_shape_allowed?

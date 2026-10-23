@@ -36,7 +36,7 @@ module RecordingStudioOauth
       {
         provider_key: args[:provider_key],
         owner_kind: args[:owner_kind],
-        root_recording_id: root_id_for(args),
+        root_recording_id: args[:root_recording_id],
         actor_type: args[:actor].class.name,
         actor_id: args[:actor].id
       }
@@ -50,11 +50,7 @@ module RecordingStudioOauth
         expires_at: TTL.from_now
       }
     end
-
-    def self.root_id_for(args)
-      args[:root_recording_id]
-    end
-    private_class_method :actor_attrs, :secret_attrs, :root_id_for
+    private_class_method :actor_attrs, :secret_attrs
 
     def self.find_by_state(state)
       raw = state.to_s
