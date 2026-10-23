@@ -56,7 +56,7 @@ en:
         errors:
           unknown_provider: "That app isn't set up here."
           unauthenticated: "Sign in first."
-          shared_root: "This shared space can't own a connection. Connect it to your account instead."
+          shared_root: "This shared space can't hold a connection."
           not_admin: "Only an admin can connect this for the whole workspace."
           root_required: "Pick a workspace first."
           invalid_root: "Pick a workspace, not a nested folder."

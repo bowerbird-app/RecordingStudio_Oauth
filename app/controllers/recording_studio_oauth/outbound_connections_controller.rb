@@ -48,7 +48,6 @@ module RecordingStudioOauth
     def owner_kind_from_params
       requested = params[:owner].to_s
       return requested if [OutboundConnection::OWNER_ROOT, OutboundConnection::OWNER_USER].include?(requested)
-      return OutboundConnection::OWNER_ROOT if params[:root_recording_id].present?
 
       OutboundConnection::OWNER_USER
     end

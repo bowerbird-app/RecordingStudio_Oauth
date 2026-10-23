@@ -56,7 +56,7 @@ fr:
         errors:
           unknown_provider: "Cette application n’est pas configurée ici."
           unauthenticated: "Connectez-vous d’abord."
-          shared_root: "Cet espace partagé ne peut pas posséder une connexion. Reliez-la à votre compte."
+          shared_root: "Cet espace partagé ne peut pas garder une connexion."
           not_admin: "Seul un admin peut connecter ça pour tout l’espace."
           root_required: "Choisissez d’abord un espace."
           invalid_root: "Choisissez un espace, pas un dossier imbriqué."
