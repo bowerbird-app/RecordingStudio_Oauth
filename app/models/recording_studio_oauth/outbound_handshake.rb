@@ -52,7 +52,7 @@ module RecordingStudioOauth
     end
 
     def self.root_id_for(args)
-      args[:root_recording_id] if args[:owner_kind] == OutboundConnection::OWNER_ROOT
+      args[:root_recording_id]
     end
     private_class_method :actor_attrs, :secret_attrs, :root_id_for
 

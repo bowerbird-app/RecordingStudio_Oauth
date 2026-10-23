@@ -42,5 +42,15 @@ module RecordingStudioOauth
     def connection_id_for(provider:, root:, actor:)
       LiveConnection.find(provider: provider, root: root, actor: actor)&.id
     end
+
+    def connected_user_count(provider:, root:)
+      provider_key = provider.to_s
+      return 0 if root.nil? || provider_key.blank?
+      return 0 unless root.respond_to?(:id)
+
+      OutboundConnection.live.for_provider(provider_key).where(
+        root_recording_id: root.id
+      ).where.not(owner_actor_id: nil).count
+    end
   end
 end

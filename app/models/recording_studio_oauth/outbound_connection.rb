@@ -25,15 +25,15 @@ module RecordingStudioOauth
     scope :for_provider, ->(key) { where(provider_key: key.to_s) }
 
     def root_owned?
-      root_recording_id.present?
+      owner_actor_id.blank? && root_recording_id.present?
     end
 
     def user_owned?
-      owner_actor_id.present?
+      owner_actor_id.present? && owner_actor_type.present?
     end
 
     def owner_kind
-      root_owned? ? OWNER_ROOT : OWNER_USER
+      user_owned? ? OWNER_USER : OWNER_ROOT
     end
 
     def active?
@@ -60,8 +60,12 @@ module RecordingStudioOauth
 
     def exactly_one_owner
       root_only = root_recording_id.present? && owner_actor_id.blank? && owner_actor_type.blank?
-      user_only = root_recording_id.blank? && owner_actor_id.present? && owner_actor_type.present?
-      return if root_only || user_only
+      user_on_root = root_recording_id.present? && owner_actor_id.present? && owner_actor_type.present?
+      leftover_user = root_recording_id.blank? &&
+                      owner_actor_id.present? &&
+                      owner_actor_type.present? &&
+                      status.in?(%w[needs_reconnect revoked])
+      return if root_only || user_on_root || leftover_user
 
       errors.add(:base, "Connection must belong to a workspace or a person, not both")
     end
