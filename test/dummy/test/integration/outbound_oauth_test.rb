@@ -586,6 +586,16 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal other_root.id, second.root_recording_id
     assert_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user).id
     refute_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user).id
+
+    disconnect = RecordingStudioOauth::Services::DisconnectOutboundConnection.call(
+      connection: first,
+      actor: @user
+    )
+    assert disconnect.success?
+    assert_equal "revoked", first.reload.status
+    still = RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user)
+    assert_equal second.id, still.id
+    assert_equal "active", still.status
   end
 
   test "viewer can connect a personal row" do
