@@ -59,15 +59,23 @@ module RecordingStudioOauth
     private
 
     def exactly_one_owner
-      root_only = root_recording_id.present? && owner_actor_id.blank? && owner_actor_type.blank?
-      user_on_root = root_recording_id.present? && owner_actor_id.present? && owner_actor_type.present?
-      leftover_user = root_recording_id.blank? &&
-                      owner_actor_id.present? &&
-                      owner_actor_type.present? &&
-                      status.in?(%w[needs_reconnect revoked])
-      return if root_only || user_on_root || leftover_user
+      return if owner_shape_allowed?
 
       errors.add(:base, "Connection must belong to a workspace or a person, not both")
+    end
+
+    def owner_shape_allowed?
+      if root_recording_id.present?
+        owner_actor_id.present? == owner_actor_type.present?
+      else
+        leftover_null_root_user?
+      end
+    end
+
+    def leftover_null_root_user?
+      owner_actor_id.present? &&
+        owner_actor_type.present? &&
+        status.in?(%w[needs_reconnect revoked])
     end
   end
 end
