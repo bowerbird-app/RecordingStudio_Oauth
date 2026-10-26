@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rows, workspace-owned rows, or other workspaces. It does not read tokens.
 
 ### Changed
+- Development and dummy pin Flatpack `v0.1.311` so Bundler Audit can pass
+  (`view_component` `>= 4.14`).
 - User Connect requires a workspace root and at least view access. Shared
   roots stay rejected. Root admins still create workspace-owned rows. Viewers
   still use those rows. Viewers may also Connect a personal row on that
@@ -36,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   workspace `root_recording_id`. Explicit `owner=user` with `root_recording_id`
   still creates a personal row on that root. Omitting `owner` while sending
   `root_recording_id` still starts a workspace Connect.
+- Pin Flatpack at `v0.1.311` in development and dummy Gemfiles so
+  `view_component` can be `>= 4.14`. The runtime gemspec still allows
+  `flat_pack` `~> 0.1.198`.
 
 ## [0.15.1] - 2026-10-23
 

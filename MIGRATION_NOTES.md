@@ -13,7 +13,7 @@
 - Site Settings `~> 0.2` (dummy tag `v0.2.0`). `0.2.0` adds i18n for flashes and logo helper alts (English unchanged).
 - Attachable `~> 0.5` (dummy tag `v0.15.0`, required by Site Settings). Dummy includes library and placement migrations from Attachable `0.12.0`. View copy uses Rails I18n (`recording_studio.attachable.*`); `0.15.0` is translation-only (English unchanged).
 - Root Switchable dummy tag `v0.8.0` (view and mounted-page `page_copy` use Rails I18n under `recording_studio.root_switchable.*`; English unchanged)
-- Flatpack `~> 0.1.198` (dummy tag `v0.1.213`; Attachable `0.11+` needs `>= 0.1.213`)
+- Flatpack `~> 0.1.198` (dummy tag `v0.1.311`; Attachable `0.11+` needs `>= 0.1.213`. `0.1.311` allows `view_component` `>= 4.14`.)
 
 Do not depend on Users.
 
