@@ -609,36 +609,16 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal connection.id, found.id
   end
 
-  test "omitted owner with a root starts a personal handshake" do
+  test "omitted owner with a root starts a workspace handshake" do
     post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
       root_recording_id: @root_recording.id,
       return_to: "/"
     }
     assert_response :redirect
     handshake = RecordingStudioOauth::OutboundHandshake.find_by_state(authorize_query.fetch("state"))
-    assert_equal "user", handshake.owner_kind
+    assert_equal "root", handshake.owner_kind
     assert_equal @root_recording.id, handshake.root_recording_id
     assert_equal 0, RecordingStudioOauth::OutboundConnection.count
-  end
-
-  test "successful personal connect revokes leftover null-root rows" do
-    leftover = RecordingStudioOauth::OutboundConnection.create!(
-      provider_key: "fake_drive",
-      owner_actor: @user,
-      connected_by: @user,
-      access_token: "leftover-live",
-      refresh_token: "leftover-live-refresh",
-      status: "needs_reconnect",
-      granted_scopes: ["files.read"]
-    )
-    follow_connect!(owner: "user", root_recording_id: @root_recording.id)
-
-    leftover.reload
-    assert_equal "revoked", leftover.status
-    assert_nil leftover.access_token
-    live = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user, root_recording_id: @root_recording.id)
-    assert_equal "active", live.status
-    refute_equal leftover.id, live.id
   end
 
   test "inbound authorize route is unchanged" do

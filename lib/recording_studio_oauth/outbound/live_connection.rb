@@ -2,6 +2,9 @@
 
 module RecordingStudioOauth
   module Outbound
+    # Finds the live outbound row for a provider, root, and actor.
+    # Personal row on the passed root first, then a workspace row the actor may use.
+    # Does not refresh tokens.
     module LiveConnection
       module_function
 

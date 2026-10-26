@@ -23,20 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   workspace.
 - Live uniqueness is one workspace-owned row per provider plus root, and one
   personal row per provider plus person plus root.
-- `POST /outbound/:provider/connect` with no `owner` starts a personal
-  handshake. Sending `root_recording_id` does not imply workspace ownership.
 
 ### Upgrade notes
 - Bump to `0.16.0`. Run `bin/rails generate recording_studio_oauth:migrations`
   and migrate.
 - Active personal rows that have no `root_recording_id` become
   `needs_reconnect`. They are not deleted and they are not attached to a
-  workspace. Lookup never returns them. After a successful personal Connect
-  on a workspace, leftover live null-root personal rows for that person and
-  provider are revoked.
+  workspace. Lookup never returns them.
 - Hosts that posted `owner=user` without a root must pass the current
-  workspace `root_recording_id`. Do not treat `root_recording_id` as implying
-  workspace ownership. Pass `owner=root` for a workspace connection.
+  workspace `root_recording_id`. Explicit `owner=user` with `root_recording_id`
+  still creates a personal row on that root. Omitting `owner` while sending
+  `root_recording_id` still starts a workspace Connect.
 
 ## [0.15.1] - 2026-10-23
 

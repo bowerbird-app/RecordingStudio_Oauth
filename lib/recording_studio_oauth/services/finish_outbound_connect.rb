@@ -42,7 +42,6 @@ module RecordingStudioOauth
         return failure(:token_exchange_failed) if token.body["access_token"].to_s.blank?
 
         connection = upsert_connection!(pending, provider, token.body)
-        revoke_leftover_null_root_user_rows!(pending)
         success(connection: connection, return_to: pending.return_to)
       rescue HandshakeGone
         failure(:invalid_state)
@@ -133,19 +132,6 @@ module RecordingStudioOauth
             owner_actor_type: handshake.actor_type,
             owner_actor_id: handshake.actor_id
           )
-        end
-      end
-
-      def revoke_leftover_null_root_user_rows!(handshake)
-        return if handshake.root_owned?
-
-        leftovers = OutboundConnection.live.for_provider(handshake.provider_key).where(
-          owner_actor_type: handshake.actor_type,
-          owner_actor_id: handshake.actor_id,
-          root_recording_id: nil
-        )
-        leftovers.find_each do |row|
-          row.update!(status: "revoked", access_token: nil, refresh_token: nil)
         end
       end
 

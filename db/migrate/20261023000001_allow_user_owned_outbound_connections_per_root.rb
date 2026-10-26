@@ -51,20 +51,6 @@ class AllowUserOwnedOutboundConnectionsPerRoot < ActiveRecord::Migration[8.1]
   end
 
   def down
-    remove_check_constraint TABLE, name: "chk_rs_oauth_outbound_owner"
-    remove_index TABLE, name: "idx_rs_oauth_outbound_live_root"
-    remove_index TABLE, name: "idx_rs_oauth_outbound_live_user"
-
-    add_check_constraint TABLE, OLD_OWNER_CHECK, name: "chk_rs_oauth_outbound_owner"
-    add_index TABLE,
-              %i[provider_key root_recording_id],
-              unique: true,
-              where: "root_recording_id IS NOT NULL AND status IN ('active', 'needs_reconnect')",
-              name: "idx_rs_oauth_outbound_live_root"
-    add_index TABLE,
-              %i[provider_key owner_actor_type owner_actor_id],
-              unique: true,
-              where: "owner_actor_id IS NOT NULL AND status IN ('active', 'needs_reconnect')",
-              name: "idx_rs_oauth_outbound_live_user"
+    raise ActiveRecord::IrreversibleMigration
   end
 end

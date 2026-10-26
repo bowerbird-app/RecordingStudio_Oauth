@@ -11,9 +11,9 @@ The same person can connect the same provider to two workspaces. Shared roots
 stay rejected.
 
 Hosts that posted `owner=user` without a root must pass the current workspace
-`root_recording_id`. Omitting `owner` still starts a personal Connect. Do not
-treat a present `root_recording_id` as a workspace-owned Connect. Pass
-`owner=root` when an admin connects the workspace.
+`root_recording_id`. Explicit `owner=user` with `root_recording_id` still
+creates a personal row on that root. Omitting `owner` while sending
+`root_recording_id` still starts a workspace Connect.
 
 Count people with a live personal connection on a workspace:
 
@@ -25,9 +25,7 @@ That count includes `needs_reconnect`. It excludes revoked rows, workspace-owned
 rows, and other workspaces. It does not take an actor and does not read tokens.
 
 Active personal rows that have no `root_recording_id` become `needs_reconnect`.
-They stay in the table. Lookup does not return them for any workspace. After a
-successful personal Connect, leftover live null-root personal rows for that
-person and provider are revoked.
+They stay in the table. Lookup does not return them for any workspace.
 
 `connection_for`, `connection_status`, and `connection_id_for` still take
 `provider:`, `root:`, and `actor:`.

@@ -368,8 +368,6 @@ Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
 - A personal connection is only usable by the person who made it, and only on
   the workspace stored on that row.
 - Roots with `shared: true` cannot hold an outbound connection.
-- Omitting `owner` starts a personal Connect. A present `root_recording_id` does
-  not switch that to workspace ownership.
 
 `connection_status` uses the same ownership and access rules. It returns
 `:missing` when there is no live row the actor may use, `:needs_reconnect`

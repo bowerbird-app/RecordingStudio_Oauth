@@ -9,6 +9,7 @@ class OutboundUserRootMigrationTest < ActiveSupport::TestCase
   include OauthDummyHelpers
 
   TABLE = :recording_studio_oauth_outbound_connections
+  MIGRATION = AllowUserOwnedOutboundConnectionsPerRoot
 
   setup do
     @user = create_user
@@ -29,14 +30,7 @@ class OutboundUserRootMigrationTest < ActiveSupport::TestCase
       actor: create_user(email: "revoked-#{SecureRandom.hex(4)}@example.com")
     )
 
-    ActiveRecord::Base.connection.execute(<<~SQL.squish)
-      UPDATE recording_studio_oauth_outbound_connections
-      SET status = 'needs_reconnect'
-      WHERE owner_actor_id IS NOT NULL
-        AND root_recording_id IS NULL
-        AND status = 'active'
-    SQL
-    restore_current_owner_check!
+    ActiveRecord::Migration.suppress_messages { MIGRATION.new.up }
 
     active.reload
     already.reload
@@ -57,11 +51,27 @@ class OutboundUserRootMigrationTest < ActiveSupport::TestCase
       root: @root_recording,
       actor: @user
     )
+
+    indexes = connection.indexes(TABLE)
+    root_index = indexes.find { |index| index.name == "idx_rs_oauth_outbound_live_root" }
+    user_index = indexes.find { |index| index.name == "idx_rs_oauth_outbound_live_user" }
+    assert root_index
+    assert user_index
+    assert_includes root_index.where, "owner_actor_id IS NULL"
+    assert_equal %w[provider_key owner_actor_type owner_actor_id root_recording_id], user_index.columns
+    assert_includes user_index.where, "root_recording_id IS NOT NULL"
+    owner_check = connection.check_constraints(TABLE).find { |item| item.name == "chk_rs_oauth_outbound_owner" }
+    assert owner_check
+    assert_includes owner_check.expression, "needs_reconnect"
   ensure
     restore_current_owner_check!
   end
 
   private
+
+  def connection
+    ActiveRecord::Base.connection
+  end
 
   def insert_null_root_user_row!(status:, token:, actor: @user)
     row = RecordingStudioOauth::OutboundConnection.new(
@@ -78,22 +88,61 @@ class OutboundUserRootMigrationTest < ActiveSupport::TestCase
   end
 
   def restore_legacy_owner_check!
-    connection = ActiveRecord::Base.connection
-    connection.remove_check_constraint TABLE, name: "chk_rs_oauth_outbound_owner"
+    drop_owner_indexes_and_check!
     connection.add_check_constraint(
       TABLE,
-      AllowUserOwnedOutboundConnectionsPerRoot::OLD_OWNER_CHECK,
+      MIGRATION::OLD_OWNER_CHECK,
       name: "chk_rs_oauth_outbound_owner"
+    )
+    connection.add_index(
+      TABLE,
+      %i[provider_key root_recording_id],
+      unique: true,
+      where: "root_recording_id IS NOT NULL AND status IN ('active', 'needs_reconnect')",
+      name: "idx_rs_oauth_outbound_live_root"
+    )
+    connection.add_index(
+      TABLE,
+      %i[provider_key owner_actor_type owner_actor_id],
+      unique: true,
+      where: "owner_actor_id IS NOT NULL AND status IN ('active', 'needs_reconnect')",
+      name: "idx_rs_oauth_outbound_live_user"
     )
   end
 
   def restore_current_owner_check!
-    connection = ActiveRecord::Base.connection
-    connection.remove_check_constraint TABLE, name: "chk_rs_oauth_outbound_owner"
+    drop_owner_indexes_and_check!
     connection.add_check_constraint(
       TABLE,
-      AllowUserOwnedOutboundConnectionsPerRoot::NEW_OWNER_CHECK,
+      MIGRATION::NEW_OWNER_CHECK,
       name: "chk_rs_oauth_outbound_owner"
     )
+    connection.add_index(
+      TABLE,
+      %i[provider_key root_recording_id],
+      unique: true,
+      where: "root_recording_id IS NOT NULL AND owner_actor_id IS NULL AND status IN ('active', 'needs_reconnect')",
+      name: "idx_rs_oauth_outbound_live_root"
+    )
+    connection.add_index(
+      TABLE,
+      %i[provider_key owner_actor_type owner_actor_id root_recording_id],
+      unique: true,
+      where: "owner_actor_id IS NOT NULL AND root_recording_id IS NOT NULL AND status IN ('active', 'needs_reconnect')",
+      name: "idx_rs_oauth_outbound_live_user"
+    )
+  end
+
+  def drop_owner_indexes_and_check!
+    connection.remove_check_constraint TABLE, name: "chk_rs_oauth_outbound_owner" if owner_check_exists?
+    names = connection.indexes(TABLE).map(&:name)
+    connection.remove_index TABLE, name: "idx_rs_oauth_outbound_live_root" if names.include?("idx_rs_oauth_outbound_live_root")
+    return unless names.include?("idx_rs_oauth_outbound_live_user")
+
+    connection.remove_index TABLE, name: "idx_rs_oauth_outbound_live_user"
+  end
+
+  def owner_check_exists?
+    connection.check_constraints(TABLE).any? { |item| item.name == "chk_rs_oauth_outbound_owner" }
   end
 end

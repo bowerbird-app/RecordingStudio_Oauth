@@ -421,7 +421,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000001) do
     t.index ["root_recording_id"], name: "idx_on_root_recording_id_85327fae16"
     t.index ["status"], name: "index_recording_studio_oauth_outbound_connections_on_status"
     t.check_constraint "root_recording_id IS NOT NULL AND owner_actor_id IS NULL AND owner_actor_type IS NULL OR root_recording_id IS NOT NULL AND owner_actor_id IS NOT NULL AND owner_actor_type IS NOT NULL OR root_recording_id IS NULL AND owner_actor_id IS NOT NULL AND owner_actor_type IS NOT NULL AND (status::text = ANY (ARRAY['needs_reconnect'::character varying, 'revoked'::character varying]::text[]))", name: "chk_rs_oauth_outbound_owner"
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'needs_reconnect'::character varying::text, 'revoked'::character varying::text])", name: "chk_rs_oauth_outbound_status"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'needs_reconnect'::character varying, 'revoked'::character varying]::text[])", name: "chk_rs_oauth_outbound_status"
   end
 
   create_table "recording_studio_oauth_outbound_handshakes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
