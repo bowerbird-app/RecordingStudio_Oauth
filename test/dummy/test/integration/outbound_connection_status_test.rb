@@ -216,9 +216,12 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
 
     assert_equal :root, root.fetch(:kind)
     assert_equal :user, personal.fetch(:kind)
+    assert_equal(%i[key kind], root.keys)
     assert_equal FakeOauth, RecordingStudioOauth::Outbound.provider("fake_drive").http
     assert_equal FakeOauth, RecordingStudioOauth::Outbound.provider("fake_drive_user").http
     refute listed.any? { |item| item.key?(:client_secret) }
+    refute listed.any? { |item| item.key?(:client_id) }
+    refute listed.any? { |item| item.key?(:http) }
     refute_includes listed.inspect, FakeOauth::CLIENT_SECRET
   end
 

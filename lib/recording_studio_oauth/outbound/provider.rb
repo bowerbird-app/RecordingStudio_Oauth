@@ -19,7 +19,7 @@ module RecordingStudioOauth
       end
 
       def public_attributes
-        to_h.except(:client_secret, :http).freeze
+        { key: key, kind: kind }.freeze
       end
 
       def inspect

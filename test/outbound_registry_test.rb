@@ -75,21 +75,31 @@ class OutboundRegistryTest < Minitest::Test
     drive = listed.find { |item| item.fetch(:key) == "drive" }
     mail = listed.find { |item| item.fetch(:key) == "mail" }
 
-    assert_equal :root, drive.fetch(:kind)
-    assert_equal :user, mail.fetch(:kind)
-    assert_equal "https://example.test/auth", drive.fetch(:authorize_url)
-    assert_equal "https://example.test/token", drive.fetch(:token_url)
-    assert_equal ["files.read"], drive.fetch(:scopes)
-    assert_equal "id", drive.fetch(:client_id)
-    assert drive.fetch(:pkce)
-    assert drive.fetch(:refresh)
-    assert_equal "https://example.test/revoke", drive.fetch(:revoke_url)
-    assert_equal({}, drive.fetch(:extra_authorize_params))
+    assert_equal({ key: "drive", kind: :root }, drive)
+    assert_equal({ key: "mail", kind: :user }, mail)
     refute drive.key?(:client_secret)
+    refute drive.key?(:client_id)
+    refute drive.key?(:authorize_url)
+    refute drive.key?(:token_url)
+    refute drive.key?(:scopes)
     refute drive.key?(:http)
     refute_includes listed.inspect, SECRET
     assert listed.frozen?
     assert drive.frozen?
+  end
+
+  def test_public_attributes_does_not_expose_fields_outside_the_allowlist
+    provider = RecordingStudioOauth.register_outbound_provider(**valid_options)
+    listed = provider.public_attributes
+
+    assert_equal(%i[key kind], listed.keys)
+    refute listed.key?(:extra_authorize_params)
+    refute listed.key?(:pkce)
+    refute listed.key?(:refresh)
+    refute listed.key?(:revoke_url)
+    refute listed.key?(:client_id)
+    refute listed.key?(:client_secret)
+    refute listed.key?(:http)
   end
 
   def test_missing_key_raises

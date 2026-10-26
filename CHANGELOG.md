@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   actor may not view the root.
 
 ### Changed
+- `outbound_providers` / `public_attributes` return only `key` and `kind`.
 - Connect `owner=root` only works for `kind: :root` providers.
   `owner=user` only works for `kind: :user` providers. Mismatches fail with
   `:kind_mismatch`. Omitting `owner` still defaults to workspace when
