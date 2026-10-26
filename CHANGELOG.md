@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-10-26
+
+### Added
+- `kind: :root` or `kind: :user` on `register_outbound_provider`, stored on
+  `Outbound::Provider`. Missing or unknown kinds raise.
+- `RecordingStudioOauth.outbound_providers` lists registered providers (`key`,
+  `kind`, and the other safe registration fields). It never includes
+  `client_secret`, tokens, or the HTTP adapter.
+- `RecordingStudioOauth.combined_connection_status(provider:, root:, actor:)`
+  returns `{ workspace:, personal: }` as `:missing`, `:active`, or
+  `:needs_reconnect` without merging the slots. Both are `:missing` when the
+  actor may not view the root.
+
+### Changed
+- Connect `owner=root` only works for `kind: :root` providers.
+  `owner=user` only works for `kind: :user` providers. Mismatches fail with
+  `:kind_mismatch`. Omitting `owner` still defaults to workspace when
+  `root_recording_id` is present, and to personal when it is not.
+- Dummy registers `:fake_drive` (`kind: :root`) and `:fake_drive_user`
+  (`kind: :user`) against the same fake HTTP adapter.
+
+### Upgrade notes
+- Bump to `0.17.0`. No migration.
+- Pass `kind: :root` or `kind: :user` on every outbound provider registration.
+- Hosts that used one provider key for both workspace and personal Connect
+  should register two keys.
+- Plugins should iterate `outbound_providers` and call
+  `combined_connection_status` instead of a private LiveConnection lookup.
+  Display name, description, and icon stay outside Oauth.
+
 ## [0.16.0] - 2026-10-23
 
 ### Added
@@ -663,6 +693,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.17.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.14.1...v0.15.0

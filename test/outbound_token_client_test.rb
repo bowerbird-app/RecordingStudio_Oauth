@@ -47,6 +47,7 @@ class OutboundTokenClientTest < Minitest::Test
   def provider
     RecordingStudioOauth::Outbound::Provider.new(
       key: "drive",
+      kind: :root,
       authorize_url: "https://example.test/auth",
       token_url: "https://example.test/token",
       scopes: ["files.read"],

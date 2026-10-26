@@ -32,7 +32,7 @@ module RecordingStudioOauth
         return failure(:unknown_provider) if provider.nil?
         return failure(:unauthenticated) if actor.nil?
 
-        owner_error = validate_owner
+        owner_error = validate_owner(provider)
         return owner_error if owner_error
 
         handshake = OutboundHandshake.issue!(
@@ -47,16 +47,19 @@ module RecordingStudioOauth
         success(location: authorize_location(provider, handshake), handshake: handshake)
       end
 
-      def validate_owner
+      def validate_owner(provider)
         if owner_kind == OutboundConnection::OWNER_ROOT
-          error = Outbound::Access.root_access_error(actor: actor, root: root, role: :admin)
-          return failure(error) if error
+          role = :admin
         elsif owner_kind == OutboundConnection::OWNER_USER
-          error = Outbound::Access.root_access_error(actor: actor, root: root, role: :view)
-          return failure(error) if error
+          role = :view
         else
           return failure(:invalid_owner)
         end
+
+        return failure(:kind_mismatch) unless provider.kind.to_s == owner_kind
+
+        error = Outbound::Access.root_access_error(actor: actor, root: root, role: role)
+        return failure(error) if error
 
         nil
       end

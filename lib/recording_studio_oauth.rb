@@ -62,12 +62,20 @@ module RecordingStudioOauth
       Outbound.register_provider(**)
     end
 
+    def outbound_providers
+      Outbound.providers
+    end
+
     def connection_for(provider:, root:, actor:)
       Outbound.connection_for(provider: provider, root: root, actor: actor)
     end
 
     def connection_status(provider:, root:, actor:)
       Outbound.connection_status(provider: provider, root: root, actor: actor)
+    end
+
+    def combined_connection_status(provider:, root:, actor:)
+      Outbound.combined_connection_status(provider: provider, root: root, actor: actor)
     end
 
     def connection_id_for(provider:, root:, actor:)

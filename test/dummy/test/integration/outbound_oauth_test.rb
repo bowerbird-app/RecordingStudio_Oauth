@@ -55,7 +55,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     follow_connect!(owner: "user", root_recording_id: @root_recording.id)
 
     connection = RecordingStudioOauth::OutboundConnection.find_by!(
-      provider_key: "fake_drive",
+      provider_key: "fake_drive_user",
       owner_actor: @user
     )
     assert connection.user_owned?
@@ -125,7 +125,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     end
 
     result = RecordingStudioOauth::Services::StartOutboundConnect.call(
-      provider: "fake_drive",
+      provider: "fake_drive_user",
       actor: @user,
       owner_kind: "user",
       root: @root_recording,
@@ -169,7 +169,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal 0, RecordingStudioOauth::OutboundConnection.where(root_recording_id: shared_root.id).count
 
     user_start = RecordingStudioOauth::Services::StartOutboundConnect.call(
-      provider: "fake_drive",
+      provider: "fake_drive_user",
       actor: @user,
       owner_kind: "user",
       root: shared_root,
@@ -199,7 +199,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal :shared_root, finish.error
 
     user_handshake = RecordingStudioOauth::OutboundHandshake.issue!(
-      provider_key: "fake_drive",
+      provider_key: "fake_drive_user",
       owner_kind: "user",
       root_recording_id: shared_root.id,
       actor: @user,
@@ -300,7 +300,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
   end
 
   test "authorize URL uses PKCE S256 and extra params cannot override reserved keys" do
-    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive_user"), params: {
       owner: "user",
       root_recording_id: @root_recording.id,
       return_to: "/"
@@ -313,6 +313,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
     RecordingStudioOauth.register_outbound_provider(
       key: :drive_override,
+      kind: :user,
       authorize_url: "https://example.test/auth",
       token_url: "https://example.test/token",
       client_id: "real-id",
@@ -482,10 +483,17 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
   test "a user connection in needs_reconnect falls through to a usable root connection" do
     follow_connect!(owner: "root", root_recording_id: @root_recording.id)
-    follow_connect!(owner: "user", root_recording_id: @root_recording.id)
-    user_connection = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
     root_connection = RecordingStudioOauth::OutboundConnection.find_by!(root_recording_id: @root_recording.id)
-    user_connection.update!(status: "needs_reconnect")
+    RecordingStudioOauth::OutboundConnection.create!(
+      provider_key: "fake_drive",
+      owner_actor: @user,
+      root_recording_id: @root_recording.id,
+      connected_by: @user,
+      access_token: "user-reconnect-#{SecureRandom.hex(4)}",
+      refresh_token: "user-reconnect-refresh-#{SecureRandom.hex(4)}",
+      status: "needs_reconnect",
+      granted_scopes: ["files.read"]
+    )
 
     found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
     assert_equal root_connection.id, found.id
@@ -513,10 +521,10 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     user_connection = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
 
     sign_in @viewer
-    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: @root_recording, actor: @viewer)
 
     sign_in @user
-    found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
+    found = RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: @root_recording, actor: @user)
     assert_equal user_connection.id, found.id
   end
 
@@ -554,7 +562,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
   test "user connect without a root is rejected" do
     result = RecordingStudioOauth::Services::StartOutboundConnect.call(
-      provider: "fake_drive",
+      provider: "fake_drive_user",
       actor: @user,
       owner_kind: "user",
       callback_url: callback_url
@@ -563,7 +571,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal :root_required, result.error
     assert_equal 0, RecordingStudioOauth::OutboundConnection.count
 
-    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive_user"), params: {
       owner: "user",
       return_to: "/"
     }
@@ -577,15 +585,15 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     follow_connect!(owner: "user", root_recording_id: @root_recording.id)
     follow_connect!(owner: "user", root_recording_id: other_root.id)
 
-    first = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user)
-    second = RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user)
+    first = RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: @root_recording, actor: @user)
+    second = RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: other_root, actor: @user)
     assert first.user_owned?
     assert second.user_owned?
     refute_equal first.id, second.id
     assert_equal @root_recording.id, first.root_recording_id
     assert_equal other_root.id, second.root_recording_id
-    assert_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @user).id
-    refute_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user).id
+    assert_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: @root_recording, actor: @user).id
+    refute_equal first.id, RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: other_root, actor: @user).id
 
     disconnect = RecordingStudioOauth::Services::DisconnectOutboundConnection.call(
       connection: first,
@@ -593,7 +601,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     )
     assert disconnect.success?
     assert_equal "revoked", first.reload.status
-    still = RecordingStudioOauth.connection_for(provider: :fake_drive, root: other_root, actor: @user)
+    still = RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: other_root, actor: @user)
     assert_equal second.id, still.id
     assert_equal "active", still.status
   end
@@ -605,7 +613,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     connection = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @viewer)
     assert connection.user_owned?
     assert_equal @root_recording.id, connection.root_recording_id
-    found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    found = RecordingStudioOauth.connection_for(provider: :fake_drive_user, root: @root_recording, actor: @viewer)
     assert_equal connection.id, found.id
   end
 
@@ -619,6 +627,58 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_equal "root", handshake.owner_kind
     assert_equal @root_recording.id, handshake.root_recording_id
     assert_equal 0, RecordingStudioOauth::OutboundConnection.count
+  end
+
+  test "owner user is rejected on a root provider" do
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive",
+      actor: @user,
+      owner_kind: "user",
+      root: @root_recording,
+      callback_url: callback_url
+    )
+    refute result.success?
+    assert_equal :kind_mismatch, result.error
+
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+      owner: "user",
+      root_recording_id: @root_recording.id,
+      return_to: "/"
+    }
+    assert_response :redirect
+    refute_includes response.redirect_url, "fake_oauth"
+    assert_equal 0, RecordingStudioOauth::OutboundHandshake.count
+  end
+
+  test "owner root is rejected on a user provider" do
+    result = RecordingStudioOauth::Services::StartOutboundConnect.call(
+      provider: "fake_drive_user",
+      actor: @user,
+      owner_kind: "root",
+      root: @root_recording,
+      callback_url: callback_url
+    )
+    refute result.success?
+    assert_equal :kind_mismatch, result.error
+
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive_user"), params: {
+      owner: "root",
+      root_recording_id: @root_recording.id,
+      return_to: "/"
+    }
+    assert_response :redirect
+    refute_includes response.redirect_url, "fake_oauth"
+    assert_equal 0, RecordingStudioOauth::OutboundHandshake.count
+  end
+
+  test "omitted owner with a root still defaults to workspace on a user provider and is rejected" do
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive_user"), params: {
+      root_recording_id: @root_recording.id,
+      return_to: "/"
+    }
+    assert_response :redirect
+    refute_includes response.redirect_url, "fake_oauth"
+    assert_equal 0, RecordingStudioOauth::OutboundHandshake.count
   end
 
   test "inbound authorize route is unchanged" do
@@ -640,7 +700,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
   test "before_service receives the provider key not the handshake nonce" do
     original = RecordingStudio::Hooks.method(:run)
     start = RecordingStudioOauth::Services::StartOutboundConnect.call(
-      provider: "fake_drive",
+      provider: "fake_drive_user",
       actor: @user,
       owner_kind: "user",
       root: @root_recording,
@@ -664,7 +724,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     finish = finish_with(state: handshake.nonce, code: code)
     assert finish.success?
 
-    assert_equal "fake_drive", seen[:provider]
+    assert_equal "fake_drive_user", seen[:provider]
     refute_equal handshake.nonce, seen[:provider]
   ensure
     RecordingStudio::Hooks.singleton_class.send(:define_method, :run, original)
@@ -703,7 +763,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     follow_connect!(owner: "user", root_recording_id: @root_recording.id)
     live = RecordingStudioOauth::OutboundConnection.find_by!(owner_actor: @user)
     handshake = RecordingStudioOauth::OutboundHandshake.issue!(
-      provider_key: "fake_drive",
+      provider_key: "fake_drive_user",
       owner_kind: "user",
       root_recording_id: @root_recording.id,
       actor: @user,
@@ -737,7 +797,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
   end
 
   test "callback url comes from the route helper" do
-    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive_user"), params: {
       owner: "user",
       root_recording_id: @root_recording.id,
       return_to: "/"
@@ -757,8 +817,9 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
-  def start_connect!(owner:, root_recording_id: nil, return_to: "/")
-    post recording_studio_oauth.outbound_connect_path(provider: "fake_drive"), params: {
+  def start_connect!(owner:, root_recording_id: nil, return_to: "/", provider: nil)
+    provider ||= (owner.to_s == "user" ? "fake_drive_user" : "fake_drive")
+    post recording_studio_oauth.outbound_connect_path(provider: provider), params: {
       owner: owner,
       root_recording_id: root_recording_id,
       return_to: return_to

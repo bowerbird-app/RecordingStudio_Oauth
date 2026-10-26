@@ -19,6 +19,7 @@ class OutboundRegistryTest < Minitest::Test
     provider = RecordingStudioOauth.register_outbound_provider(**valid_options)
 
     assert_equal "drive", provider.key
+    assert_equal :root, provider.kind
     assert_equal "https://example.test/auth", provider.authorize_url
     assert_equal "https://example.test/token", provider.token_url
     assert_equal ["files.read"], provider.scopes
@@ -35,6 +36,60 @@ class OutboundRegistryTest < Minitest::Test
     end
 
     assert_nil RecordingStudioOauth::Outbound.provider("drive")
+  end
+
+  def test_missing_kind_raises
+    options = valid_options
+    options.delete(:kind)
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioOauth.register_outbound_provider(**options)
+    end
+
+    assert_match(/kind is required/, error.message)
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
+  end
+
+  def test_unknown_kind_raises
+    error = assert_raises(ArgumentError) do
+      RecordingStudioOauth.register_outbound_provider(**valid_options, kind: :shared)
+    end
+
+    assert_match(/kind must be :root or :user/, error.message)
+    assert_includes error.message, ":shared"
+    assert_nil RecordingStudioOauth::Outbound.provider("drive")
+  end
+
+  def test_string_kind_is_accepted
+    provider = RecordingStudioOauth.register_outbound_provider(**valid_options, kind: "user")
+
+    assert_equal :user, provider.kind
+  end
+
+  def test_outbound_providers_lists_safe_fields_without_secrets
+    RecordingStudioOauth.register_outbound_provider(**valid_options)
+    RecordingStudioOauth.register_outbound_provider(**valid_options, key: :mail, kind: :user)
+
+    listed = RecordingStudioOauth.outbound_providers
+    assert_equal 2, listed.size
+    drive = listed.find { |item| item.fetch(:key) == "drive" }
+    mail = listed.find { |item| item.fetch(:key) == "mail" }
+
+    assert_equal :root, drive.fetch(:kind)
+    assert_equal :user, mail.fetch(:kind)
+    assert_equal "https://example.test/auth", drive.fetch(:authorize_url)
+    assert_equal "https://example.test/token", drive.fetch(:token_url)
+    assert_equal ["files.read"], drive.fetch(:scopes)
+    assert_equal "id", drive.fetch(:client_id)
+    assert drive.fetch(:pkce)
+    assert drive.fetch(:refresh)
+    assert_equal "https://example.test/revoke", drive.fetch(:revoke_url)
+    assert_equal({}, drive.fetch(:extra_authorize_params))
+    refute drive.key?(:client_secret)
+    refute drive.key?(:http)
+    refute_includes listed.inspect, SECRET
+    assert listed.frozen?
+    assert drive.frozen?
   end
 
   def test_missing_key_raises
@@ -83,6 +138,7 @@ class OutboundRegistryTest < Minitest::Test
   def test_relative_urls_allowed_with_http_adapter
     provider = RecordingStudioOauth.register_outbound_provider(
       key: :fake,
+      kind: :root,
       authorize_url: "/fake/authorize",
       token_url: "/fake/token",
       revoke_url: "/fake/revoke",
@@ -97,6 +153,7 @@ class OutboundRegistryTest < Minitest::Test
   def test_pkce_and_refresh_default_on
     provider = RecordingStudioOauth.register_outbound_provider(
       key: :plain,
+      kind: :user,
       authorize_url: "https://example.test/auth",
       token_url: "https://example.test/token",
       client_id: "id",
@@ -112,6 +169,7 @@ class OutboundRegistryTest < Minitest::Test
 
     refute_includes provider.inspect, SECRET
     assert_includes provider.inspect, "client_secret=[FILTERED]"
+    assert_includes provider.inspect, "kind=:root"
   end
 
   def test_client_secret_is_redacted_from_to_s_pretty_print_and_to_h
@@ -139,6 +197,8 @@ class OutboundRegistryTest < Minitest::Test
     assert_respond_to RecordingStudioOauth, :connection_id_for
     assert_respond_to RecordingStudioOauth, :connected_user_count
     assert_respond_to RecordingStudioOauth, :register_outbound_provider
+    assert_respond_to RecordingStudioOauth, :outbound_providers
+    assert_respond_to RecordingStudioOauth, :combined_connection_status
   end
 
   private
@@ -146,6 +206,7 @@ class OutboundRegistryTest < Minitest::Test
   def valid_options
     {
       key: :drive,
+      kind: :root,
       authorize_url: "https://example.test/auth",
       token_url: "https://example.test/token",
       scopes: ["files.read"],

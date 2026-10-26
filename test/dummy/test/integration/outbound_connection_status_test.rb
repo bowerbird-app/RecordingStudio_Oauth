@@ -176,6 +176,52 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
     assert_equal 0, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
   end
 
+  test "combined_connection_status reports workspace and personal slots separately" do
+    assert_equal(
+      { workspace: :missing, personal: :missing },
+      combined_for(@user)
+    )
+
+    root = create_root_connection
+    user = create_user_connection(actor: @user, status: "needs_reconnect")
+
+    assert_equal(
+      { workspace: :active, personal: :needs_reconnect },
+      combined_for(@user)
+    )
+    assert_equal(
+      { workspace: :active, personal: :missing },
+      combined_for(@viewer)
+    )
+    assert_equal :needs_reconnect, status_for(@user)
+    assert_equal user.id, id_for(@user)
+    assert_equal root.id, id_for(@viewer)
+  end
+
+  test "combined_connection_status is missing when the actor cannot view the root" do
+    create_root_connection
+    create_user_connection(actor: @user)
+    stranger = create_user(email: "combined-stranger-#{SecureRandom.hex(4)}@example.com")
+
+    assert_equal(
+      { workspace: :missing, personal: :missing },
+      combined_for(stranger)
+    )
+  end
+
+  test "dummy registers a root provider and a user provider that share FakeOauth" do
+    listed = RecordingStudioOauth.outbound_providers
+    root = listed.find { |item| item.fetch(:key) == "fake_drive" }
+    personal = listed.find { |item| item.fetch(:key) == "fake_drive_user" }
+
+    assert_equal :root, root.fetch(:kind)
+    assert_equal :user, personal.fetch(:kind)
+    assert_equal FakeOauth, RecordingStudioOauth::Outbound.provider("fake_drive").http
+    assert_equal FakeOauth, RecordingStudioOauth::Outbound.provider("fake_drive_user").http
+    refute listed.any? { |item| item.key?(:client_secret) }
+    refute_includes listed.inspect, FakeOauth::CLIENT_SECRET
+  end
+
   test "root_owned finder does not return a personal row on that root" do
     create_user_connection(actor: @user)
 
@@ -196,6 +242,10 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
 
   def id_for(actor)
     RecordingStudioOauth.connection_id_for(provider: :fake_drive, root: @root_recording, actor: actor)
+  end
+
+  def combined_for(actor)
+    RecordingStudioOauth.combined_connection_status(provider: :fake_drive, root: @root_recording, actor: actor)
   end
 
   def live_user_owned(actor)

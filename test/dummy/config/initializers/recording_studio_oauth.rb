@@ -16,8 +16,7 @@ end
 
 require Rails.root.join("app/models/fake_oauth")
 
-RecordingStudioOauth.register_outbound_provider(
-  key: :fake_drive,
+fake_drive_http = {
   authorize_url: "/fake_oauth/authorize",
   token_url: "/fake_oauth/token",
   revoke_url: "/fake_oauth/revoke",
@@ -27,4 +26,16 @@ RecordingStudioOauth.register_outbound_provider(
   pkce: true,
   refresh: true,
   http: FakeOauth
+}
+
+RecordingStudioOauth.register_outbound_provider(
+  **fake_drive_http,
+  key: :fake_drive,
+  kind: :root
+)
+
+RecordingStudioOauth.register_outbound_provider(
+  **fake_drive_http,
+  key: :fake_drive_user,
+  kind: :user
 )

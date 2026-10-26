@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.16.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.17.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -136,11 +136,15 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "RecordingStudioMetrics::Api.register!(api: :operations)"
     assert_includes readme, "Trashable"
     assert_includes readme, "register_outbound_provider"
+    assert_includes readme, "kind: :root"
+    assert_includes readme, "outbound_providers"
+    assert_includes readme, "combined_connection_status"
     assert_includes readme, "connection_for"
     assert_includes readme, "connection_status"
     assert_includes readme, "connection_id_for"
     assert_includes readme, "connected_user_count"
     assert_includes readme, "owner=user&root_recording_id="
+    assert_includes readme, "fake_drive_user"
     assert_includes readme, "Leftover personal"
     assert_includes readme, "OutboundConnection"
     assert_includes readme, "void_recording!"

@@ -23,6 +23,10 @@ module RecordingStudioOauth
       registry.fetch(key)
     end
 
+    def providers
+      registry.all.values.map(&:public_attributes).freeze
+    end
+
     def reset_providers!
       registry.reset!
     end
@@ -32,11 +36,21 @@ module RecordingStudioOauth
     end
 
     def connection_status(provider:, root:, actor:)
-      row = LiveConnection.find(provider: provider, root: root, actor: actor)
-      return :missing if row.nil?
-      return :needs_reconnect if row.needs_reconnect?
+      status_for(LiveConnection.find(provider: provider, root: root, actor: actor))
+    end
 
-      :active
+    # Workspace slot and personal slot for one provider, without merging them.
+    # Both are :missing when the actor may not view the root.
+    def combined_connection_status(provider:, root:, actor:)
+      provider_key = provider.to_s
+      {
+        workspace: status_for(
+          LiveConnection.root_owned(provider_key: provider_key, root: root, actor: actor)
+        ),
+        personal: status_for(
+          LiveConnection.user_owned(provider_key: provider_key, actor: actor, root: root)
+        )
+      }.freeze
     end
 
     def connection_id_for(provider:, root:, actor:)
@@ -55,5 +69,13 @@ module RecordingStudioOauth
         root_recording_id: root.id
       ).where.not(owner_actor_id: nil).count
     end
+
+    def status_for(row)
+      return :missing if row.nil?
+      return :needs_reconnect if row.needs_reconnect?
+
+      :active
+    end
+    private_class_method :status_for
   end
 end
