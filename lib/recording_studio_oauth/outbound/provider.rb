@@ -6,11 +6,6 @@ module RecordingStudioOauth
       :key, :kind, :authorize_url, :token_url, :scopes, :client_id, :client_secret,
       :pkce, :refresh, :revoke_url, :extra_authorize_params, :http
     ) do
-      PUBLIC_ATTRIBUTE_KEYS = %i[
-        key kind authorize_url token_url scopes client_id
-        pkce refresh revoke_url extra_authorize_params
-      ].freeze
-
       def pkce?
         pkce == true
       end
@@ -24,7 +19,7 @@ module RecordingStudioOauth
       end
 
       def public_attributes
-        PUBLIC_ATTRIBUTE_KEYS.index_with { |name| public_send(name) }.freeze
+        to_h.except(:client_secret, :http).freeze
       end
 
       def inspect
