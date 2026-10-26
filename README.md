@@ -336,8 +336,10 @@ connection_id = RecordingStudioOauth.connection_id_for(
 ```
 
 Resolution: the actor's own personal connection for that provider on the passed
-root, else the workspace-owned one if the actor may use it. A personal row for
-workspace A is not returned when lookup passes workspace B. Leftover personal
+root when the actor may view that root, else the workspace-owned one if the
+actor may use it. A personal row for workspace A is not returned when lookup
+passes workspace B. Losing view access on the stored root returns `nil`; the
+row stays in the table and works again if access returns. Leftover personal
 rows with no root (from before 0.16) become `needs_reconnect` and are not
 attached to a workspace. Lookup never returns them.
 
@@ -348,7 +350,7 @@ call was in flight. A permanent OAuth failure (HTTP 400 or 401 with
 `needs_reconnect` and lookup returns `nil`. A 500 body that says `invalid_grant`
 stays transient. Refresh does not raise into callers.
 
-Count live personal connections on a workspace, without tokens:
+Count working personal connections on a workspace, without tokens:
 
 ```ruby
 count = RecordingStudioOauth.connected_user_count(
@@ -357,8 +359,9 @@ count = RecordingStudioOauth.connected_user_count(
 )
 ```
 
-That integer includes `needs_reconnect`. It excludes revoked rows, workspace-owned
-rows, and other workspaces. Pass a blank provider or a nil root and it is `0`.
+That integer is `active` personal rows only. It excludes `needs_reconnect`
+(including leftover null-root rows), revoked rows, workspace-owned rows, and
+other workspaces. Pass a blank provider or a nil root and it is `0`.
 
 Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
 
@@ -366,7 +369,7 @@ Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
 - Anyone with at least view access can use a workspace-owned connection.
 - Anyone with at least view access can Connect a personal row on that workspace.
 - A personal connection is only usable by the person who made it, and only on
-  the workspace stored on that row.
+  the workspace stored on that row, while they can still view that workspace.
 - Roots with `shared: true` cannot hold an outbound connection.
 
 `connection_status` uses the same ownership and access rules. It returns

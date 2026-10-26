@@ -17,7 +17,7 @@ module RecordingStudioOauth
       end
 
       def user_owned(provider_key:, actor:, root:)
-        return if actor.nil? || root.nil?
+        return unless Access.may_use_root?(actor: actor, root: root)
 
         OutboundConnection.live.for_provider(provider_key).find_by(
           owner_actor_type: actor.class.name,

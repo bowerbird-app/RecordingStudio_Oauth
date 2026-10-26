@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A personal outbound connection stores the workspace root chosen at Connect.
   The same person can connect the same provider to more than one workspace.
-  Lookup only returns that personal row when the passed root matches.
-- `RecordingStudioOauth.connected_user_count(provider:, root:)` counts live
-  personal connections (`active` or `needs_reconnect`) for that provider on
-  that workspace. It does not count workspace-owned rows, revoked rows, or
-  other workspaces. It does not read tokens or Accessible.
+  Lookup only returns that personal row when the passed root matches and the
+  actor may still view that root. Losing view access hides the row; it is not
+  deleted or revoked. Restoring view access makes it usable again.
+- `RecordingStudioOauth.connected_user_count(provider:, root:)` counts working
+  personal connections (`active`) for that provider on that workspace. It does
+  not count `needs_reconnect` (including leftover null-root rows), revoked
+  rows, workspace-owned rows, or other workspaces. It does not read tokens.
 
 ### Changed
 - User Connect requires a workspace root and at least view access. Shared

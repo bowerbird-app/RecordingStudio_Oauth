@@ -78,7 +78,7 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
     assert_equal root.id, found.id
   end
 
-  test "connected_user_count is live personal rows on that workspace" do
+  test "connected_user_count is active personal rows on that workspace" do
     other_root, = create_access_recording_for(user: @user, workspace_name: "Other #{SecureRandom.hex(4)}")
     second = create_user(email: "second-#{SecureRandom.hex(4)}@example.com")
     grant_view_or_edit_on_new_workspace!(recording: @root_recording, actor: second, role: :view)
@@ -101,12 +101,57 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
     assert_equal 1, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: other_root)
 
     create_user_connection(actor: create_user(email: "reconnect-#{SecureRandom.hex(4)}@example.com"), status: "needs_reconnect")
-    assert_equal 3, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 2, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
 
     revoked_actor = create_user(email: "revoked-#{SecureRandom.hex(4)}@example.com")
     create_user_connection(actor: revoked_actor, status: "revoked")
-    assert_equal 3, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
-    assert_equal 3, RecordingStudioOauth::Outbound.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 2, RecordingStudioOauth.connected_user_count(provider: :fake_drive, root: @root_recording)
+    assert_equal 2, RecordingStudioOauth::Outbound.connected_user_count(provider: :fake_drive, root: @root_recording)
+  end
+
+  test "personal lookup requires view access and does not revoke the row" do
+    connection = create_user_connection(actor: @viewer)
+    access = access_recording_for(@viewer)
+
+    found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_equal connection.id, found.id
+    assert_equal connection.id, live_user_owned(@viewer).id
+
+    RecordingStudioTrashable.void_recording!(access)
+
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_nil live_user_owned(@viewer)
+    assert_equal "active", connection.reload.status
+    assert connection.access_token.present?
+
+    grant_view_or_edit_on_new_workspace!(recording: @root_recording, actor: @viewer, role: :view)
+
+    restored = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_equal connection.id, restored.id
+    assert_equal "active", connection.reload.status
+  end
+
+  test "workspace lookup still uses view access and does not revoke the row" do
+    connection = create_root_connection
+    access = access_recording_for(@viewer)
+
+    found = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_equal connection.id, found.id
+
+    RecordingStudioTrashable.void_recording!(access)
+
+    assert_nil RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_equal connection.id, RecordingStudioOauth.connection_for(
+      provider: :fake_drive,
+      root: @root_recording,
+      actor: @user
+    ).id
+    assert_equal "active", connection.reload.status
+
+    grant_view_or_edit_on_new_workspace!(recording: @root_recording, actor: @viewer, role: :view)
+
+    restored = RecordingStudioOauth.connection_for(provider: :fake_drive, root: @root_recording, actor: @viewer)
+    assert_equal connection.id, restored.id
   end
 
   test "leftover null-root personal rows are not returned for any root" do
@@ -151,6 +196,21 @@ class OutboundConnectionStatusTest < ActionDispatch::IntegrationTest
 
   def id_for(actor)
     RecordingStudioOauth.connection_id_for(provider: :fake_drive, root: @root_recording, actor: actor)
+  end
+
+  def live_user_owned(actor)
+    RecordingStudioOauth::Outbound::LiveConnection.user_owned(
+      provider_key: "fake_drive",
+      actor: actor,
+      root: @root_recording
+    )
+  end
+
+  def access_recording_for(actor)
+    RecordingStudioAccessible.access_recordings_for_actor(
+      recording: @root_recording,
+      actor: actor
+    ).first
   end
 
   def create_user_connection(actor:, status: "active", root: @root_recording)

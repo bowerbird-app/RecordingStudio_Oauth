@@ -15,17 +15,23 @@ Hosts that posted `owner=user` without a root must pass the current workspace
 creates a personal row on that root. Omitting `owner` while sending
 `root_recording_id` still starts a workspace Connect.
 
-Count people with a live personal connection on a workspace:
+Count people with a working personal connection on a workspace:
 
 ```ruby
 RecordingStudioOauth.connected_user_count(provider: :google_drive, root: workspace_root)
 ```
 
-That count includes `needs_reconnect`. It excludes revoked rows, workspace-owned
-rows, and other workspaces. It does not take an actor and does not read tokens.
+That count is `active` personal rows only. It excludes `needs_reconnect`
+(including leftover null-root rows), revoked rows, workspace-owned rows, and
+other workspaces. It does not take an actor and does not read tokens.
 
 Active personal rows that have no `root_recording_id` become `needs_reconnect`.
-They stay in the table. Lookup does not return them for any workspace.
+They stay in the table. Lookup does not return them for any workspace. They
+are not counted.
+
+Personal lookup requires view access on the stored root. Losing view access
+returns `nil` without deleting or revoking the row. Restoring view access
+makes the same row usable again.
 
 `connection_for`, `connection_status`, and `connection_id_for` still take
 `provider:`, `root:`, and `actor:`.
