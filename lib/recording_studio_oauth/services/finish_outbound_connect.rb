@@ -63,10 +63,9 @@ module RecordingStudioOauth
       end
 
       def recheck_root(pending)
-        return unless pending.root_owned?
-
         root = RecordingStudio::Recording.find_by(id: pending.root_recording_id)
-        Outbound::Access.root_access_error(actor: actor, root: root, role: :admin)
+        role = pending.root_owned? ? :admin : :view
+        Outbound::Access.root_access_error(actor: actor, root: root, role: role)
       end
 
       def consume_handshake!(pending)
@@ -109,9 +108,13 @@ module RecordingStudioOauth
       def live_connection_scope(handshake)
         scope = OutboundConnection.live.for_provider(handshake.provider_key)
         if handshake.root_owned?
-          scope.where(root_recording_id: handshake.root_recording_id)
+          scope.where(root_recording_id: handshake.root_recording_id, owner_actor_id: nil)
         else
-          scope.where(owner_actor_type: handshake.actor_type, owner_actor_id: handshake.actor_id)
+          scope.where(
+            owner_actor_type: handshake.actor_type,
+            owner_actor_id: handshake.actor_id,
+            root_recording_id: handshake.root_recording_id
+          )
         end
       end
 
@@ -125,7 +128,7 @@ module RecordingStudioOauth
           )
         else
           attrs.merge(
-            root_recording_id: nil,
+            root_recording_id: handshake.root_recording_id,
             owner_actor_type: handshake.actor_type,
             owner_actor_id: handshake.actor_id
           )

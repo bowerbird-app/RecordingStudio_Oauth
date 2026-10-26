@@ -20,7 +20,7 @@ module RecordingStudioOauth
       end
 
       def pick_user_connection
-        row = Outbound::LiveConnection.user_owned(provider_key: provider_key, actor: actor)
+        row = Outbound::LiveConnection.user_owned(provider_key: provider_key, actor: actor, root: root)
         return if row.nil? || row.revoked? || row.needs_reconnect?
 
         usable_after_refresh(row)

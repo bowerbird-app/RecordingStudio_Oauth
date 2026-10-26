@@ -1,5 +1,41 @@
 # Upgrading
 
+## 0.16.0
+
+Install Oauth `0.16.0`. Run `bin/rails generate recording_studio_oauth:migrations`
+and `bin/rails db:migrate`.
+
+Personal outbound connections now store the workspace chosen at Connect.
+Lookup only returns a personal row when its root matches the root you pass.
+The same person can connect the same provider to two workspaces. Shared roots
+stay rejected.
+
+Hosts that posted `owner=user` without a root must pass the current workspace
+`root_recording_id`. Explicit `owner=user` with `root_recording_id` still
+creates a personal row on that root. Omitting `owner` while sending
+`root_recording_id` still starts a workspace Connect.
+
+Count people with a working personal connection on a workspace:
+
+```ruby
+RecordingStudioOauth.connected_user_count(provider: :google_drive, root: workspace_root)
+```
+
+That count is `active` personal rows only. It excludes `needs_reconnect`
+(including leftover null-root rows), revoked rows, workspace-owned rows, and
+other workspaces. It does not take an actor and does not read tokens.
+
+Active personal rows that have no `root_recording_id` become `needs_reconnect`.
+They stay in the table. Lookup does not return them for any workspace. They
+are not counted.
+
+Personal lookup requires view access on the stored root. Losing view access
+returns `nil` without deleting or revoking the row. Restoring view access
+makes the same row usable again.
+
+`connection_for`, `connection_status`, and `connection_id_for` still take
+`provider:`, `root:`, and `actor:`.
+
 ## 0.15.1
 
 No Oauth migration. Install Oauth `0.15.1` to allow Recording Studio API

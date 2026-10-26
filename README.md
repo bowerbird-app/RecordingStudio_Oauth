@@ -260,8 +260,9 @@ tokens here, and look up a live access token here. Attachable and a Plugins
 directory stay out of this gem.
 
 `OutboundConnection` is a normal table, not a Recording. Tokens are infrastructure, not
-tree content. The row belongs to a **workspace root** or to a **person**. Those
-are two explicit owners, not one polymorphic owner. Access rules and unique
+tree content. A workspace-owned row has no person owner. A personal row belongs
+to the person who connected, and it also stores the workspace they chose. Those
+shapes stay two owners, not one polymorphic owner. Access rules and unique
 indexes differ, so mixing them in one association would hide that.
 
 Register a provider. Unknown keys raise.
@@ -286,7 +287,7 @@ endpoints.
 Routes on the engine mount:
 
 - `POST /outbound/:provider/connect?owner=root&root_recording_id=` (workspace, admin only)
-- `POST /outbound/:provider/connect?owner=user` (that person only)
+- `POST /outbound/:provider/connect?owner=user&root_recording_id=` (that person, on that workspace)
 - `GET /outbound/callback`
 - `DELETE /outbound/connections/:id`
 
@@ -334,21 +335,42 @@ connection_id = RecordingStudioOauth.connection_id_for(
 # DELETE /outbound/connections/:id
 ```
 
-Resolution: the actor's own user-level connection for that provider, else the
-root-level one if the actor may use it. Expired tokens refresh. Refresh writes
-under a row lock and no-ops if the row was revoked, the status moved, or the
-refresh token rotated while the provider call was in flight. A permanent OAuth
-failure (HTTP 400 or 401 with `invalid_grant`, `invalid_client`, or
-`unauthorized_client`) marks `needs_reconnect` and lookup returns `nil`. A 500
-body that says `invalid_grant` stays transient. Refresh does not raise into
-callers.
+Resolution: the actor's own personal connection for that provider on the passed
+root when the actor may view that root, else the workspace-owned one if the
+actor may use it. A personal row for workspace A is not returned when lookup
+passes workspace B. Losing view access on the stored root returns `nil`; the
+row stays in the table and works again if access returns. Leftover personal
+rows with no root (from before 0.16) become `needs_reconnect` and are not
+attached to a workspace. Lookup never returns them.
+
+Expired tokens refresh. Refresh writes under a row lock and no-ops if the row
+was revoked, the status moved, or the refresh token rotated while the provider
+call was in flight. A permanent OAuth failure (HTTP 400 or 401 with
+`invalid_grant`, `invalid_client`, or `unauthorized_client`) marks
+`needs_reconnect` and lookup returns `nil`. A 500 body that says `invalid_grant`
+stays transient. Refresh does not raise into callers.
+
+Count working personal connections on a workspace, without tokens:
+
+```ruby
+count = RecordingStudioOauth.connected_user_count(
+  provider: :google_drive,
+  root: workspace_root_recording
+)
+```
+
+That integer is `active` personal rows only. It excludes `needs_reconnect`
+(including leftover null-root rows), revoked rows, workspace-owned rows, and
+other workspaces. Pass a blank provider or a nil root and it is `0`.
 
 Access uses Recording Studio Accessible on the root. No Pundit. No extra grants.
 
-- Only root admins can create or disconnect a root-level connection.
-- Anyone with at least view access can use a root-level connection.
-- A user-level connection is only usable by the person who made it.
-- Roots with `shared: true` cannot own a root-level connection.
+- Only root admins can create or disconnect a workspace-owned connection.
+- Anyone with at least view access can use a workspace-owned connection.
+- Anyone with at least view access can Connect a personal row on that workspace.
+- A personal connection is only usable by the person who made it, and only on
+  the workspace stored on that row, while they can still view that workspace.
+- Roots with `shared: true` cannot hold an outbound connection.
 
 `connection_status` uses the same ownership and access rules. It returns
 `:missing` when there is no live row the actor may use, `:needs_reconnect`
@@ -359,4 +381,4 @@ exists. `connection_id_for` returns that live row's id, or `nil`.
 
 ## Version
 
-0.15.1
+0.16.0

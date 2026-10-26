@@ -137,6 +137,7 @@ class OutboundRegistryTest < Minitest::Test
     assert_respond_to RecordingStudioOauth, :connection_for
     assert_respond_to RecordingStudioOauth, :connection_status
     assert_respond_to RecordingStudioOauth, :connection_id_for
+    assert_respond_to RecordingStudioOauth, :connected_user_count
     assert_respond_to RecordingStudioOauth, :register_outbound_provider
   end
 

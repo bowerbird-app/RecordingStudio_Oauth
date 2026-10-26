@@ -73,6 +73,10 @@ module RecordingStudioOauth
     def connection_id_for(provider:, root:, actor:)
       Outbound.connection_id_for(provider: provider, root: root, actor: actor)
     end
+
+    def connected_user_count(provider:, root:)
+      Outbound.connected_user_count(provider: provider, root: root)
+    end
   end
 end
 
