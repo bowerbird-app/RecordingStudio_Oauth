@@ -296,9 +296,10 @@ List registered providers without secrets:
 
 ```ruby
 RecordingStudioOauth.outbound_providers
-# [{ key:, kind:, authorize_url:, token_url:, scopes:, client_id:, pkce:,
-#    refresh:, revoke_url:, extra_authorize_params: }, ...]
+# [{ key:, kind: }, ...]
 ```
+
+That list is key and kind only; endpoints, `client_id` and secrets are never listed.
 
 Routes on the engine mount:
 

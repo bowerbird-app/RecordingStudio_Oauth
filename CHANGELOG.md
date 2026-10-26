@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `kind: :root` or `kind: :user` on `register_outbound_provider`, stored on
   `Outbound::Provider`. Missing or unknown kinds raise.
-- `RecordingStudioOauth.outbound_providers` lists registered providers (`key`,
-  `kind`, and the other safe registration fields). It never includes
+- `RecordingStudioOauth.outbound_providers` lists registered providers as
+  `key` and `kind` only. It never includes endpoints, `client_id`,
   `client_secret`, tokens, or the HTTP adapter.
 - `RecordingStudioOauth.combined_connection_status(provider:, root:, actor:)`
   returns `{ workspace:, personal: }` as `:missing`, `:active`, or

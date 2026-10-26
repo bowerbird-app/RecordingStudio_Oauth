@@ -66,7 +66,7 @@ class OutboundRegistryTest < Minitest::Test
     assert_equal :user, provider.kind
   end
 
-  def test_outbound_providers_lists_safe_fields_without_secrets
+  def test_outbound_providers_lists_only_key_and_kind
     RecordingStudioOauth.register_outbound_provider(**valid_options)
     RecordingStudioOauth.register_outbound_provider(**valid_options, key: :mail, kind: :user)
 
