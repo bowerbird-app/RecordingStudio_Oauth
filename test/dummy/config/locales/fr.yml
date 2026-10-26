@@ -61,6 +61,7 @@ fr:
           root_required: "Choisissez d’abord un espace."
           invalid_root: "Choisissez un espace, pas un dossier imbriqué."
           invalid_owner: "Ce type de connexion n’est pas pris en charge."
+          kind_mismatch: "Cette connexion n’est pas configurée comme ça."
           invalid_state: "Cette étape a expiré. Réessayez."
           missing_code: "L’autre application n’a pas renvoyé de code. Réessayez."
           token_exchange_failed: "L’autre application n’a pas terminé la connexion. Réessayez."

@@ -156,6 +156,9 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes install_guide, "recording_studio_recordable"
     assert_includes install_guide, "Site Settings"
     assert_includes install_guide, "ProtectedResourceRegistry.draw_origin_well_known"
+    assert_includes install_guide, "kind: :root"
+    assert_includes install_guide, "outbound_providers"
+    assert_includes install_guide, "combined_connection_status"
     refute_includes install_guide, "RecordingStudio v3"
   end
 

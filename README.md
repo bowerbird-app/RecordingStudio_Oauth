@@ -270,6 +270,7 @@ Register a provider. Unknown keys raise.
 ```ruby
 RecordingStudioOauth.register_outbound_provider(
   key: :google_drive,
+  kind: :root,
   authorize_url: "https://accounts.google.com/o/oauth2/v2/auth",
   token_url: "https://oauth2.googleapis.com/token",
   scopes: ["https://www.googleapis.com/auth/drive.readonly"],
@@ -279,10 +280,26 @@ RecordingStudioOauth.register_outbound_provider(
 )
 ```
 
+`kind` is required and must be `:root` (workspace Connect) or `:user` (personal
+Connect). `owner=root` only works for `:root` providers. `owner=user` only works
+for `:user` providers. Omitting `owner` still defaults to workspace when
+`root_recording_id` is present, and to personal when it is not.
+
 Read `client_id` and `client_secret` from
 `credentials.recording_studio_oauth.outbound.google_drive`, or pass them in the
-register call. Dummy registers `:fake_drive` with local `/fake_oauth/*`
-endpoints.
+register call. Dummy registers `:fake_drive` (`kind: :root`) and
+`:fake_drive_user` (`kind: :user`). Both share the local `/fake_oauth/*`
+adapter. Display name, description, and icon stay in the host or Plugins, keyed
+by provider key.
+
+List registered providers without secrets:
+
+```ruby
+RecordingStudioOauth.outbound_providers
+# [{ key:, kind: }, ...]
+```
+
+That list is key and kind only; endpoints, `client_id` and secrets are never listed.
 
 Routes on the engine mount:
 
@@ -379,6 +396,20 @@ still counts as `:active` here; `connection_for` is the call that refreshes.
 A live user-owned row is reported even when a usable root-owned row also
 exists. `connection_id_for` returns that live row's id, or `nil`.
 
+Ask for both slots without merging them:
+
+```ruby
+RecordingStudioOauth.combined_connection_status(
+  provider: :google_drive,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# { workspace: :missing|:active|:needs_reconnect,
+#   personal: :missing|:active|:needs_reconnect }
+```
+
+Both slots are `:missing` when the actor may not view the root.
+
 ## Version
 
-0.16.0
+0.17.0

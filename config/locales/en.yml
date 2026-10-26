@@ -61,6 +61,7 @@ en:
           root_required: "Pick a workspace first."
           invalid_root: "Pick a workspace, not a nested folder."
           invalid_owner: "That connection type isn't supported."
+          kind_mismatch: "This connection isn't set up that way."
           invalid_state: "That connect step expired. Try again."
           missing_code: "The other app didn't send a code back. Try again."
           token_exchange_failed: "The other app didn't finish connecting. Try again."

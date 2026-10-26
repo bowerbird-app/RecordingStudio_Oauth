@@ -3,7 +3,7 @@
 module RecordingStudioOauth
   module Outbound
     Provider = Data.define(
-      :key, :authorize_url, :token_url, :scopes, :client_id, :client_secret,
+      :key, :kind, :authorize_url, :token_url, :scopes, :client_id, :client_secret,
       :pkce, :refresh, :revoke_url, :extra_authorize_params, :http
     ) do
       def pkce?
@@ -18,8 +18,12 @@ module RecordingStudioOauth
         revoke_url.present?
       end
 
+      def public_attributes
+        { key: key, kind: kind }.freeze
+      end
+
       def inspect
-        "#<RecordingStudioOauth::Outbound::Provider key=#{key.inspect} " \
+        "#<RecordingStudioOauth::Outbound::Provider key=#{key.inspect} kind=#{kind.inspect} " \
           "authorize_url=#{authorize_url.inspect} token_url=#{token_url.inspect} " \
           "client_id=#{client_id.inspect} client_secret=[FILTERED]>"
       end

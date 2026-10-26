@@ -1,5 +1,31 @@
 # Upgrading
 
+## 0.17.0
+
+No Oauth migration. Install Oauth `0.17.0`.
+
+Every `register_outbound_provider` call must pass `kind: :root` or `kind: :user`.
+Missing or unknown kinds raise. Workspace Connect (`owner=root`) only works for
+`:root` providers. Personal Connect (`owner=user`) only works for `:user`
+providers. Omitting `owner` still defaults the same way: workspace when
+`root_recording_id` is present, personal when it is not. That default is not
+changed to match the provider kind.
+
+List registered providers with `RecordingStudioOauth.outbound_providers`. Each
+entry has `key`, `kind`, and the other registration fields that are safe to
+read. It never includes `client_secret`, tokens, or the HTTP adapter. Display
+name, description, and icon are not part of Oauth.
+
+Read both connection slots with
+`RecordingStudioOauth.combined_connection_status(provider:, root:, actor:)`.
+That returns `{ workspace:, personal: }` as `:missing`, `:active`, or
+`:needs_reconnect`, using the same view-access gate as lookup. It does not
+merge the slots. `connection_for`, `connection_status`, and
+`connected_user_count` keep the same signatures.
+
+Dummy now registers `:fake_drive` (`kind: :root`) and `:fake_drive_user`
+(`kind: :user`) against the same fake HTTP adapter.
+
 ## 0.16.0
 
 Install Oauth `0.16.0`. Run `bin/rails generate recording_studio_oauth:migrations`
