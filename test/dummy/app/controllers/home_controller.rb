@@ -1,6 +1,19 @@
 class HomeController < ApplicationController
   def index
     @oauth_client = RecordingStudioOauth::OauthClient.find_by(name: "Seed Demo App")
+    root = current_root_recording
+    return if @oauth_client.blank? || root.blank? || current_user.blank?
+
+    @inbound_status = RecordingStudioOauth.inbound_connection_status(
+      plugin_key: @oauth_client.plugin_key,
+      root: root,
+      actor: current_user
+    )
+    @inbound_connections = RecordingStudioOauth.inbound_connections(
+      plugin_key: @oauth_client.plugin_key,
+      root: root,
+      actor: current_user
+    )
   end
 
   def connect_demo

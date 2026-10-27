@@ -160,12 +160,15 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes form, 'label: "Channel"'
     assert_includes form, 'label: "Who the token is for"'
     assert_includes form, 'label: "Session token secret"'
+    assert_includes form, 'label: "Plugin key"'
+    assert_includes form, "oauth_client[plugin_key]"
     refute_includes form, "Card::Component"
     refute_includes form, "max-w-sm"
     refute_includes new_view, "Card::Component"
     refute_includes new_view, "max-w-sm"
     assert_includes show_view, "quick_copy: true"
     assert_includes show_view, 'label: "API"'
+    assert_includes show_view, 'label: "Plugin key"'
     assert_includes show_view, "A label, not a secret"
     assert_includes show_view, 'text: "Done"'
     refute_includes show_view, "oauth_client_secret_digest"

@@ -16,6 +16,14 @@
     error: @oauth_client.errors[:name].to_sentence.presence
   ) %>
 
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client[plugin_key]",
+    label: "Plugin key",
+    value: @oauth_client.plugin_key,
+    help_text: "Optional. Ties this app to a plugin so the host can count who's connected. Lowercase letters, digits, and underscores. Start with a letter.",
+    error: @oauth_client.errors[:plugin_key].to_sentence.presence
+  ) %>
+
   <%= render FlatPack::TextArea::Component.new(
     name: "oauth_client[redirect_uris]",
     label: "Redirect URLs",

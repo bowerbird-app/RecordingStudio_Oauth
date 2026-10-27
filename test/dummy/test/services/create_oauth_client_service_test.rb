@@ -120,6 +120,51 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert client.session_token_verify_ready?
   end
 
+  test "stores plugin_key on create" do
+    result = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Plugin App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      plugin_key: "Inbound_Demo"
+    )
+
+    assert result.success?
+    assert_equal "inbound_demo", result.value.fetch(:client).plugin_key
+  end
+
+  test "update can set and clear plugin_key" do
+    created = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Editable Plugin App",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false
+    )
+    client = created.value.fetch(:client)
+
+    updated = RecordingStudioOauth::Services::UpdateOauthClient.call(
+      client: client,
+      name: client.name,
+      redirect_uris: client.redirect_uris,
+      use_central_relay: false,
+      allowed_return_patterns: [],
+      exact_return_urls: [],
+      plugin_key: "inbound_demo"
+    )
+    assert updated.success?
+    assert_equal "inbound_demo", client.reload.plugin_key
+
+    cleared = RecordingStudioOauth::Services::UpdateOauthClient.call(
+      client: client,
+      name: client.name,
+      redirect_uris: client.redirect_uris,
+      use_central_relay: false,
+      allowed_return_patterns: [],
+      exact_return_urls: [],
+      plugin_key: " "
+    )
+    assert cleared.success?
+    assert_nil client.reload.plugin_key
+  end
+
   test "rejects a redirect URI with a fragment" do
     result = RecordingStudioOauth::Services::CreateOauthClient.call(
       name: "Bad Redirect",

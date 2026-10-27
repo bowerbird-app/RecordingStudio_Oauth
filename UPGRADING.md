@@ -1,5 +1,31 @@
 # Upgrading
 
+## 0.18.0
+
+Install Oauth `0.18.0`. Run `rails recording_studio_oauth:install:migrations`
+and `db:migrate`. `plugin_key` on registered apps is nullable. Existing rows
+stay `NULL`. No backfill.
+
+Staff can set `plugin_key` on a registered app. Self-registered apps cannot.
+One key may be on several apps.
+
+Ask whether the current person is connected through that key, and how many
+people are, with:
+
+```ruby
+RecordingStudioOauth.inbound_connection_status(
+  plugin_key: :inbound_demo,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# { connected: true/false, connected_count: Integer or nil }
+```
+
+`connected` is only for that actor. `connected_count` is returned only to a
+root admin. List the people (no names, emails, or tokens) with
+`RecordingStudioOauth.inbound_connections(...)`. Non-admins get `[]`.
+`connected_count` matches that list's size.
+
 ## 0.17.0
 
 No Oauth migration. Install Oauth `0.17.0`.

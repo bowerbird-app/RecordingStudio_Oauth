@@ -8,7 +8,7 @@ It is not Users. It is not Doorkeeper. It is not OIDC or SAML. It is not OAuth s
 
 ## What you get
 
-**OauthClient** is a registry row: name, client id, redirect URIs, public or confidential, named API, revoked. It is not a recordable and not a child of Access. `api_key` is the named API label (`public`, `operations`, …), not a secret. New apps default to `public`.
+**OauthClient** is a registry row: name, client id, redirect URIs, public or confidential, named API, optional plugin key, revoked. It is not a recordable and not a child of Access. `api_key` is the named API label (`public`, `operations`, …), not a secret. New apps default to `public`. `plugin_key` is an optional lowercase label staff set on a registered app so a host can ask who is connected through that plugin. It is not unique. Self-registered apps cannot set it.
 
 **OauthAuthorization** is an Accessible actor. Connect grants Access on the parent of the Access the person clicked, `depends_on:` that Access. The app's Access is a sibling of theirs. Same app and same node reconnects. Asking for more than they have, or a missing Access, rejects. Nothing is silently clamped.
 
@@ -410,6 +410,38 @@ RecordingStudioOauth.combined_connection_status(
 
 Both slots are `:missing` when the actor may not view the root.
 
+## Inbound plugin connections
+
+Staff can set `plugin_key` on a registered app (letters, digits, underscores, start with a letter, 64 characters max). Example keys in a host might look like `chatgpt` or `grok_bot`. This gem does not know those products.
+
+Ask whether the current person is connected through that key in a workspace, and how many people are:
+
+```ruby
+RecordingStudioOauth.inbound_connection_status(
+  plugin_key: :inbound_demo,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# { connected: true/false, connected_count: Integer or nil }
+```
+
+`connected` is true when that actor has an active inbound authorization on a non-revoked app with that key in that workspace, and the grant still has a usable token (an unexpired, non-revoked access token, or an unexpired, non-revoked refresh token). It is false when the actor cannot view the root, the root is blank, or the key is blank or unknown.
+
+`connected_count` is the number of distinct people connected that way. It is returned only when the actor is an admin of that root. Everyone else gets `nil`. It never includes names, emails, or tokens.
+
+List those people:
+
+```ruby
+RecordingStudioOauth.inbound_connections(
+  plugin_key: :inbound_demo,
+  root: workspace_root_recording,
+  actor: current_user
+)
+# [{ actor_type:, actor_id:, role:, connected_at:, last_used_at:, app_name: }, ...]
+```
+
+Root admins get one row per person, ordered by `connected_at`. `role` is the highest grant among that person's live authorizations under the key. `connected_at` is the earliest of those authorizations. `last_used_at` is the latest access-token `last_used_at`, or `nil`. `app_name` joins distinct registered-app names in alphabetical order when the person connected through more than one app. Non-admins and people who cannot view the root get `[]`. The host resolves `actor_type` / `actor_id` to a display name. `connected_count` is that array's size.
+
 ## Version
 
-0.17.0
+0.18.0

@@ -19,7 +19,7 @@ module RecordingStudioOauth
         secret_choice.to_s == HAS_SECRET_CHOICE
       end
 
-      def initialize(name:, redirect_uris:, confidential:, api_key: DEFAULT_API_KEY, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil, self_registered: false, token_endpoint_auth_method: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
+      def initialize(name:, redirect_uris:, confidential:, api_key: DEFAULT_API_KEY, use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: nil, self_registered: false, token_endpoint_auth_method: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil, plugin_key: nil)
         @name = name.to_s
         @redirect_uris = Array(redirect_uris)
         @confidential = ActiveModel::Type::Boolean.new.cast(confidential)
@@ -37,11 +37,12 @@ module RecordingStudioOauth
         @session_token_provider = session_token_provider.to_s.presence
         @session_token_audience = session_token_audience.to_s.presence
         @session_token_secret = session_token_secret
+        @plugin_key = plugin_key
       end
 
       private
 
-      attr_reader :name, :redirect_uris, :confidential, :api_key, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :self_registered, :token_endpoint_auth_method, :session_token_provider, :session_token_audience, :session_token_secret
+      attr_reader :name, :redirect_uris, :confidential, :api_key, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :self_registered, :token_endpoint_auth_method, :session_token_provider, :session_token_audience, :session_token_secret, :plugin_key
 
       def perform
         secret_token = nil
@@ -58,7 +59,8 @@ module RecordingStudioOauth
           token_endpoint_auth_method: token_endpoint_auth_method.presence || default_token_endpoint_auth_method,
           session_token_provider: session_token_provider,
           session_token_audience: session_token_audience,
-          session_token_secret: session_token_secret
+          session_token_secret: session_token_secret,
+          plugin_key: plugin_key
         )
 
         if confidential

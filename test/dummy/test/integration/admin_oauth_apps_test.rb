@@ -82,6 +82,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Channel"
     assert_includes response.body, "Who the token is for"
     assert_includes response.body, "Session token secret"
+    assert_includes response.body, "Plugin key"
     assert_includes response.body, "This app decides whether people can sign up."
     assert_includes response.body, "When this is on, Connect uses the fixed callback on this host."
     assert_includes response.body, "When this is on, this host can prove a channel session token with the fields below."
@@ -125,6 +126,26 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     row = css_select("tr, [role='row']").find { |element| element.text.include?("Staff Ops App") }
     assert row, "expected Staff Ops App in the registered apps table"
     assert_includes row.text, "Operations"
+  end
+
+  test "staff can save a plugin_key on create and see it on the show page" do
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Plugin Key App",
+        redirect_uris: "http://127.0.0.1/callback",
+        secret: "public",
+        plugin_key: "Inbound_Demo"
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Plugin Key App")
+    assert_redirected_to "/recording_studio_oauth/admin/oauth_clients/#{client.id}"
+    assert_equal "inbound_demo", client.plugin_key
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "inbound_demo"
+    assert_includes response.body, "Plugin key"
   end
 
   test "staff can create a public app and see the client id once without a secret" do

@@ -5,6 +5,7 @@ module RecordingStudioOauth
     PUBLIC_AUTH_METHOD = "none"
     SECRET_AUTH_METHODS = %w[client_secret_basic client_secret_post].freeze
     AUTH_METHODS = (SECRET_AUTH_METHODS + [PUBLIC_AUTH_METHOD]).freeze
+    PLUGIN_KEY_FORMAT = /\A[a-z][a-z0-9_]{0,63}\z/
 
     self.table_name = "recording_studio_oauth_clients"
 
@@ -20,6 +21,7 @@ module RecordingStudioOauth
     before_validation :assign_client_id, on: :create
     before_validation :assign_token_endpoint_auth_method, on: :create
     before_validation :normalize_session_token_fields
+    before_validation :normalize_plugin_key_value
 
     validates :name, presence: true
     validates :client_id, presence: true, uniqueness: true
@@ -28,6 +30,13 @@ module RecordingStudioOauth
     validates :token_endpoint_auth_method,
               presence: true,
               inclusion: { in: AUTH_METHODS }
+    validates :plugin_key,
+              format: {
+                with: PLUGIN_KEY_FORMAT,
+                message: "must start with a letter and use only lowercase letters, digits, and underscores"
+              },
+              length: { maximum: 64 },
+              allow_nil: true
     validate :redirect_uris_must_be_absolute
     validate :return_lists_are_strings
     validate :exact_return_urls_must_be_absolute
@@ -37,6 +46,11 @@ module RecordingStudioOauth
     validate :api_key_must_not_change, on: :update
 
     scope :active, -> { where(revoked_at: nil) }
+    scope :for_plugin_key, ->(key) { where(plugin_key: normalize_plugin_key(key)) }
+
+    def self.normalize_plugin_key(value)
+      value.to_s.strip.downcase.presence
+    end
 
     def public?
       !confidential?
@@ -127,6 +141,10 @@ module RecordingStudioOauth
     def normalize_session_token_fields
       self.session_token_provider = session_token_provider.to_s.strip.downcase.presence
       self.session_token_audience = session_token_audience.to_s.strip.presence
+    end
+
+    def normalize_plugin_key_value
+      self.plugin_key = self.class.normalize_plugin_key(plugin_key)
     end
 
     def redirect_uris_must_be_absolute

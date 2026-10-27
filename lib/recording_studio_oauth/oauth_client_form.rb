@@ -15,6 +15,7 @@ module RecordingStudioOauth
       session_token_audience
       session_token_secret
       token_verification
+      plugin_key
     ].freeze
 
     def initialize(params)
@@ -46,7 +47,7 @@ module RecordingStudioOauth
     attr_reader :params
 
     def shared_args
-      redirect_and_relay_args.merge(session_token_args)
+      redirect_and_relay_args.merge(session_token_args).merge(plugin_key: params[:plugin_key])
     end
 
     def redirect_and_relay_args

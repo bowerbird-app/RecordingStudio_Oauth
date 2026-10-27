@@ -12,6 +12,7 @@ require "recording_studio_oauth/central_relay_state"
 require "recording_studio_oauth/central_relay"
 require "recording_studio_oauth/registration_policy"
 require "recording_studio_oauth/outbound"
+require "recording_studio_oauth/inbound"
 
 module RecordingStudioOauth
   class << self
@@ -76,6 +77,14 @@ module RecordingStudioOauth
 
     def combined_connection_status(provider:, root:, actor:)
       Outbound.combined_connection_status(provider: provider, root: root, actor: actor)
+    end
+
+    def inbound_connection_status(plugin_key:, root:, actor:)
+      Inbound.connection_status(plugin_key: plugin_key, root: root, actor: actor)
+    end
+
+    def inbound_connections(plugin_key:, root:, actor:)
+      Inbound.connections(plugin_key: plugin_key, root: root, actor: actor)
     end
 
     def connection_id_for(provider:, root:, actor:)

@@ -54,6 +54,19 @@
         <p class="text-sm leading-6">
           Client id <code><%= @oauth_client.client_id %></code>
         </p>
+        <% if @oauth_client.plugin_key.present? %>
+          <p class="text-sm leading-6">
+            Plugin key <code><%= @oauth_client.plugin_key %></code>
+          </p>
+        <% end %>
+        <% if @inbound_status %>
+          <p class="text-sm leading-6">
+            Inbound connected: <%= @inbound_status.fetch(:connected) ? "yes" : "no" %>.
+            <% if @inbound_status.fetch(:connected_count) %>
+              People connected: <%= @inbound_status.fetch(:connected_count) %>.
+            <% end %>
+          </p>
+        <% end %>
       <% end %>
     <% end %>
   <% end %>
