@@ -38,10 +38,11 @@ class OauthClientPluginKeyTest < ActiveSupport::TestCase
   end
 
   test "two clients may share a plugin_key" do
-    create_oauth_client(name: "App One", plugin_key: "inbound_demo")
-    second, = create_oauth_client(name: "App Two", plugin_key: "inbound_demo")
+    first, = create_oauth_client(name: "App One", plugin_key: "shared_inbound_key")
+    second, = create_oauth_client(name: "App Two", plugin_key: "shared_inbound_key")
 
-    assert_equal "inbound_demo", second.plugin_key
-    assert_equal 2, RecordingStudioOauth::OauthClient.where(plugin_key: "inbound_demo").count
+    assert_equal "shared_inbound_key", first.plugin_key
+    assert_equal first.plugin_key, second.plugin_key
+    assert_equal 2, RecordingStudioOauth::OauthClient.where(plugin_key: "shared_inbound_key").count
   end
 end
