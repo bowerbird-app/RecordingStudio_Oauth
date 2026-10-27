@@ -136,12 +136,9 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
 
       admin_recording = RecordingStudioOauth::Admin::OauthClientsController.new.send(:admin_access_recording)
       resolver_recording = RecordingStudioAdmin.configuration.access_recording_resolver.call(nil)
-      assert_equal resolver_recording&.id, admin_recording&.id
-      refute_equal trashed_admin.id, admin_recording&.id
-
-      # Dummy resolver does not unscoped; additive kept_sql under where.not matches
-      # main's where(trashed_at: nil) and returns no kept Admin root.
+      assert_nil admin_recording
       assert_nil resolver_recording
+      refute_equal trashed_admin.id, admin_recording&.id
     end
 
     # Control: without the hostile default_scope the resolver finds the kept Admin root.
