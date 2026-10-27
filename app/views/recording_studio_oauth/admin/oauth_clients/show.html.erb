@@ -17,8 +17,7 @@
      anchor_href: oauth_clients_admin_screen_path,
      anchor_tooltip: "Close"
    ) %>
-<% register_page_nav "Edit app", edit_admin_oauth_client_path(@oauth_client), role: :secondary %>
-<% register_page_nav "Done", oauth_clients_admin_screen_path, role: :primary %>
+<% register_page_nav "Edit", edit_admin_oauth_client_path(@oauth_client), role: :secondary %>
 
 <div class="space-y-6">
   <%= render FlatPack::TextInput::Component.new(
@@ -50,4 +49,12 @@
       quick_copy: true
     ) %>
   <% end %>
+
+  <div>
+    <%= render FlatPack::Button::Component.new(
+      text: "Done",
+      style: :primary,
+      href: oauth_clients_admin_screen_path
+    ) %>
+  </div>
 </div>

@@ -277,7 +277,13 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     assert_equal [exact], client.exact_return_urls
 
     follow_redirect!
-    assert_includes response.body, "Edit app"
+    edit_button = css_select("a, button").find { |element| element.text.strip == "Edit" }
+    done_button = css_select("a, button").find { |element| element.text.strip == "Done" }
+
+    refute_nil edit_button
+    refute_nil done_button
+    assert_equal "primary", done_button["data-fp-style"]
+    refute_includes response.body, "Edit app"
 
     get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
     assert_response :success
