@@ -114,8 +114,8 @@ module RecordingStudioOauth
           .where(usable_token_sql)
           .includes(
             :oauth_client,
-            access_recording: [ :parent_recording, :root_recording ],
-            manager_access_recording: [ :parent_recording, :root_recording ]
+            access_recording: %i[parent_recording root_recording],
+            manager_access_recording: %i[parent_recording root_recording]
           )
           .to_a
       end
