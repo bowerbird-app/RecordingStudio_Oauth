@@ -12,6 +12,7 @@ RecordingStudioOauth.configure do |config|
   config.extra_protected_resource_paths = []
   config.allow_registration = false
   config.allow_self_registered_apps = true
+  config.layout = ->(controller:) { "application" if controller.devise_controller? }
 end
 
 require Rails.root.join("app/models/fake_oauth")
