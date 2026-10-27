@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.20.0
+
+No Oauth migration. Install Oauth `0.20.0`. A missing
+`config/recording_studio_oauth.yml` still leaves gem defaults. A file that
+exists but will not parse fails boot instead of being ignored.
+
 ## 0.19.1
 
 No Oauth migration. Install Oauth `0.19.1` to allow Recording Studio API

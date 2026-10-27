@@ -53,6 +53,7 @@ require "recording_studio_oauth/admin/metric_chart_widgets"
 require "recording_studio_oauth/admin/oauth_clients_filters"
 require "recording_studio_oauth/admin"
 require "recording_studio_oauth/metrics"
+require "recording_studio_oauth/host_config"
 require_relative "../../app/helpers/recording_studio_oauth/copy_helper"
 
 module RecordingStudioOauth
@@ -155,31 +156,16 @@ module RecordingStudioOauth
 
     initializer "recording_studio_oauth.load_config" do |app|
       if app.respond_to?(:config_for)
-        begin
-          yaml = begin
-            app.config_for(:recording_studio_oauth)
-          rescue StandardError
-            nil
-          end
-          RecordingStudioOauth.configuration.merge!(yaml) if yaml.respond_to?(:each)
-        rescue StandardError
-          nil
+        config_file = RecordingStudioOauth::HostConfig.file(app)
+        if config_file
+          yaml = app.config_for(:recording_studio_oauth)
+          RecordingStudioOauth.configuration.merge!(yaml.to_h) if yaml.respond_to?(:to_h)
         end
       end
 
       if app.config.respond_to?(:x) && app.config.x.respond_to?(:recording_studio_oauth)
         xcfg = app.config.x.recording_studio_oauth
-        if xcfg.respond_to?(:to_h)
-          RecordingStudioOauth.configuration.merge!(xcfg.to_h)
-        else
-          begin
-            hash = {}
-            xcfg.each_pair { |k, v| hash[k] = v } if xcfg.respond_to?(:each_pair)
-            RecordingStudioOauth.configuration.merge!(hash) if hash&.any?
-          rescue StandardError
-            nil
-          end
-        end
+        RecordingStudioOauth.configuration.merge!(xcfg.to_h)
       end
 
       RecordingStudioOauth.configuration.hooks.run(:on_configuration, RecordingStudioOauth.configuration)

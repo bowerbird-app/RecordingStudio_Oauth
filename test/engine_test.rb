@@ -1,6 +1,29 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "fileutils"
+require "pathname"
+require "tmpdir"
+require "yaml"
+
+class HostAppStub
+  attr_accessor :root, :paths, :config, :config_for_result, :config_for_error, :config_for_from_file, :config_for_calls
+
+  def initialize(root:, config:, paths: nil)
+    @root = root
+    @paths = paths
+    @config = config
+    @config_for_calls = 0
+  end
+
+  def config_for(_name)
+    @config_for_calls += 1
+    raise @config_for_error if @config_for_error
+    return YAML.safe_load_file(@root.join("config", "recording_studio_oauth.yml")) if @config_for_from_file
+
+    @config_for_result
+  end
+end
 
 class EngineTest < Minitest::Test
   def setup
@@ -27,6 +50,46 @@ class EngineTest < Minitest::Test
     assert after_called
   end
 
+  def test_host_config_file_is_public
+    assert RecordingStudioOauth::HostConfig.respond_to?(:file)
+    refute RecordingStudioOauth::Engine.respond_to?(:host_oauth_config_file, true)
+  end
+
+  def test_load_config_uses_host_config_without_send
+    engine_source = File.read(File.expand_path("../lib/recording_studio_oauth/engine.rb", __dir__))
+
+    assert_includes engine_source, "RecordingStudioOauth::HostConfig.file(app)"
+    refute_includes engine_source, "send(:host_oauth_config_file"
+    refute_includes engine_source, "private_class_method"
+  end
+
+  def test_host_config_file_from_root
+    with_host_oauth_yaml("---\n") do |root|
+      app = HostAppStub.new(root: root, config: Object.new)
+
+      assert_equal root.join("config", "recording_studio_oauth.yml"), RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
+  def test_host_config_file_from_paths
+    with_host_oauth_yaml("---\n") do |root|
+      paths = { "config" => [root.join("config").to_s] }
+      app = HostAppStub.new(root: nil, paths: paths, config: Object.new)
+
+      assert_equal Pathname(root.join("config")).join("recording_studio_oauth.yml"), RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
+  def test_host_config_file_missing
+    Dir.mktmpdir do |dir|
+      root = Pathname.new(dir)
+      FileUtils.mkdir_p(root.join("config"))
+      app = HostAppStub.new(root: root, config: Object.new)
+
+      assert_nil RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
   def test_load_config_merges_config_sources_and_runs_on_configuration_hook
     hook_called = false
     hook_payload = nil
@@ -35,63 +98,26 @@ class EngineTest < Minitest::Test
       hook_payload = cfg
     end
 
-    xcfg = Struct.new(:recording_studio_oauth).new({ current_actor_method: :current_person })
-    app_config = Struct.new(:x).new(xcfg)
-    app = Struct.new(:config) do
-      def config_for(_name)
-        { api_mount_path: "/from_yaml", authentication_method: :authenticate_person! }
-      end
-    end.new(app_config)
+    x_oauth = ActiveSupport::OrderedOptions.new
+    x_oauth.current_actor_method = :current_person
+    app_config = Struct.new(:x).new(Struct.new(:recording_studio_oauth).new(x_oauth))
 
-    find_initializer("recording_studio_oauth.load_config").block.call(app)
+    with_host_oauth_yaml("---\n") do |root|
+      app = HostAppStub.new(root: root, config: app_config)
+      app.config_for_result = {
+        api_mount_path: "/from_yaml",
+        authentication_method: :authenticate_person!
+      }
 
-    assert hook_called
-    assert_equal RecordingStudioOauth.configuration, hook_payload
-    assert_equal "/from_yaml", RecordingStudioOauth.configuration.api_mount_path
-    assert_equal :authenticate_person!, RecordingStudioOauth.configuration.authentication_method
-    assert_equal :current_person, RecordingStudioOauth.configuration.current_actor_method
-  end
+      find_initializer("recording_studio_oauth.load_config").block.call(app)
 
-  def test_load_config_handles_errors_and_each_pair_fallback
-    pair_config = Class.new do
-      def each_pair
-        yield(:api_mount_path, "/from-pair")
-      end
-    end.new
-
-    xcfg = Struct.new(:recording_studio_oauth).new(pair_config)
-    app_config = Struct.new(:x).new(xcfg)
-
-    app = Struct.new(:config) do
-      def config_for(_name)
-        raise "missing file"
-      end
-    end.new(app_config)
-
-    find_initializer("recording_studio_oauth.load_config").block.call(app)
-
-    assert_equal "/from-pair", RecordingStudioOauth.configuration.api_mount_path
-  end
-
-  def test_load_config_swallow_each_pair_errors
-    bad_pair_config = Class.new do
-      def each_pair
-        raise "bad pair"
-      end
-    end.new
-
-    xcfg = Struct.new(:recording_studio_oauth).new(bad_pair_config)
-    app_config = Struct.new(:x).new(xcfg)
-    app = Struct.new(:config) do
-      def config_for(_name)
-        { api_mount_path: "/ok" }
-      end
-    end.new(app_config)
-
-    # Should not raise even if xcfg.each_pair fails.
-    find_initializer("recording_studio_oauth.load_config").block.call(app)
-
-    assert_equal "/ok", RecordingStudioOauth.configuration.api_mount_path
+      assert hook_called
+      assert_equal RecordingStudioOauth.configuration, hook_payload
+      assert_equal "/from_yaml", RecordingStudioOauth.configuration.api_mount_path
+      assert_equal :authenticate_person!, RecordingStudioOauth.configuration.authentication_method
+      assert_equal :current_person, RecordingStudioOauth.configuration.current_actor_method
+      assert_equal 1, app.config_for_calls
+    end
   end
 
   def test_load_config_is_noop_without_config_sources
@@ -104,26 +130,55 @@ class EngineTest < Minitest::Test
     assert_equal :current_user, RecordingStudioOauth.configuration.current_actor_method
   end
 
-  def test_load_config_ignores_non_enumerable_yaml_and_merge_errors
-    yaml = Class.new do
-      def each
-        raise "bad yaml"
-      end
-    end.new
+  def test_load_config_missing_file_leaves_defaults
+    Dir.mktmpdir do |dir|
+      root = Pathname.new(dir)
+      FileUtils.mkdir_p(root.join("config"))
+      app = HostAppStub.new(root: root, config: Object.new)
+      app.config_for_error = RuntimeError.new("config_for should not run when the file is missing")
 
-    xcfg = Struct.new(:recording_studio_oauth).new({ api_mount_path: "/from-x" })
-    app_config = Struct.new(:x).new(xcfg)
-    app = Struct.new(:config) do
-      attr_accessor :yaml
+      find_initializer("recording_studio_oauth.load_config").block.call(app)
 
-      def config_for(_name)
-        @yaml
+      assert_equal 0, app.config_for_calls
+      assert_equal "/recording_studio_api", RecordingStudioOauth.configuration.api_mount_path
+      assert_equal :authenticate_user!, RecordingStudioOauth.configuration.authentication_method
+      assert_equal :current_user, RecordingStudioOauth.configuration.current_actor_method
+    end
+  end
+
+  def test_load_config_malformed_yaml_raises
+    with_host_oauth_yaml(":\n  - this is not valid yaml") do |root|
+      app = HostAppStub.new(root: root, config: Object.new)
+      app.config_for_from_file = true
+
+      assert_raises(Psych::SyntaxError) do
+        find_initializer("recording_studio_oauth.load_config").block.call(app)
       end
-    end.new(app_config)
-    app.yaml = yaml
+    end
+  end
+
+  def test_load_config_finds_file_through_paths
+    with_host_oauth_yaml("---\n") do |root|
+      paths = { "config" => [root.join("config").to_s] }
+      app = HostAppStub.new(root: nil, paths: paths, config: Object.new)
+      app.config_for_result = { api_mount_path: "/from-paths" }
+
+      find_initializer("recording_studio_oauth.load_config").block.call(app)
+
+      assert_equal 1, app.config_for_calls
+      assert_equal "/from-paths", RecordingStudioOauth.configuration.api_mount_path
+    end
+  end
+
+  def test_load_config_merges_x_config
+    x_oauth = ActiveSupport::OrderedOptions.new
+    x_oauth.api_mount_path = "/from-x"
+    app_config = Struct.new(:x).new(Struct.new(:recording_studio_oauth).new(x_oauth))
+    app = HostAppStub.new(root: Pathname.new("/tmp/does-not-exist-oauth-config"), config: app_config)
 
     find_initializer("recording_studio_oauth.load_config").block.call(app)
 
+    assert_equal 0, app.config_for_calls
     assert_equal "/from-x", RecordingStudioOauth.configuration.api_mount_path
   end
 
@@ -300,5 +355,14 @@ class EngineTest < Minitest::Test
 
   def find_initializer(name)
     RecordingStudioOauth::Engine.initializers.find { |initializer| initializer.name == name }
+  end
+
+  def with_host_oauth_yaml(contents)
+    Dir.mktmpdir do |dir|
+      root = Pathname.new(dir)
+      FileUtils.mkdir_p(root.join("config"))
+      File.write(root.join("config", "recording_studio_oauth.yml"), contents)
+      yield root
+    end
   end
 end
