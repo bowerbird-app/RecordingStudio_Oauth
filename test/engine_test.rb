@@ -50,6 +50,46 @@ class EngineTest < Minitest::Test
     assert after_called
   end
 
+  def test_host_config_file_is_public
+    assert RecordingStudioOauth::HostConfig.respond_to?(:file)
+    refute RecordingStudioOauth::Engine.respond_to?(:host_oauth_config_file, true)
+  end
+
+  def test_load_config_uses_host_config_without_send
+    engine_source = File.read(File.expand_path("../lib/recording_studio_oauth/engine.rb", __dir__))
+
+    assert_includes engine_source, "RecordingStudioOauth::HostConfig.file(app)"
+    refute_includes engine_source, "send(:host_oauth_config_file"
+    refute_includes engine_source, "private_class_method"
+  end
+
+  def test_host_config_file_from_root
+    with_host_oauth_yaml("---\n") do |root|
+      app = HostAppStub.new(root: root, config: Object.new)
+
+      assert_equal root.join("config", "recording_studio_oauth.yml"), RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
+  def test_host_config_file_from_paths
+    with_host_oauth_yaml("---\n") do |root|
+      paths = { "config" => [root.join("config").to_s] }
+      app = HostAppStub.new(root: nil, paths: paths, config: Object.new)
+
+      assert_equal Pathname(root.join("config")).join("recording_studio_oauth.yml"), RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
+  def test_host_config_file_missing
+    Dir.mktmpdir do |dir|
+      root = Pathname.new(dir)
+      FileUtils.mkdir_p(root.join("config"))
+      app = HostAppStub.new(root: root, config: Object.new)
+
+      assert_nil RecordingStudioOauth::HostConfig.file(app)
+    end
+  end
+
   def test_load_config_merges_config_sources_and_runs_on_configuration_hook
     hook_called = false
     hook_payload = nil

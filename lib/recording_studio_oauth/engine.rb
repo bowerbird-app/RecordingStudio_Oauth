@@ -53,6 +53,7 @@ require "recording_studio_oauth/admin/metric_chart_widgets"
 require "recording_studio_oauth/admin/oauth_clients_filters"
 require "recording_studio_oauth/admin"
 require "recording_studio_oauth/metrics"
+require "recording_studio_oauth/host_config"
 require_relative "../../app/helpers/recording_studio_oauth/copy_helper"
 
 module RecordingStudioOauth
@@ -155,7 +156,7 @@ module RecordingStudioOauth
 
     initializer "recording_studio_oauth.load_config" do |app|
       if app.respond_to?(:config_for)
-        config_file = RecordingStudioOauth::Engine.send(:host_oauth_config_file, app)
+        config_file = RecordingStudioOauth::HostConfig.file(app)
         if config_file
           yaml = app.config_for(:recording_studio_oauth)
           RecordingStudioOauth.configuration.merge!(yaml.to_h) if yaml.respond_to?(:to_h)
@@ -206,25 +207,5 @@ module RecordingStudioOauth
       RecordingStudioOauth::Admin.register! if defined?(RecordingStudioAdmin)
     end
 
-    def self.host_oauth_config_file(app)
-      host_oauth_config_candidates(app).find(&:exist?)
-    end
-
-    def self.host_oauth_config_candidates(app)
-      yaml_name = "recording_studio_oauth.yml"
-      files = []
-      files << Pathname(app.root).join("config", yaml_name) if app.respond_to?(:root) && app.root
-      files.concat(host_oauth_config_path_files(app, yaml_name))
-      files
-    end
-
-    def self.host_oauth_config_path_files(app, yaml_name)
-      return [] unless app.respond_to?(:paths) && app.paths && app.paths["config"]
-
-      config_paths = app.paths["config"]
-      dirs = config_paths.respond_to?(:existent) ? config_paths.existent : Array(config_paths)
-      dirs.map { |dir| Pathname(dir).join(yaml_name) }
-    end
-    private_class_method :host_oauth_config_file, :host_oauth_config_candidates, :host_oauth_config_path_files
   end
 end

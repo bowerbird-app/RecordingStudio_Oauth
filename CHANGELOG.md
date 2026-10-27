@@ -5,12 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.19.2] - 2026-10-27
+## [0.20.0] - 2026-10-27
+
+### Behaviour changes
+- A present but malformed `config/recording_studio_oauth.yml` fails boot
+  instead of being swallowed. Load the file only when it exists. A missing
+  file still leaves gem defaults. Host `config.x` still merges through
+  `to_h` (`ActiveSupport::OrderedOptions`).
 
 ### Changed
-- Load `config/recording_studio_oauth.yml` only when that file exists. A
-  broken file now fails boot instead of being ignored. Host `config.x`
-  still merges through `to_h` (`ActiveSupport::OrderedOptions`).
+- Look up the host YAML with `RecordingStudioOauth::HostConfig.file(app)`.
 
 ### Removed
 - Tracked SimpleCov reports under `coverage/` and `test/dummy/coverage/`.
@@ -18,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Leftover gem-template engine docs that survived rename.
 
 ### Upgrade notes
-- Bump to `0.19.2`. No migration.
+- Bump to `0.20.0`. No migration.
 - Fix or remove a malformed `config/recording_studio_oauth.yml` before
   boot. A missing file still leaves gem defaults.
 
@@ -786,7 +790,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
-[0.19.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.1...v0.19.2
+[0.20.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.17.0...v0.18.0
