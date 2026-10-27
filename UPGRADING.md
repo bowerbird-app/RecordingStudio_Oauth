@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.19.1
+
+No Oauth migration. Install Oauth `0.19.1` to allow Recording Studio API
+`>= 0.5.2, < 0.18`. Dummy and development pin API tag `v0.17.1` and keep
+Logs tag `v0.4.1`. No code change. Do not add Logs to this gem.
+
 ## 0.19.0
 
 Install Oauth `0.19.0`. Run `rails recording_studio_oauth:install:migrations`
