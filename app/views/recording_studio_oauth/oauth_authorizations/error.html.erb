@@ -1,10 +1,5 @@
-<% recording_studio_page_nav(title: oauth_t("errors.page_title")) %>
-
-<%= render FlatPack::PageTitle::Component.new(
-  title: oauth_t("errors.page_title"),
-  variant: :h1,
-  class: "mb-0 pb-0 text-center"
-) %>
+<% content_for :title, oauth_t("errors.page_title") %>
+<% flat_pack_page_nav(round: true, style: :default, back_tooltip: oauth_t("layout.go_back")) %>
 
 <%= render FlatPack::Alert::Component.new(
   description: oauth_error_page_description(@oauth_error),
