@@ -23,6 +23,7 @@ module RecordingStudioOauth
         )
       end
 
+      # Builds the people list on purpose (small scale: one plugin_key in one workspace).
       def connected?
         return false unless may_view_root?
         return false if plugin_key.blank?
@@ -67,7 +68,7 @@ module RecordingStudioOauth
       end
 
       def build_people_rows
-        authorizations = connected_authorizations.to_a
+        authorizations = connected_authorizations
         return [] if authorizations.empty?
 
         last_used_by_id = OauthAccessToken.where(oauth_authorization_id: authorizations.map(&:id))
@@ -98,48 +99,29 @@ module RecordingStudioOauth
       end
 
       def connected_authorizations
-        access = "inbound_access"
-        manager = "inbound_manager"
-        workspace = "inbound_workspace"
-        grants = "inbound_grants"
-        depends_on = "inbound_depends_on"
-        auth_table = connection.quote_table_name(OauthAuthorization.table_name)
-        recordings = connection.quote_table_name(RecordingStudio::Recording.table_name)
-        accesses = connection.quote_table_name(RecordingStudio::Access.table_name)
+        @connected_authorizations ||= candidate_authorizations
+                                      .select { |authorization| authorization.workspace_recording == root }
+                                      .select(&:active?)
+      end
+
+      def candidate_authorizations
+        return [] if plugin_key.blank? || root.nil?
 
         OauthAuthorization
           .joins(:oauth_client)
           .merge(OauthClient.active.for_plugin_key(plugin_key))
           .where(revoked_at: nil)
-          .joins(<<~SQL.squish)
-            INNER JOIN #{recordings} #{access}
-              ON #{access}.id = #{auth_table}.access_recording_id
-             AND #{kept_sql(access)}
-            LEFT JOIN #{recordings} #{manager}
-              ON #{manager}.id = #{auth_table}.manager_access_recording_id
-            INNER JOIN #{recordings} #{workspace}
-              ON #{workspace}.id = COALESCE(#{access}.parent_recording_id, #{access}.root_recording_id, #{manager}.parent_recording_id, #{manager}.root_recording_id)
-             AND #{kept_sql(workspace)}
-            INNER JOIN #{accesses} #{grants}
-              ON #{grants}.id = #{access}.recordable_id
-             AND #{access}.recordable_type = #{quote('RecordingStudio::Access')}
-             AND #{grants}.actor_type = #{quote(OauthAuthorization.name)}
-             AND #{grants}.actor_id = #{auth_table}.id
-            LEFT JOIN #{recordings} #{depends_on}
-              ON #{depends_on}.id = #{grants}.depends_on_recording_id
-          SQL
-          .where("#{workspace}.id = ?", root.id)
-          .where(
-            "#{grants}.depends_on_recording_id IS NULL OR (#{kept_sql(depends_on)} AND #{depends_on}.recordable_type = ?)",
-            "RecordingStudio::Access"
-          )
-          .where(role_still_authorized_sql(grants))
           .where(usable_token_sql)
-          .includes(:oauth_client)
+          .includes(
+            :oauth_client,
+            access_recording: [ :parent_recording, :root_recording ],
+            manager_access_recording: [ :parent_recording, :root_recording ]
+          )
+          .to_a
       end
 
       def usable_token_sql
-        auth_id = "#{OauthAuthorization.quoted_table_name}.#{connection.quote_column_name('id')}"
+        auth_id = "#{OauthAuthorization.quoted_table_name}.#{OauthAuthorization.connection.quote_column_name('id')}"
         access_exists = OauthAccessToken.active
                                         .where("#{OauthAccessToken.quoted_table_name}.oauth_authorization_id = #{auth_id}")
                                         .select(1)
@@ -151,28 +133,6 @@ module RecordingStudioOauth
                                           .arel
                                           .exists
         access_exists.or(refresh_exists)
-      end
-
-      def role_still_authorized_sql(grants)
-        grant_rank = role_rank_sql("#{grants}.role")
-        auth_rank = role_rank_sql("#{OauthAuthorization.quoted_table_name}.role")
-        "#{grant_rank} >= #{auth_rank}"
-      end
-
-      def role_rank_sql(column)
-        "CASE #{column} WHEN 'admin' THEN 2 WHEN 'edit' THEN 1 WHEN 'view' THEN 0 ELSE -1 END"
-      end
-
-      def kept_sql(table)
-        RecordingStudio::Recording.recording_studio_trashable_kept_sql(table)
-      end
-
-      def quote(value)
-        connection.quote(value)
-      end
-
-      def connection
-        OauthAuthorization.connection
       end
 
       def service_args

@@ -196,6 +196,127 @@ class InboundConnectionStatusTest < ActiveSupport::TestCase
     assert_equal [], RecordingStudioOauth.inbound_connections(plugin_key: "inbound_demo", root: @root, actor: @admin)
   end
 
+  test "trashed access recording is not connected" do
+    approved = connect_inbound!(oauth_client: @client, user: @admin, access_recording: @admin_access)
+    authorization = approved.fetch(:authorization)
+
+    RecordingStudioTrashable.void_recording!(authorization.access_recording)
+
+    refute authorization.reload.active?
+    refute status_for(@admin).fetch(:connected)
+    assert_equal 0, status_for(@admin).fetch(:connected_count)
+  end
+
+  test "trashed workspace is not connected" do
+    approved = connect_inbound!(oauth_client: @client, user: @admin, access_recording: @admin_access)
+    authorization = approved.fetch(:authorization)
+
+    RecordingStudioTrashable.void_recording!(@root)
+
+    refute authorization.reload.active?
+    refute status_for(@admin).fetch(:connected)
+  end
+
+  test "grant downgraded below the authorization role is not connected" do
+    approved = connect_inbound!(
+      oauth_client: @client,
+      user: @admin,
+      access_recording: @admin_access,
+      role: "admin"
+    )
+    authorization = approved.fetch(:authorization)
+    assert authorization.active?
+
+    result = RecordingStudioAccessible::Services::UpdateRecordingAccess.call(
+      recording: @root,
+      access_recording: authorization.access_recording,
+      role: :view,
+      manager_actor: @admin
+    )
+    assert result.success?
+
+    authorization.reload
+    assert_equal "admin", authorization.role
+    refute authorization.active?
+    refute status_for(@admin).fetch(:connected)
+    assert_equal 0, status_for(@admin).fetch(:connected_count)
+  end
+
+  test "dependent grant is not connected when its parent grant is trashed" do
+    approved = connect_inbound!(oauth_client: @client, user: @member, access_recording: @member_access)
+    authorization = approved.fetch(:authorization)
+    assert_equal 1, status_for(@admin).fetch(:connected_count)
+
+    RecordingStudioTrashable.void_recording!(@member_access)
+
+    refute authorization.reload.active?
+    refute status_for(@member).fetch(:connected)
+    assert_equal 0, status_for(@admin).fetch(:connected_count)
+    assert_equal [], RecordingStudioOauth.inbound_connections(plugin_key: "inbound_demo", root: @root, actor: @admin)
+  end
+
+  test "connected agrees with authorization.active? over seeded cases" do
+    live = connect_inbound!(oauth_client: @client, user: @admin, access_recording: @admin_access)
+    trashed_access = connect_inbound!(oauth_client: @client, user: @member, access_recording: @member_access)
+    RecordingStudioTrashable.void_recording!(trashed_access.fetch(:authorization).access_recording)
+
+    downgraded_user = create_user(email: "downgrade-#{SecureRandom.hex(4)}@example.com")
+    downgraded_access = grant_or_bootstrap_access!(recording: @root, actor: downgraded_user, role: :admin)
+    downgraded = connect_inbound!(
+      oauth_client: @client,
+      user: downgraded_user,
+      access_recording: downgraded_access,
+      role: "admin"
+    )
+    result = RecordingStudioAccessible::Services::UpdateRecordingAccess.call(
+      recording: @root,
+      access_recording: downgraded.fetch(:authorization).access_recording,
+      role: :view,
+      manager_actor: @admin
+    )
+    assert result.success?
+
+    parent_user = create_user(email: "parent-#{SecureRandom.hex(4)}@example.com")
+    parent_access = grant_or_bootstrap_access!(recording: @root, actor: parent_user, role: :admin)
+    parent_trashed = connect_inbound!(
+      oauth_client: @client,
+      user: parent_user,
+      access_recording: parent_access
+    )
+    RecordingStudioTrashable.void_recording!(parent_access)
+
+    other_root, other_access = create_access_recording_for(
+      user: @admin,
+      workspace_name: "Parity other #{SecureRandom.hex(4)}"
+    )
+    other_workspace = connect_inbound!(oauth_client: @client, user: @admin, access_recording: other_access)
+
+    seeded = [
+      live.fetch(:authorization),
+      trashed_access.fetch(:authorization),
+      downgraded.fetch(:authorization),
+      parent_trashed.fetch(:authorization),
+      other_workspace.fetch(:authorization)
+    ].map(&:reload)
+
+    people = RecordingStudioOauth.inbound_connections(plugin_key: "inbound_demo", root: @root, actor: @admin)
+    listed = people.map { |row| [ row.fetch(:actor_type), row.fetch(:actor_id).to_s ] }
+
+    seeded.each do |authorization|
+      next unless authorization.workspace_recording == @root
+
+      in_people = listed.include?([ authorization.manager_actor_type, authorization.manager_actor_id.to_s ])
+      assert_equal authorization.active?, in_people, "people list for authorization #{authorization.id}"
+      assert_equal authorization.active?, status_for(authorization.manager_actor).fetch(:connected),
+                   "connected for authorization #{authorization.id}"
+    end
+
+    assert_equal 1, people.size
+    assert_equal @admin.id, people.first.fetch(:actor_id)
+    refute_equal other_root.id, @root.id
+    refute_equal other_workspace.fetch(:authorization).workspace_recording, @root
+  end
+
   private
 
   def status_for(actor)
