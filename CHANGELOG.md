@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.2] - 2026-10-27
+
+### Changed
+- Load `config/recording_studio_oauth.yml` only when that file exists. A
+  broken file now fails boot instead of being ignored. Host `config.x`
+  still merges through `to_h` (`ActiveSupport::OrderedOptions`).
+
+### Removed
+- Tracked SimpleCov reports under `coverage/` and `test/dummy/coverage/`.
+- Captured dummy HTML at `test/dummy/install_page.html`.
+- Leftover gem-template engine docs that survived rename.
+
+### Upgrade notes
+- Bump to `0.19.2`. No migration.
+- Fix or remove a malformed `config/recording_studio_oauth.yml` before
+  boot. A missing file still leaves gem defaults.
+
 ## [0.19.1] - 2026-10-27
 
 ### Changed

@@ -155,31 +155,16 @@ module RecordingStudioOauth
 
     initializer "recording_studio_oauth.load_config" do |app|
       if app.respond_to?(:config_for)
-        begin
-          yaml = begin
-            app.config_for(:recording_studio_oauth)
-          rescue StandardError
-            nil
-          end
-          RecordingStudioOauth.configuration.merge!(yaml) if yaml.respond_to?(:each)
-        rescue StandardError
-          nil
+        config_file = host_oauth_config_file(app)
+        if config_file
+          yaml = app.config_for(:recording_studio_oauth)
+          RecordingStudioOauth.configuration.merge!(yaml.to_h) if yaml.respond_to?(:to_h)
         end
       end
 
       if app.config.respond_to?(:x) && app.config.x.respond_to?(:recording_studio_oauth)
         xcfg = app.config.x.recording_studio_oauth
-        if xcfg.respond_to?(:to_h)
-          RecordingStudioOauth.configuration.merge!(xcfg.to_h)
-        else
-          begin
-            hash = {}
-            xcfg.each_pair { |k, v| hash[k] = v } if xcfg.respond_to?(:each_pair)
-            RecordingStudioOauth.configuration.merge!(hash) if hash&.any?
-          rescue StandardError
-            nil
-          end
-        end
+        RecordingStudioOauth.configuration.merge!(xcfg.to_h)
       end
 
       RecordingStudioOauth.configuration.hooks.run(:on_configuration, RecordingStudioOauth.configuration)
@@ -220,5 +205,19 @@ module RecordingStudioOauth
       RecordingStudioOauth::TokenAuthenticator.register!
       RecordingStudioOauth::Admin.register! if defined?(RecordingStudioAdmin)
     end
+
+    def self.host_oauth_config_file(app)
+      candidates = []
+      if app.respond_to?(:root) && app.root
+        candidates << Pathname(app.root).join("config", "recording_studio_oauth.yml")
+      end
+      if app.respond_to?(:paths) && app.paths && app.paths["config"]
+        config_paths = app.paths["config"]
+        dirs = config_paths.respond_to?(:existent) ? config_paths.existent : Array(config_paths)
+        dirs.each { |dir| candidates << Pathname(dir).join("recording_studio_oauth.yml") }
+      end
+      candidates.find(&:exist?)
+    end
+    private_class_method :host_oauth_config_file
   end
 end
