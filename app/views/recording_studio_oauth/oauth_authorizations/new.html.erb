@@ -1,10 +1,5 @@
-<% recording_studio_page_nav(title: connect_permission_title) %>
-
-<%= render FlatPack::PageTitle::Component.new(
-  title: connect_permission_title,
-  variant: :h1,
-  class: "mb-0 pb-0 text-center"
-) %>
+<% content_for :title, connect_permission_title %>
+<% flat_pack_page_nav(round: true, style: :default, back_tooltip: oauth_t("layout.go_back")) %>
 
 <% if @errors.any? %>
   <%= render FlatPack::Alert::Component.new(

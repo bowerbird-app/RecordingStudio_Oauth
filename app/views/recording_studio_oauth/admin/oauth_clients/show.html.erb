@@ -7,17 +7,17 @@
    else
      "Copy the client id. This app has no secret."
    end %>
-<% recording_studio_page_nav(
-     title: "App credentials",
-     page_nav_back_url: oauth_clients_admin_screen_path,
-     page_nav_anchor_url: oauth_clients_admin_screen_path
+<% content_for :title, "App credentials" %>
+<% content_for :subtitle, credentials_subtitle if credentials_subtitle %>
+<% flat_pack_page_nav(
+     round: true,
+     style: :default,
+     back_href: oauth_clients_admin_screen_path,
+     back_tooltip: oauth_t("layout.go_back"),
+     anchor_href: oauth_clients_admin_screen_path,
+     anchor_tooltip: "Close"
    ) %>
-
-<%= render FlatPack::PageTitle::Component.new(
-  title: "App credentials",
-  subtitle: credentials_subtitle,
-  variant: :h1
-) %>
+<% register_page_nav "Edit", edit_admin_oauth_client_path(@oauth_client), role: :secondary %>
 
 <div class="space-y-6">
   <%= render FlatPack::TextInput::Component.new(
@@ -50,15 +50,11 @@
     ) %>
   <% end %>
 
-  <%= render FlatPack::Button::Component.new(
-    text: "Edit app",
-    style: :secondary,
-    href: edit_admin_oauth_client_path(@oauth_client)
-  ) %>
-
-  <%= render FlatPack::Button::Component.new(
-    text: "Done",
-    style: :primary,
-    href: oauth_clients_admin_screen_path
-  ) %>
+  <div>
+    <%= render FlatPack::Button::Component.new(
+      text: "Done",
+      style: :primary,
+      href: oauth_clients_admin_screen_path
+    ) %>
+  </div>
 </div>

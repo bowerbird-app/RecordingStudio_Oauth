@@ -5,9 +5,10 @@ require "test_helper"
 class DummyHostTest < ActiveSupport::TestCase
   test "dummy app loads root switchable config and controller support" do
     assert_equal [ "all_workspaces" ], RecordingStudioRootSwitchable.configuration.scopes.keys
-    assert_equal :application_layout, RecordingStudioRootSwitchable.configuration.layout
+    assert_equal "recording_studio/default_layout", RecordingStudioRootSwitchable.configuration.layout
     assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
-    assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+    assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
+    refute_includes ApplicationController.ancestors.map(&:name), "RecordingStudio::UsesDefaultLayout"
   end
 
   test "dummy app validates recordable declarations" do
@@ -86,7 +87,22 @@ class DummyHostTest < ActiveSupport::TestCase
     assert RecordingStudio.capability_enabled?(:accessible, for: Folder)
     refute RecordingStudio.capability_enabled?(:accessible, for: Page)
     assert RecordingStudio.capability_enabled?(:accessible, for: AdminRoot)
-    assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+    assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
+  end
+
+  test "layout setting falls through for the host and connect overrides it" do
+    host = ApplicationController.new
+    host.define_singleton_method(:devise_controller?) { false }
+    assert_equal "recording_studio/default_layout", host.recording_studio_resolved_layout
+
+    login = ApplicationController.new
+    login.define_singleton_method(:devise_controller?) { true }
+    assert_equal "application", login.recording_studio_resolved_layout
+
+    connect = RecordingStudioOauth::OauthAuthorizationsController.new
+    assert_equal "recording_studio_oauth/authorization", connect.send(:_layout, nil, nil, nil)
+
+    assert_empty RecordingStudio::Layout.hardcoded_layout_paths(Rails.root)
   end
 
   test "dummy importmap pins turbo and admin screen controllers" do

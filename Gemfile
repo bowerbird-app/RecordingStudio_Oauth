@@ -2,12 +2,14 @@
 
 source "https://rubygems.org"
 
+require_relative "test/support/widen_recording_studio_requirement"
+
 gemspec
 
-gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.213"
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"
+gem "flat_pack", github: "bowerbird-app/flatpack", ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"
-gem "recording_studio_admin", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.2.0"
+gem "recording_studio_admin", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.7.0"
 gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.14.0"
 gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"
 gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"

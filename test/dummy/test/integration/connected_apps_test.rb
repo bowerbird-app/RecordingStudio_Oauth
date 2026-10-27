@@ -28,6 +28,7 @@ class ConnectedAppsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "h1", text: "Connected apps", count: 1
     assert_select "title", text: /Connected apps/
     assert_includes response.body, "Notes App"
     assert_select "[role='list']"

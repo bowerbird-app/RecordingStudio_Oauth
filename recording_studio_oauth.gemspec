@@ -23,9 +23,9 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     end
   end
 
-  spec.add_dependency "flat_pack", "~> 0.1.198"
+  spec.add_dependency "flat_pack", ">= 0.1.315"
   spec.add_dependency "rails", "~> 8.1.0"
-  spec.add_dependency "recording_studio", "~> 4.2"
+  spec.add_dependency "recording_studio", ">= 6.1.0"
   spec.add_dependency "recording_studio_accessible", "~> 0.11"
   spec.add_dependency "recording_studio_admin", "~> 2.0"
   spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.17"
@@ -33,4 +33,5 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"
   spec.add_dependency "recording_studio_site_settings", "~> 0.2"
   spec.add_dependency "recording_studio_trashable", "~> 0.10"
+  spec.add_dependency "view_component", ">= 4.14", "< 5"
 end # rubocop:enable Metrics/BlockLength
