@@ -19,9 +19,7 @@ class HostAppStub
   def config_for(_name)
     @config_for_calls += 1
     raise @config_for_error if @config_for_error
-    if @config_for_from_file
-      return YAML.safe_load_file(@root.join("config", "recording_studio_oauth.yml"))
-    end
+    return YAML.safe_load_file(@root.join("config", "recording_studio_oauth.yml")) if @config_for_from_file
 
     @config_for_result
   end

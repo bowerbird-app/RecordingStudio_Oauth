@@ -155,7 +155,7 @@ module RecordingStudioOauth
 
     initializer "recording_studio_oauth.load_config" do |app|
       if app.respond_to?(:config_for)
-        config_file = host_oauth_config_file(app)
+        config_file = RecordingStudioOauth::Engine.send(:host_oauth_config_file, app)
         if config_file
           yaml = app.config_for(:recording_studio_oauth)
           RecordingStudioOauth.configuration.merge!(yaml.to_h) if yaml.respond_to?(:to_h)
@@ -207,17 +207,24 @@ module RecordingStudioOauth
     end
 
     def self.host_oauth_config_file(app)
-      candidates = []
-      if app.respond_to?(:root) && app.root
-        candidates << Pathname(app.root).join("config", "recording_studio_oauth.yml")
-      end
-      if app.respond_to?(:paths) && app.paths && app.paths["config"]
-        config_paths = app.paths["config"]
-        dirs = config_paths.respond_to?(:existent) ? config_paths.existent : Array(config_paths)
-        dirs.each { |dir| candidates << Pathname(dir).join("recording_studio_oauth.yml") }
-      end
-      candidates.find(&:exist?)
+      host_oauth_config_candidates(app).find(&:exist?)
     end
-    private_class_method :host_oauth_config_file
+
+    def self.host_oauth_config_candidates(app)
+      yaml_name = "recording_studio_oauth.yml"
+      files = []
+      files << Pathname(app.root).join("config", yaml_name) if app.respond_to?(:root) && app.root
+      files.concat(host_oauth_config_path_files(app, yaml_name))
+      files
+    end
+
+    def self.host_oauth_config_path_files(app, yaml_name)
+      return [] unless app.respond_to?(:paths) && app.paths && app.paths["config"]
+
+      config_paths = app.paths["config"]
+      dirs = config_paths.respond_to?(:existent) ? config_paths.existent : Array(config_paths)
+      dirs.map { |dir| Pathname(dir).join(yaml_name) }
+    end
+    private_class_method :host_oauth_config_file, :host_oauth_config_candidates, :host_oauth_config_path_files
   end
 end
