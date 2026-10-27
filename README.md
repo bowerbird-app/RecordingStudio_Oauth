@@ -75,7 +75,7 @@ A present `resource` on authorize or token must match a registry entry for that 
 
 ## Connect
 
-Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. The access list has no back control. Permission and error keep PageNav back. Connected apps and staff admin stay on core default layout.
+Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. The access list has no back control. Permission and error keep a round PageNav back button. Connected apps and staff admin stay on the Recording Studio default layout. That layout draws one page title from `content_for :title` and `content_for :subtitle`. Set `RecordingStudioOauth.configuration.layout` to `nil` for that default, `false` for no layout, a layout name, or `->(controller:) { ... }`. Do not set `layout "recording_studio/default_layout"`.
 
 The list title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
 
@@ -88,7 +88,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `~> 4.2`, Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.17`, Cache `~> 0.5`, Site Settings `~> 0.2`, Flatpack `~> 0.1.198`, Trashable `~> 0.10`.
+1. Add the gem and pin Recording Studio `>= 6.1.0` (tag `v6.1.0`), Accessible `~> 0.11`, Admin `~> 2.0`, API `>= 0.5.2, < 0.17`, Cache `~> 0.5`, Site Settings `~> 0.2`, Flatpack `>= 0.1.315` (git ref `1fcbafe94f8eb118f0a22182f63f5110fcc97a56`, version `0.1.319`), Trashable `~> 0.10`, and `view_component` `>= 4.14, < 5`.
    Also add `recording_studio_metrics` `>= 0.3, < 1.0` (tag `v0.5.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
    Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, additive `recording_studio_trashable_kept_sql`). Pin git tag `v0.10.0` with `require: false` when Bundler would auto-require the gem.
 2. Run `bin/rails generate recording_studio_oauth:install`.
@@ -120,7 +120,7 @@ Staff Registered-app admin screens stay English. OAuth protocol error codes and 
 
 `test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Admin is staff-only for public apps. Product Docs is a folder under Studio Workspace and is not a Connect row. Dummy names an `operations` API so Registered apps can create an operations OauthClient. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
-Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v4.6.0`, Accessible `v0.18.0`, Attachable `v0.15.0`, Admin `v2.2.0`, Site Settings `v0.2.0`, Flatpack `v0.1.213`, and Recording Studio Internationalization `v0.1.2` (dummy only).
+Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v6.1.0`, Accessible `v0.18.0`, Attachable `v0.15.0`, Admin `v2.7.0`, Site Settings `v0.2.0`, Flatpack `0.1.319` (ref `1fcbafe94f8eb118f0a22182f63f5110fcc97a56`), and Recording Studio Internationalization `v0.1.2` (dummy only).
 
 Dummy also pins Metrics `v0.5.0`, API `v0.14.0`, and Logs `v0.4.1`.
 
@@ -444,4 +444,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.18.0
+0.19.0

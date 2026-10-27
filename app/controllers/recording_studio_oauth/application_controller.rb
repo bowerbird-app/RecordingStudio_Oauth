@@ -2,11 +2,10 @@
 
 module RecordingStudioOauth
   class ApplicationController < ActionController::Base
-    include RecordingStudio::UsesDefaultLayout
     include Devise::Controllers::Helpers if defined?(Devise)
 
     protect_from_forgery with: :exception
 
-    helper RecordingStudio::LayoutHelper
+    recording_studio_layout { RecordingStudioOauth.configuration.layout }
   end
 end

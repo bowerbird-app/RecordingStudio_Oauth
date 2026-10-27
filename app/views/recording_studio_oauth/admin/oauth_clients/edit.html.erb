@@ -1,14 +1,13 @@
-<% recording_studio_page_nav(
-     title: "Edit app",
-     page_nav_back_url: admin_oauth_client_path(@oauth_client),
-     page_nav_anchor_url: oauth_clients_admin_screen_path
+<% content_for :title, "Edit app" %>
+<% content_for :subtitle, @oauth_client.name %>
+<% flat_pack_page_nav(
+     round: true,
+     style: :default,
+     back_href: admin_oauth_client_path(@oauth_client),
+     back_tooltip: oauth_t("layout.go_back"),
+     anchor_href: oauth_clients_admin_screen_path,
+     anchor_tooltip: "Close"
    ) %>
-
-<%= render FlatPack::PageTitle::Component.new(
-  title: "Edit app",
-  subtitle: @oauth_client.name,
-  variant: :h1
-) %>
 
 <%= render "form",
      form_url: admin_oauth_client_path(@oauth_client),

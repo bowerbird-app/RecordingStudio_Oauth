@@ -1,45 +1,36 @@
-<%= render FlatPack::Grid::Component.new(cols: 2) do %>
-  <div class="space-y-6">
-    <% recording_studio_page_nav(title: oauth_t("connected_apps.title")) %>
+<% content_for :title, oauth_t("connected_apps.title") %>
+<% content_for :subtitle, oauth_t("connected_apps.subtitle") %>
 
-    <%= render FlatPack::PageTitle::Component.new(
-      title: oauth_t("connected_apps.title"),
-      subtitle: oauth_t("connected_apps.subtitle"),
-      variant: :h1
-    ) %>
-
-    <% if @authorizations.any? %>
-      <%= render FlatPack::Card::Component.new(style: :default) do %>
-        <%= render FlatPack::List::Component.new(divider: true) do %>
-          <% @authorizations.each do |authorization| %>
-            <% remove_button = nil %>
-            <% if authorization.revoked_at.nil? %>
-              <% remove_button = capture do %>
-                <%= form_with url: connected_app_path(authorization), method: :delete, data: { turbo_confirm: oauth_t("connected_apps.revoke_confirm") } do %>
-                  <%= render FlatPack::Button::Component.new(
-                    text: oauth_t("connected_apps.remove"),
-                    style: :danger,
-                    size: :sm,
-                    type: "submit"
-                  ) %>
-                <% end %>
-              <% end %>
-            <% end %>
-            <%= render FlatPack::List::Item.new(trailing: remove_button) do %>
-              <p class="font-medium"><%= authorization.oauth_client.name %></p>
-              <p class="text-sm text-[var(--surface-muted-content-color)]">
-                <%= connected_app_status(authorization) %>
-              </p>
+<% if @authorizations.any? %>
+  <%= render FlatPack::Card::Component.new do %>
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <% @authorizations.each do |authorization| %>
+        <% remove_button = nil %>
+        <% if authorization.revoked_at.nil? %>
+          <% remove_button = capture do %>
+            <%= form_with url: connected_app_path(authorization), method: :delete, data: { turbo_confirm: oauth_t("connected_apps.revoke_confirm") } do %>
+              <%= render FlatPack::Button::Component.new(
+                text: oauth_t("connected_apps.remove"),
+                style: :danger,
+                size: :sm,
+                type: "submit"
+              ) %>
             <% end %>
           <% end %>
         <% end %>
+        <%= render FlatPack::List::Item.new(trailing: remove_button) do %>
+          <p class="font-medium"><%= authorization.oauth_client.name %></p>
+          <p class="text-sm text-[var(--surface-muted-content-color)]">
+            <%= connected_app_status(authorization) %>
+          </p>
+        <% end %>
       <% end %>
-    <% else %>
-      <%= render FlatPack::EmptyState::Component.new(
-        title: oauth_t("connected_apps.empty_title"),
-        description: oauth_t("connected_apps.empty_description"),
-        icon: :inbox
-      ) %>
     <% end %>
-  </div>
+  <% end %>
+<% else %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: oauth_t("connected_apps.empty_title"),
+    description: oauth_t("connected_apps.empty_description"),
+    icon: :inbox
+  ) %>
 <% end %>

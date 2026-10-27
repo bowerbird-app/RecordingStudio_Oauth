@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.18.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.19.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -14,14 +14,15 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.17"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", "~> 0.1.198"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
+    assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "recording_studio_internationalization"
     refute_includes gemspec, "RecordingStudio_Internationalization"
@@ -55,18 +56,19 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_dummy_gemfile_pins_verified_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"'
+    assert_includes gemfile, "widen_recording_studio_requirement"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.14.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.4.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.2.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.7.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.8.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0", require: false'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"'
     assert_includes gemfile, "recording_studio_internationalization"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
     refute_includes gemfile, "recording_studio_users"
@@ -79,13 +81,22 @@ class RecordingStudioOauthTest < Minitest::Test
     refute File.exist?(File.expand_path("../lib/recording_studio_oauth/services/base_service.rb", __dir__))
   end
 
+  def test_engine_controllers_delegate_layout_and_do_not_hardcode_it
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/application_controller.rb", __dir__))
+    gem_root = File.expand_path("..", __dir__)
+
+    assert_includes controller, "recording_studio_layout { RecordingStudioOauth.configuration.layout }"
+    refute_includes controller, "UsesDefaultLayout"
+    assert_empty RecordingStudio::Layout.hardcoded_layout_paths(gem_root)
+  end
+
   def test_dummy_app_uses_recording_studio_default_layout
     application_controller_path = File.expand_path("dummy/app/controllers/application_controller.rb", __dir__)
     controller_source = File.read(application_controller_path)
 
-    assert_includes controller_source, "include RecordingStudio::UsesDefaultLayout"
-    assert_includes controller_source, '"recording_studio/default_layout"'
-    assert_includes controller_source, "devise_controller? ? \"application\""
+    assert_includes controller_source, "recording_studio_layout { RecordingStudioOauth.configuration.layout }"
+    refute_includes controller_source, "UsesDefaultLayout"
+    refute_includes controller_source, "recording_studio/default_layout"
     refute_includes controller_source, "flat_pack_sidebar"
   end
 
@@ -173,7 +184,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes index, "FlatPack::List::Component"
     assert_includes index, "FlatPack::Card::Component"
     refute_includes index, "padding: :none"
-    assert_includes index, "skip_connect_page_nav"
+    refute_includes index, "skip_connect_page_nav"
+    refute_includes index, "recording_studio_page_nav"
+    assert_includes index, "content_for :title"
     assert_includes index, "connection_status_trailing"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
@@ -192,8 +205,15 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes error, "cols: 2"
     assert_includes layout, "min-h-dvh"
     assert_includes layout, "max-w-sm"
-    assert_includes layout, "FlatPack::PageNav::Component"
-    assert_includes layout, "skip_connect_page_nav"
+    assert_includes layout, "flat_pack_page_nav_tag"
+    refute_includes layout, "FlatPack::PageNav::Component"
+    refute_includes layout, "skip_connect_page_nav"
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/rich_text"'
+    variables_at = layout.index('stylesheet_link_tag "flat_pack/variables"')
+    tailwind_at = layout.index('stylesheet_link_tag "tailwind"')
+    assert variables_at < tailwind_at
     assert_includes layout, "oauth_document_attributes"
     refute_includes layout, "max-w-6xl"
   end

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.18.0] - 2026-10-27
+## [0.19.0] - 2026-10-27
 
 ### Added
 - Nullable `plugin_key` on `recording_studio_oauth_clients` (plain index, not unique).
@@ -21,8 +21,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   through more than one registered app.
 
 ### Upgrade notes
-- Bump to `0.18.0`. Run `rails recording_studio_oauth:install:migrations` and
+- Bump to `0.19.0`. Run `rails recording_studio_oauth:install:migrations` and
   `db:migrate`. The column is nullable, so no data change.
+
+## [0.18.0] - 2026-10-27
+
+### Changed
+- Require Recording Studio `>= 6.1.0` (tag `v6.1.0`) and Flatpack `>= 0.1.315`
+  (git ref `1fcbafe94f8eb118f0a22182f63f5110fcc97a56`, version `0.1.319`).
+  Require `view_component` `>= 4.14, < 5`.
+- `RecordingStudioOauth.configuration.layout` replaces `layout_name`. It is
+  `nil` by default. `RecordingStudio::Layout.accept` allows `nil`, `false`,
+  a layout name, or a callable that takes `controller:` as a keyword.
+- Engine and dummy controllers call
+  `recording_studio_layout { RecordingStudioOauth.configuration.layout }`.
+  Connect still uses `recording_studio_oauth/authorization`.
+- Page headings come from `content_for :title` and `content_for :subtitle`.
+  Back and close use `flat_pack_page_nav`. Credentials Edit and Done use
+  `register_page_nav`.
+
+### Removed
+- `layout_name`, `RecordingStudio::UsesDefaultLayout`, and
+  `recording_studio_page_nav` calls.
+- Hard-coded `layout "recording_studio/default_layout"`.
+- Inline `FlatPack::PageTitle` on pages whose layout already renders the title.
+- `FlatPack::Card` `style:` and `FlatPack::PageNav::Component` `back_href:` /
+  `anchor_href:`.
+
+### Upgrade notes
+- Bump to `0.18.0`. No migration.
+- Pin Recording Studio tag `v6.1.0` and Flatpack ref
+  `1fcbafe94f8eb118f0a22182f63f5110fcc97a56`.
+- Replace `config.layout_name = "..."` with `config.layout = nil` (the shared
+  default), a layout name, `false`, or `->(controller:) { ... }`.
+- Stop including `RecordingStudio::UsesDefaultLayout`. Call
+  `recording_studio_layout` instead.
+- Set `content_for :title` and, when you have one, `content_for :subtitle`.
+  Do not also render `FlatPack::PageTitle` for that same heading.
+- Replace `recording_studio_page_nav` back and close arguments with
+  `flat_pack_page_nav(round: true, style: :default, back_href:, back_tooltip:, anchor_href:, anchor_tooltip:)`.
+- Load `flat_pack/variables`, `flat_pack/application`, and `flat_pack/rich_text`
+  before `tailwind` in any layout you still own.
+- Sibling gems that still declare `recording_studio` below 6 need their
+  requirement widened before `bundle install`. This repo does that in
+  `test/support/widen_recording_studio_requirement.rb`, required from the
+  Gemfile and from dummy `config/boot.rb` before `Bundler.setup`.
 
 ## [0.17.0] - 2026-10-26
 
@@ -713,6 +756,8 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.0...v0.15.1

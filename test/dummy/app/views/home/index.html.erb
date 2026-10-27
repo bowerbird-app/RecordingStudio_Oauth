@@ -1,13 +1,10 @@
-<% dummy_page_nav(title: "OAuth dummy") %>
+<% dummy_page_nav(
+  title: "Connect dummy",
+  subtitle: "This host proves the authorization server. API stays the resource server."
+) %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: "Connect dummy",
-    subtitle: "This host proves the authorization server. API stays the resource server.",
-    variant: :h1
-  ) %>
-
-  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+  <%= render FlatPack::Card::Component.new do |card| %>
     <% card.body do %>
       <p class="text-sm leading-6">
         Seed Demo App is registered. Connect it to a workspace you can already use.
@@ -41,7 +38,7 @@
   <% end %>
 
   <% if @oauth_client %>
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <%= render FlatPack::Card::Component.new(background: :none, border: :default) do |card| %>
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: @oauth_client.name,

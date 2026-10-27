@@ -170,7 +170,12 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes show_view, 'label: "API"'
     assert_includes show_view, 'label: "Plugin key"'
     assert_includes show_view, "A label, not a secret"
+    assert_includes show_view, 'register_page_nav "Edit"'
+    refute_includes show_view, 'register_page_nav "Edit app"'
+    refute_includes show_view, 'register_page_nav "Done"'
     assert_includes show_view, 'text: "Done"'
+    assert_includes show_view, "style: :primary"
+    refute_includes show_view, "PageTitle::Component"
     refute_includes show_view, "oauth_client_secret_digest"
     refute_includes show_view, "authorization"
   end

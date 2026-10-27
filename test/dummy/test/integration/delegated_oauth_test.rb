@@ -41,6 +41,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "min-h-dvh"
     assert_includes response.body, "max-w-sm"
     assert_select ".flat-pack-page-nav", count: 0
+    assert_select "h1", count: 1
     assert_includes response.body, "#{@oauth_client.name} wants to connect"
     refute_match(/wants to connect to\s*</, response.body)
     refute_includes response.body, "It gets its own access here. Yours stays yours."
@@ -204,6 +205,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_includes response.body, @oauth_client.name
     assert_select "label", count: 0
     refute_includes response.body, "You can view"
+    assert_select "h1", count: 1
     assert_select ".flat-pack-page-nav", count: 1
   end
 

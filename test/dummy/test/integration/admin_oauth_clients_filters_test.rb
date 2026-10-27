@@ -38,14 +38,14 @@ class AdminOauthClientsFiltersTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "screen-inline-filters-form"
   end
 
-  test "new app is a secondary button" do
+  test "new app is a ghost page nav button" do
     get "/admin/screens/oauth_clients"
 
     assert_response :success
     button = css_select("a, button").find { |element| element.text.strip == "New app" }
 
     refute_nil button, "expected a New app control"
-    assert_equal "secondary", button["data-fp-style"]
+    assert_equal "ghost", button["data-fp-style"]
     refute_equal "primary", button["data-fp-style"]
   end
 
