@@ -1,5 +1,82 @@
 # Upgrading
 
+## 0.18.0
+
+No Oauth migration. Install Oauth `0.18.0`.
+
+Pin Recording Studio `>= 6.1.0` at tag `v6.1.0`. Pin Flatpack `>= 0.1.315` at
+git ref `1fcbafe94f8eb118f0a22182f63f5110fcc97a56` (version `0.1.319`). Keep
+`view_component` at `>= 4.14, < 5`.
+
+`config.layout_name` is gone. Set `config.layout` instead:
+
+```ruby
+RecordingStudioOauth.configure do |config|
+  config.layout = nil
+  # config.layout = "admin"
+  # config.layout = false
+  # config.layout = ->(controller:) { "application" if controller.devise_controller? }
+end
+```
+
+`nil` uses `recording_studio/default_layout`. `false` renders no layout. A
+string is a layout name. A callable must take `controller:` as a keyword and
+return a string, `nil`, or `false`. Anything else raises `ArgumentError`.
+
+On the host `ApplicationController`:
+
+```ruby
+recording_studio_layout { RecordingStudioOauth.configuration.layout }
+```
+
+Do not include `RecordingStudio::UsesDefaultLayout`. Do not call
+`layout "recording_studio/default_layout"`.
+`bundle exec rake recording_studio:check_layouts` fails when a controller
+hard-codes that layout.
+
+The default layout renders one `FlatPack::PageTitle` from `content_for :title`
+and `content_for :subtitle`. Remove the page's own `PageTitle` for that
+heading so the page has one `<h1>`.
+
+Back and close:
+
+```erb
+<% flat_pack_page_nav(
+  round: true,
+  style: :default,
+  back_href: apps_path,
+  back_tooltip: "Apps",
+  anchor_href: root_path,
+  anchor_tooltip: "Close"
+) %>
+```
+
+Right-side actions:
+
+```erb
+<% register_page_nav "Save", app_path, role: :primary %>
+```
+
+`recording_studio_page_nav` is gone. `FlatPack::PageNav::Component` no longer
+takes `back_href:` or `anchor_href:`. `FlatPack::Card::Component` no longer
+takes `style:`. Use `background:`, `border:`, and `shadow:`.
+
+In a layout you still render yourself, link `flat_pack/variables`,
+`flat_pack/application`, and `flat_pack/rich_text` before `tailwind`.
+
+Sibling gems pinned below Recording Studio 6 still declare `recording_studio`
+`< 5` on those tags. Require `test/support/widen_recording_studio_requirement`
+from the Gemfile so `bundle install` can resolve `6.1.0`, and from
+`config/boot.rb` before `Bundler.setup`.
+
+Admin `v2.2.0` still calls `recording_studio_page_nav`. Dummy pins Admin
+`v2.7.0`, which uses `config.layout` instead of `config.engine_layout`.
+Root Switchable `v0.8.0` still passes `anchor_label:` to PageNav. Dummy
+overrides that one page at
+`test/dummy/app/views/recording_studio_root_switchable/root_switches/show.html.erb`.
+The dropdown stays on `v0.8.0` because `v0.10.0` calls `button_attributes`,
+which Flatpack `0.1.319` does not define.
+
 ## 0.17.0
 
 No Oauth migration. Install Oauth `0.17.0`.

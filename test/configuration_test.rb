@@ -22,7 +22,29 @@ class ConfigurationTest < Minitest::Test
     refute @configuration.allow_registration?
     refute @configuration.allow_self_registered_apps?
     assert_equal 10, @configuration.self_registered_apps_per_minute
+    assert_nil @configuration.layout
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
+  end
+
+  def test_layout_accepts_nil_string_false_and_keyword_callable
+    @configuration.layout = nil
+    assert_nil @configuration.layout
+
+    @configuration.layout = "admin"
+    assert_equal "admin", @configuration.layout
+
+    @configuration.layout = false
+    assert_equal false, @configuration.layout
+
+    @configuration.layout = ->(controller:) { controller == :host ? "admin" : nil }
+    assert_equal "admin", RecordingStudio::Layout.resolve(@configuration.layout, controller: :host)
+    assert_nil RecordingStudio::Layout.resolve(@configuration.layout, controller: :other)
+  end
+
+  def test_layout_rejects_invalid_values
+    assert_raises(ArgumentError) { @configuration.layout = 1 }
+    assert_raises(ArgumentError) { @configuration.layout = "" }
+    assert_raises(ArgumentError) { @configuration.layout = ->(controller) { controller } }
   end
 
   def test_allow_registration_casts_boolean_values
