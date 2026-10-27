@@ -206,6 +206,5 @@ module RecordingStudioOauth
       RecordingStudioOauth::TokenAuthenticator.register!
       RecordingStudioOauth::Admin.register! if defined?(RecordingStudioAdmin)
     end
-
   end
 end
