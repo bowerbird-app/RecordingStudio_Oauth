@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.1] - 2026-10-27
+
+### Changed
+- Allow `recording_studio_api` `< 0.18`. Development and dummy pin API tag
+  `v0.17.1`. No code change. Logs stays out of the gemspec. Dummy and
+  development keep Logs tag `v0.4.1`.
+
+### Upgrade notes
+- Bump to `0.19.1`. No migration.
+- Pin Recording Studio API at any `>= 0.5.2, < 0.18`. Dummy and development
+  pin API tag `v0.17.1`. API 0.17.1 needs `recording_studio_logs >= 0.4.1,
+  < 1.0`; dummy and development keep Logs tag `v0.4.1`.
+
 ## [0.19.0] - 2026-10-27
 
 ### Added
@@ -756,6 +769,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.19.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.16.0...v0.17.0
