@@ -444,4 +444,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.19.1
+0.19.2
