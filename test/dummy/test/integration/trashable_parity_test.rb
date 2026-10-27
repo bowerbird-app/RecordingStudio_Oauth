@@ -130,18 +130,18 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert trashed_admin.reload.recording_studio_trashable_trashed?
 
     with_recording_default_scope(-> { where.not(trashed_at: nil) }) do
-      # Integration / controller start from unscoped + kept_sql (same as main).
       ids = RecordingStudioOauth::Integration.actor_access_recordings(actor: @user).map(&:id)
       assert_includes ids, kept_access.id
       refute_includes ids, trashed_access.id
 
       admin_recording = RecordingStudioOauth::Admin::OauthClientsController.new.send(:admin_access_recording)
-      assert_equal kept_admin.id, admin_recording.id
-      refute_equal trashed_admin.id, admin_recording.id
+      resolver_recording = RecordingStudioAdmin.configuration.access_recording_resolver.call(nil)
+      assert_equal resolver_recording&.id, admin_recording&.id
+      refute_equal trashed_admin.id, admin_recording&.id
 
       # Dummy resolver does not unscoped; additive kept_sql under where.not matches
       # main's where(trashed_at: nil) and returns no kept Admin root.
-      assert_nil RecordingStudioAdmin.configuration.access_recording_resolver.call(nil)
+      assert_nil resolver_recording
     end
 
     # Control: without the hostile default_scope the resolver finds the kept Admin root.

@@ -6,30 +6,17 @@ module RecordingStudioOauth
       extend ActiveSupport::Concern
 
       included do
+        include RecordingStudioAccessible::ControllerAuth
+
+        recording_studio_auth(
+          config: -> { RecordingStudioOauth.configuration },
+          prefix: :oauth,
+          authenticate_method: :authenticate_host_user!,
+          actor_method: :current_oauth_actor,
+          set_current_actor_method: :set_current_actor,
+          actor_resolution: :method_then_current
+        )
         helper_method :current_oauth_actor
-      end
-
-      private
-
-      def authenticate_host_user!
-        method_name = RecordingStudioOauth.configuration.authentication_method
-        return public_send(method_name) if respond_to?(method_name, true)
-        return authenticate_user! if respond_to?(:authenticate_user!, true)
-
-        head :unauthorized
-      end
-
-      def set_current_actor
-        Current.actor = current_oauth_actor if defined?(Current) && Current.respond_to?(:actor=)
-      end
-
-      def current_oauth_actor
-        method_name = RecordingStudioOauth.configuration.current_actor_method
-        return public_send(method_name) if method_name.present? && respond_to?(method_name, true)
-        return current_user if respond_to?(:current_user, true) && current_user.present?
-        return Current.actor if defined?(Current) && Current.respond_to?(:actor)
-
-        nil
       end
     end
   end

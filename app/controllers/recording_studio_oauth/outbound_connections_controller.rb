@@ -6,9 +6,6 @@ module RecordingStudioOauth
   class OutboundConnectionsController < ApplicationController
     include Concerns::HostAuthentication
 
-    before_action :authenticate_host_user!
-    before_action :set_current_actor
-
     def connect
       result = Services::StartOutboundConnect.call(
         provider: params[:provider],

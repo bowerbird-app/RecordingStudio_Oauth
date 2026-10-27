@@ -6,7 +6,6 @@ module RecordingStudioOauth
       include Concerns::HostAuthentication
       include RecordingStudioAdmin::AdminActionAuditing
 
-      before_action :authenticate_host_user!
       before_action :authorize_admin_actor!
       before_action :authorize_create_resource!, only: %i[new create]
       before_action :authorize_update_resource!, only: %i[edit update]
@@ -107,12 +106,7 @@ module RecordingStudioOauth
       end
 
       def admin_access_recording
-        type_names = Array(RecordingStudioOauth.configuration.admin_root_recordable_type_names)
-        # Additive kept_sql on the same unscoped base as main (not the shared
-        # active scope, which unscopes trashed_at first).
-        RecordingStudio::Recording.unscoped
-                                  .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
-                                  .find_by(recordable_type: type_names, parent_recording_id: nil)
+        Api::Access.admin_root_recording(controller: self)
       end
 
       def client_form

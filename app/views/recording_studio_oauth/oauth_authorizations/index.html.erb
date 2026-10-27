@@ -14,7 +14,7 @@
         <%= render FlatPack::List::Item.new(
           trailing: connection_status_trailing(recording)
         ) do %>
-          <p class="font-medium"><%= connect_row_label(recording) %></p>
+          <%= connect_row_label(recording) %>
         <% end %>
       <% end %>
     <% end %>

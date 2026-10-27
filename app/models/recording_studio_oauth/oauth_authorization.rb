@@ -4,8 +4,6 @@ module RecordingStudioOauth
   class OauthAuthorization < ApplicationRecord
     self.table_name = "recording_studio_oauth_authorizations"
 
-    ROLES = %w[view edit admin].freeze
-
     belongs_to :oauth_client, class_name: "RecordingStudioOauth::OauthClient", inverse_of: :authorizations
     belongs_to :manager_actor, polymorphic: true
     belongs_to :manager_access_recording,
@@ -29,7 +27,7 @@ module RecordingStudioOauth
              dependent: :destroy,
              inverse_of: :oauth_authorization
 
-    validates :role, presence: true, inclusion: { in: ROLES }
+    validates :role, presence: true, inclusion: { in: ->(_) { role_names } }
 
     scope :active, -> { where(revoked_at: nil) }
 
@@ -64,12 +62,12 @@ module RecordingStudioOauth
       )
     end
 
+    def self.role_names
+      access_role_ranks.keys.map(&:to_s)
+    end
+
     def self.role_rank(role)
-      ranks = if defined?(RecordingStudio::Access) && RecordingStudio::Access.respond_to?(:roles)
-                RecordingStudio::Access.roles
-              else
-                RecordingStudioOauth::Configuration::ACCESS_ROLE_RANKS
-              end
+      ranks = access_role_ranks
       ranks[role.to_s] || ranks[role.to_s.to_sym]
     end
 
@@ -77,6 +75,14 @@ module RecordingStudioOauth
       requested_rank = role_rank(requested)
       current_rank = role_rank(current)
       requested_rank.present? && current_rank.present? && requested_rank <= current_rank
+    end
+
+    def self.access_role_ranks
+      if defined?(RecordingStudio::Access) && RecordingStudio::Access.respond_to?(:roles)
+        RecordingStudio::Access.roles
+      else
+        RecordingStudio::AccessRoles::ORDER
+      end
     end
 
     private

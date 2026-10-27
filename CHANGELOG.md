@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.1] - 2026-10-27
+
+### Changed
+- Connect and staff Oauth screens authenticate through Accessible
+  `ControllerAuth` (`recording_studio_auth`). Host config keys stay
+  `authentication_method` and `current_actor_method`.
+- Connect access rows compose Accessible `root_recordings_for` and
+  `access_recordings_for_actor`, then filter connectable parents here.
+- Staff Oauth admin-root lookup uses
+  `RecordingStudioAdmin.configuration.access_recording_resolver` only.
+- Authorization role names and ranks use `RecordingStudio::Access.roles`
+  (Accessible `AccessRoles` when that map is not defined). Oauth no longer
+  keeps a parallel rank table.
+- Connect authorize is split into concerns and
+  `Services::PrepareOauthAuthorize`. Size cops apply to that controller
+  again.
+
+### Upgrade notes
+- Bump to `0.20.1`. No migration.
+- Keep Accessible `0.18` (already required for `ControllerAuth`). Keep
+  pointing `authentication_method` and `current_actor_method` at the host
+  sign-in helpers. Point Admin `access_recording_resolver` at the staff
+  Admin root — Oauth no longer scans AdminRoot recordings itself.
+
 ## [0.20.0] - 2026-10-27
 
 ### Behaviour changes
@@ -790,6 +814,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.20.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0

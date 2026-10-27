@@ -7,13 +7,13 @@ module RecordingStudioOauth
 
       ResolverContext = Struct.new(:controller)
 
-      def admin_root_recording
+      def admin_root_recording(controller: nil)
         return unless defined?(RecordingStudioAdmin)
 
         resolver = RecordingStudioAdmin.configuration.access_recording_resolver
         return unless resolver
 
-        resolver.call(ResolverContext.new(nil))
+        resolver.call(ResolverContext.new(controller))
       end
 
       def actor_for(context)

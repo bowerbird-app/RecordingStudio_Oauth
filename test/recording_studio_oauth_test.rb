@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.20.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.20.1", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -14,15 +14,15 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.11"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.18"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
-    assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
+    assert_includes gemspec, '["recording_studio", ">= 6.1.0"]'
+    assert_includes gemspec, '["recording_studio_accessible", "~> 0.11"]'
+    assert_includes gemspec, '["recording_studio_api", ">= 0.5.2", "< 0.18"]'
+    assert_includes gemspec, '["recording_studio_cache", "~> 0.5"]'
+    assert_includes gemspec, '["recording_studio_metrics", ">= 0.3", "< 1.0"]'
+    assert_includes gemspec, '["recording_studio_site_settings", "~> 0.2"]'
+    assert_includes gemspec, '["recording_studio_trashable", "~> 0.10"]'
+    assert_includes gemspec, '["flat_pack", ">= 0.1.315"]'
+    assert_includes gemspec, '["view_component", ">= 4.14", "< 5"]'
     refute_includes gemspec, "recording_studio_logs"
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "recording_studio_internationalization"
@@ -189,6 +189,7 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes index, "recording_studio_page_nav"
     assert_includes index, "content_for :title"
     assert_includes index, "connection_status_trailing"
+    refute_includes index, "<p"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
     refute_includes consent, "ButtonGroup"
@@ -220,30 +221,32 @@ class RecordingStudioOauthTest < Minitest::Test
   end
 
   def test_connect_title_reads_site_settings_name_for
-    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
+    consent = File.read(File.expand_path("../app/controllers/recording_studio_oauth/concerns/connect_consent.rb", __dir__)) +
+              File.read(File.expand_path("../app/controllers/recording_studio_oauth/concerns/connect_status.rb", __dir__))
 
-    assert_includes controller, "RecordingStudioSiteSettings.name_for"
-    assert_includes controller, "RecordingStudioSiteSettings.site_root_for"
-    assert_includes controller, "FlatPack::Button::Component"
-    refute_includes controller, "RecordingStudioAttachable"
+    assert_includes consent, "RecordingStudioSiteSettings.name_for"
+    assert_includes consent, "RecordingStudioSiteSettings.site_root_for"
+    assert_includes consent, "FlatPack::Button::Component"
+    refute_includes consent, "RecordingStudioAttachable"
   end
 
   def test_connect_list_button_styles_use_flatpack_schemes
-    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
-    consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
+    consent = File.read(File.expand_path("../app/controllers/recording_studio_oauth/concerns/connect_consent.rb", __dir__)) +
+              File.read(File.expand_path("../app/controllers/recording_studio_oauth/concerns/connect_status.rb", __dir__))
+    form = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
 
-    assert_includes controller, '"connect" => :default'
-    assert_includes controller, '"reconnect" => :danger'
-    assert_includes controller, '"connected" => :success'
-    refute_includes controller, '"connect" => :primary'
-    refute_includes controller, '"reconnect" => :primary'
-    refute_includes controller, '"connected" => :secondary'
-    assert_includes consent, "style: :primary"
-    assert_includes consent, "style: :secondary"
+    assert_includes consent, '"connect" => :default'
+    assert_includes consent, '"reconnect" => :danger'
+    assert_includes consent, '"connected" => :success'
+    refute_includes consent, '"connect" => :primary'
+    refute_includes consent, '"reconnect" => :primary'
+    refute_includes consent, '"connected" => :secondary'
+    assert_includes form, "style: :primary"
+    assert_includes form, "style: :secondary"
   end
 
   def test_reconnect_button_wraps_a_flatpack_tooltip
-    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/oauth_authorizations_controller.rb", __dir__))
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_oauth/concerns/connect_status.rb", __dir__))
 
     assert_includes controller, "FlatPack::Tooltip::Component"
     assert_includes controller, 'Copy.t("connect.reconnect_hint")'

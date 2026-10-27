@@ -96,7 +96,7 @@ module RecordingStudioOauth
         return failure("Manager is required") if manager_actor.nil?
         return failure("Access recording is required") if access_recording.nil?
         return failure("Access recording must point to RecordingStudio::Access") if access_recording.recordable_type != "RecordingStudio::Access"
-        return failure("Role is invalid") unless OauthAuthorization::ROLES.include?(role)
+        return failure("Role is invalid") unless OauthAuthorization.role_names.include?(role)
         return failure("Access point recording is required") if access_point_recording.nil?
         return failure(self.class.staff_admin_only_message) unless access_parent_allowed_for_client?
         return failure(self.class.access_gone_message) unless manager_access_present?
