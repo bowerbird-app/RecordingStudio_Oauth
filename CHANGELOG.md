@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-10-27
+
+### Added
+- Nullable `plugin_key` on `recording_studio_oauth_clients` (plain index, not unique).
+  Existing rows stay `NULL`. Staff can set it on the registered-app form and show
+  page. Self-registered apps cannot set it.
+- `RecordingStudioOauth.inbound_connection_status(plugin_key:, root:, actor:)`
+  returns `{ connected:, connected_count: }` for inbound Connect under that key
+  in that workspace.
+- `RecordingStudioOauth.inbound_connections(plugin_key:, root:, actor:)` returns
+  one hash per distinct connected person (`actor_type`, `actor_id`, `role`,
+  `connected_at`, `last_used_at`, `app_name`). Admin-only; everyone else gets
+  `[]`. Distinct app names are joined alphabetically when a person is connected
+  through more than one registered app.
+
+### Upgrade notes
+- Bump to `0.19.0`. Run `rails recording_studio_oauth:install:migrations` and
+  `db:migrate`. The column is nullable, so no data change.
+
 ## [0.18.0] - 2026-10-27
 
 ### Changed
@@ -737,6 +756,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.15.1...v0.16.0

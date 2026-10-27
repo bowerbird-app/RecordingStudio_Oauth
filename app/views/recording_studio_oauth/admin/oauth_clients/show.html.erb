@@ -41,6 +41,13 @@
     help_text: "Named API this app uses. A label, not a secret."
   ) %>
 
+  <%= render FlatPack::TextInput::Component.new(
+    name: "oauth_client_plugin_key",
+    label: "Plugin key",
+    value: @oauth_client.plugin_key,
+    help_text: "Optional. Ties this app to a plugin so the host can count who's connected."
+  ) %>
+
   <% if @client_secret.present? %>
     <%= render FlatPack::TextInput::Component.new(
       name: "oauth_client_secret",

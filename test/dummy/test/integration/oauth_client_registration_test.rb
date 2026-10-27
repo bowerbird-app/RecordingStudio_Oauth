@@ -45,6 +45,7 @@ class OauthClientRegistrationTest < ActionDispatch::IntegrationTest
     assert client.self_registered?
     refute client.confidential?
     refute client.allow_registration?
+    assert_nil client.plugin_key
 
     user = create_user
     _root, access_recording = create_access_recording_for(user: user)
@@ -61,6 +62,22 @@ class OauthClientRegistrationTest < ActionDispatch::IntegrationTest
     location = URI.parse(response.location)
     error = CGI.parse(location.query.to_s).fetch("error").first
     assert_equal "invalid_request", error
+  end
+
+  test "self-registration cannot set plugin_key" do
+    post "/recording_studio_oauth/register",
+         params: {
+           client_name: "Self Registered",
+           redirect_uris: ["https://app.example.com/callback"],
+           token_endpoint_auth_method: "none",
+           plugin_key: "inbound_demo"
+         },
+         as: :json
+
+    assert_response :created
+    client = RecordingStudioOauth::OauthClient.find_by!(client_id: JSON.parse(response.body).fetch("client_id"))
+    assert client.self_registered?
+    assert_nil client.plugin_key
   end
 
   test "returns a secret once for confidential registration" do

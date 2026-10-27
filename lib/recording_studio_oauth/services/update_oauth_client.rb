@@ -3,7 +3,7 @@
 module RecordingStudioOauth
   module Services
     class UpdateOauthClient < RecordingStudio::Services::BaseService
-      def initialize(client:, name:, redirect_uris:, use_central_relay:, allowed_return_patterns:, exact_return_urls:, allow_registration: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil, clear_session_token_secret: false)
+      def initialize(client:, name:, redirect_uris:, use_central_relay:, allowed_return_patterns:, exact_return_urls:, allow_registration: nil, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil, clear_session_token_secret: false, plugin_key: Copy::UNSET)
         @client = client
         @name = name.to_s
         @redirect_uris = Array(redirect_uris)
@@ -19,11 +19,12 @@ module RecordingStudioOauth
         @session_token_audience = session_token_audience
         @session_token_secret = session_token_secret
         @clear_session_token_secret = ActiveModel::Type::Boolean.new.cast(clear_session_token_secret) == true
+        @plugin_key = plugin_key
       end
 
       private
 
-      attr_reader :client, :name, :redirect_uris, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :session_token_provider, :session_token_audience, :session_token_secret, :clear_session_token_secret
+      attr_reader :client, :name, :redirect_uris, :use_central_relay, :allowed_return_patterns, :exact_return_urls, :allow_registration, :session_token_provider, :session_token_audience, :session_token_secret, :clear_session_token_secret, :plugin_key
 
       def perform
         client.assign_attributes(
@@ -36,6 +37,7 @@ module RecordingStudioOauth
           session_token_provider: session_token_provider,
           session_token_audience: session_token_audience
         )
+        client.plugin_key = plugin_key if Copy.provided?(plugin_key)
         if clear_session_token_secret
           client.session_token_secret_ciphertext = nil
         elsif !session_token_secret.nil?

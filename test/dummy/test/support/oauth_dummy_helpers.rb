@@ -126,7 +126,7 @@ module OauthDummyHelpers
     [root_recording, folder_recording, result.value]
   end
 
-  def create_oauth_client(name: "Demo App", confidential: false, redirect_uris: ["http://127.0.0.1/callback"], api: "public", use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: false, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil)
+  def create_oauth_client(name: "Demo App", confidential: false, redirect_uris: ["http://127.0.0.1/callback"], api: "public", use_central_relay: false, allowed_return_patterns: [], exact_return_urls: [], allow_registration: false, session_token_provider: nil, session_token_audience: nil, session_token_secret: nil, plugin_key: nil)
     attrs = {
       name: name,
       confidential: confidential,
@@ -138,7 +138,8 @@ module OauthDummyHelpers
       allow_registration: allow_registration,
       session_token_provider: session_token_provider,
       session_token_audience: session_token_audience,
-      session_token_secret: session_token_secret
+      session_token_secret: session_token_secret,
+      plugin_key: plugin_key
     }
     secret_token = nil
     if confidential
@@ -161,6 +162,8 @@ module OauthDummyHelpers
 
   def approve_delegated_oauth(oauth_client:, user:, access_recording:, role: "view", redirect_uri: "http://127.0.0.1/callback", pkce: nil)
     pkce ||= pkce_pair
+    previous_actor = Current.actor
+    Current.actor = user
     result = RecordingStudioOauth::Services::CreateOauthAuthorization.call(
       oauth_client: oauth_client,
       manager_actor: user,
@@ -173,6 +176,39 @@ module OauthDummyHelpers
     raise result.error unless result.success?
 
     result.value.merge(pkce: pkce, redirect_uri: redirect_uri)
+  ensure
+    Current.actor = previous_actor
+  end
+
+  def issue_live_tokens!(authorization, access_expires_at: 1.hour.from_now, refresh_expires_at: 30.days.from_now, last_used_at: nil, access_revoked_at: nil, refresh_revoked_at: nil)
+    access_data = RecordingStudioOauth::AccessToken.generate
+    refresh_data = RecordingStudioOauth::RefreshToken.generate
+    RecordingStudioOauth::OauthAccessToken.create!(
+      oauth_authorization: authorization,
+      token_digest: access_data.fetch(:digest),
+      token_prefix: access_data.fetch(:prefix),
+      expires_at: access_expires_at,
+      last_used_at: last_used_at,
+      revoked_at: access_revoked_at
+    )
+    RecordingStudioOauth::OauthRefreshToken.create!(
+      oauth_authorization: authorization,
+      token_digest: refresh_data.fetch(:digest),
+      token_prefix: refresh_data.fetch(:prefix),
+      expires_at: refresh_expires_at,
+      revoked_at: refresh_revoked_at
+    )
+  end
+
+  def connect_inbound!(oauth_client:, user:, access_recording:, role: "view", last_used_at: nil)
+    approved = approve_delegated_oauth(
+      oauth_client: oauth_client,
+      user: user,
+      access_recording: access_recording,
+      role: role
+    )
+    issue_live_tokens!(approved.fetch(:authorization), last_used_at: last_used_at)
+    approved
   end
 
   def seed_site_name!(root_recording, name:, actor:)

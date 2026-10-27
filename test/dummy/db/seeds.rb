@@ -53,6 +53,7 @@ oauth_client = RecordingStudioOauth::OauthClient.find_or_initialize_by(name: "Se
 oauth_client.redirect_uris = ["http://127.0.0.1:3000/callback"]
 oauth_client.confidential = false
 oauth_client.api_key = "public"
+oauth_client.plugin_key = "inbound_demo"
 oauth_client.save!
 
 wordpress_client = RecordingStudioOauth::OauthClient.find_or_initialize_by(name: "WordPress")
@@ -104,6 +105,29 @@ begin
       code_challenge_method: "S256"
     )
     raise connected.error if connected.failure?
+  end
+
+  studio_authorization = RecordingStudioOauth::OauthAuthorization.find_by!(
+    oauth_client: oauth_client,
+    manager_actor: user,
+    manager_access_recording: studio_access,
+    revoked_at: nil
+  )
+  if studio_authorization.access_tokens.none? && studio_authorization.refresh_tokens.none?
+    access_data = RecordingStudioOauth::AccessToken.generate
+    refresh_data = RecordingStudioOauth::RefreshToken.generate
+    RecordingStudioOauth::OauthAccessToken.create!(
+      oauth_authorization: studio_authorization,
+      token_digest: access_data.fetch(:digest),
+      token_prefix: access_data.fetch(:prefix),
+      expires_at: 1.hour.from_now
+    )
+    RecordingStudioOauth::OauthRefreshToken.create!(
+      oauth_authorization: studio_authorization,
+      token_digest: refresh_data.fetch(:digest),
+      token_prefix: refresh_data.fetch(:prefix),
+      expires_at: 30.days.from_now
+    )
   end
 
   reconnect = RecordingStudioOauth::OauthAuthorization.find_by(

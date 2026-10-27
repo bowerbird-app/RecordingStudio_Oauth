@@ -59,6 +59,14 @@ class DummyHostTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     refute oauth_client.confidential?
+    assert_equal "inbound_demo", oauth_client.plugin_key
+    inbound = RecordingStudioOauth.inbound_connection_status(
+      plugin_key: "inbound_demo",
+      root: root_recording,
+      actor: User.find_by!(email: "admin@admin.com")
+    )
+    assert inbound.fetch(:connected)
+    assert_equal 1, inbound.fetch(:connected_count)
     refute wordpress_client.confidential?
     assert_includes wordpress_client.redirect_uris, RecordingStudioOauth.central_relay_callback_url(base_url: "http://localhost:3000")
     assert wordpress_client.use_central_relay?
