@@ -14,15 +14,15 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, '["recording_studio", ">= 6.1.0"]'
-    assert_includes gemspec, '["recording_studio_accessible", "~> 0.11"]'
-    assert_includes gemspec, '["recording_studio_api", ">= 0.5.2", "< 0.18"]'
-    assert_includes gemspec, '["recording_studio_cache", "~> 0.5"]'
-    assert_includes gemspec, '["recording_studio_metrics", ">= 0.3", "< 1.0"]'
-    assert_includes gemspec, '["recording_studio_site_settings", "~> 0.2"]'
-    assert_includes gemspec, '["recording_studio_trashable", "~> 0.10"]'
-    assert_includes gemspec, '["flat_pack", ">= 0.1.315"]'
-    assert_includes gemspec, '["view_component", ">= 4.14", "< 5"]'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.18"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.18"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
+    assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
     refute_includes gemspec, "recording_studio_logs"
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "recording_studio_internationalization"
@@ -189,7 +189,6 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes index, "recording_studio_page_nav"
     assert_includes index, "content_for :title"
     assert_includes index, "connection_status_trailing"
-    refute_includes index, "<p"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
     refute_includes consent, "ButtonGroup"

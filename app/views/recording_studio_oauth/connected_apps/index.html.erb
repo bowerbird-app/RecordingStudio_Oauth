@@ -19,8 +19,10 @@
           <% end %>
         <% end %>
         <%= render FlatPack::List::Item.new(trailing: remove_button) do %>
-          <%= authorization.oauth_client.name %>
-          <%= connected_app_status(authorization) %>
+          <p class="font-medium"><%= authorization.oauth_client.name %></p>
+          <p class="text-sm text-[var(--surface-muted-content-color)]">
+            <%= connected_app_status(authorization) %>
+          </p>
         <% end %>
       <% end %>
     <% end %>

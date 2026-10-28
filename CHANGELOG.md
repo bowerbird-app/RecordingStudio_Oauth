@@ -8,27 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.21.0] - 2026-10-28
 
 ### Changed
-- Hosts: the Admin `access_recording_resolver` must point at the staff Admin root. Oauth no longer scans Admin-root recordings itself.
-- Connect and staff Oauth screens authenticate through Accessible
-  `ControllerAuth` (`recording_studio_auth`). Host config keys stay
-  `authentication_method` and `current_actor_method`.
-- Connect access rows compose Accessible `root_recordings_for` and
-  `access_recordings_for_actor`, then filter connectable parents here.
-- Staff Oauth admin-root lookup uses
-  `RecordingStudioAdmin.configuration.access_recording_resolver` only.
-- Authorization role names and ranks use `RecordingStudio::Access.roles`
-  (Accessible `AccessRoles` when that map is not defined). Oauth no longer
-  keeps a parallel rank table.
+- Require Accessible `>= 0.18` (`ControllerAuth`).
+- Staff Oauth uses Admin `access_recording_resolver` for the staff Admin
+  root. The `admin_root_recordable_type_names` key no longer affects staff
+  pages.
+- Removed the old `authenticate_user!` / `current_user` fallbacks. Hosts
+  with non-default auth config must set `authentication_method` and
+  `current_actor_method`.
+- Removed `OauthAuthorization::ROLES` and `Configuration::ACCESS_ROLE_RANKS`.
+  Role validation follows `RecordingStudio::Access.roles`.
+- Connect access recordings come from Accessible `root_recordings_for` plus
+  `access_recordings_for_actor`, then this gem keeps connectable parents.
 - Connect authorize is split into concerns and
   `Services::PrepareOauthAuthorize`. Size cops apply to that controller
   again.
 
 ### Upgrade notes
 - Bump to `0.21.0`. No migration.
-- Keep Accessible `0.18` (already required for `ControllerAuth`). Keep
-  pointing `authentication_method` and `current_actor_method` at the host
-  sign-in helpers. Point Admin `access_recording_resolver` at the staff
-  Admin root — Oauth no longer scans AdminRoot recordings itself.
+- Pin Accessible `>= 0.18`.
+- Point Admin `access_recording_resolver` at the staff Admin root.
+  `admin_root_recordable_type_names` no longer affects staff pages.
+- Hosts with non-default auth config: the old `authenticate_user!` /
+  `current_user` fallbacks are gone.
+- Role names follow `RecordingStudio::Access.roles`. Oauth no longer ships
+  `ROLES` or `ACCESS_ROLE_RANKS`.
 
 ## [0.20.0] - 2026-10-27
 

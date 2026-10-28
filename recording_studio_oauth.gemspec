@@ -2,21 +2,7 @@
 
 require_relative "lib/recording_studio_oauth/version"
 
-RUNTIME_GEMS = [
-  ["flat_pack", ">= 0.1.315"],
-  ["rails", "~> 8.1.0"],
-  ["recording_studio", ">= 6.1.0"],
-  ["recording_studio_accessible", "~> 0.11"],
-  ["recording_studio_admin", "~> 2.0"],
-  ["recording_studio_api", ">= 0.5.2", "< 0.18"],
-  ["recording_studio_cache", "~> 0.5"],
-  ["recording_studio_metrics", ">= 0.3", "< 1.0"],
-  ["recording_studio_site_settings", "~> 0.2"],
-  ["recording_studio_trashable", "~> 0.10"],
-  ["view_component", ">= 4.14", "< 5"]
-].freeze
-
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.name        = "recording_studio_oauth"
   spec.version     = RecordingStudioOauth::VERSION
   spec.authors     = ["Bowerbird"]
@@ -27,8 +13,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = spec.homepage
-  spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/bowerbird-app/RecordingStudio_Oauth"
+  spec.metadata["changelog_uri"] = "https://github.com/bowerbird-app/RecordingStudio_Oauth/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
@@ -37,5 +23,15 @@ Gem::Specification.new do |spec|
     end
   end
 
-  RUNTIME_GEMS.each { |args| spec.add_dependency(*args) }
-end
+  spec.add_dependency "flat_pack", ">= 0.1.315"
+  spec.add_dependency "rails", "~> 8.1.0"
+  spec.add_dependency "recording_studio", ">= 6.1.0"
+  spec.add_dependency "recording_studio_accessible", ">= 0.18"
+  spec.add_dependency "recording_studio_admin", "~> 2.0"
+  spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.18"
+  spec.add_dependency "recording_studio_cache", "~> 0.5"
+  spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"
+  spec.add_dependency "recording_studio_site_settings", "~> 0.2"
+  spec.add_dependency "recording_studio_trashable", "~> 0.10"
+  spec.add_dependency "view_component", ">= 4.14", "< 5"
+end # rubocop:enable Metrics/BlockLength
