@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.21.0
+
+No Oauth migration. Install Oauth `0.21.0`. Host auth config keys are
+unchanged. Connect uses Accessible `ControllerAuth` and Accessible
+recording lookups. Staff Oauth admin uses Admin
+`access_recording_resolver` for the Admin root. Role ranks follow
+`RecordingStudio::Access.roles`.
+
 ## 0.20.0
 
 No Oauth migration. Install Oauth `0.20.0`. A missing

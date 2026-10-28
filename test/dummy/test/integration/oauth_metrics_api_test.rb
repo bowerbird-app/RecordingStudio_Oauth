@@ -72,7 +72,7 @@ class OauthMetricsApiTest < ActionDispatch::IntegrationTest
         as: :json
     assert_response :success
     role_counts = breakdown_counts(response.parsed_body)
-    RecordingStudioOauth::OauthAuthorization::ROLES.each do |role|
+    RecordingStudioOauth::OauthAuthorization.role_names.each do |role|
       assert_equal RecordingStudioOauth::OauthAuthorization.active.where(role: role).count, role_counts[role].to_i
     end
 

@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-10-28
+
+### Changed
+- Require Accessible `>= 0.18` (`ControllerAuth`).
+- Staff Oauth uses Admin `access_recording_resolver` for the staff Admin
+  root. The `admin_root_recordable_type_names` key no longer affects staff
+  pages.
+- Removed the old `authenticate_user!` / `current_user` fallbacks. Hosts
+  with non-default auth config must set `authentication_method` and
+  `current_actor_method`.
+- Removed `OauthAuthorization::ROLES` and `Configuration::ACCESS_ROLE_RANKS`.
+  Role validation follows `RecordingStudio::Access.roles`.
+- Connect access recordings come from Accessible `root_recordings_for` plus
+  `access_recordings_for_actor`, then this gem keeps connectable parents.
+- Connect authorize is split into concerns and
+  `Services::PrepareOauthAuthorize`. Size cops apply to that controller
+  again.
+
+### Upgrade notes
+- Bump to `0.21.0`. No migration.
+- Pin Accessible `>= 0.18`.
+- Point Admin `access_recording_resolver` at the staff Admin root.
+  `admin_root_recordable_type_names` no longer affects staff pages.
+- Hosts with non-default auth config: the old `authenticate_user!` /
+  `current_user` fallbacks are gone.
+- Role names follow `RecordingStudio::Access.roles`. Oauth no longer ships
+  `ROLES` or `ACCESS_ROLE_RANKS`.
+
 ## [0.20.0] - 2026-10-27
 
 ### Behaviour changes
@@ -790,6 +818,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.21.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.18.0...v0.19.0

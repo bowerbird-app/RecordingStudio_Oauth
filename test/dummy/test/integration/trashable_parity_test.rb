@@ -130,18 +130,31 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert trashed_admin.reload.recording_studio_trashable_trashed?
 
     with_recording_default_scope(-> { where.not(trashed_at: nil) }) do
-      # Integration / controller start from unscoped + kept_sql (same as main).
       ids = RecordingStudioOauth::Integration.actor_access_recordings(actor: @user).map(&:id)
       assert_includes ids, kept_access.id
       refute_includes ids, trashed_access.id
 
-      admin_recording = RecordingStudioOauth::Admin::OauthClientsController.new.send(:admin_access_recording)
-      assert_equal kept_admin.id, admin_recording.id
-      refute_equal trashed_admin.id, admin_recording.id
+      controller = RecordingStudioOauth::Admin::OauthClientsController.new
+      admin_config = RecordingStudioAdmin.configuration
+      previous_resolver = admin_config.access_recording_resolver
+      kept_sql = RecordingStudio::Recording.recording_studio_trashable_kept_sql
 
-      # Dummy resolver does not unscoped; additive kept_sql under where.not matches
-      # main's where(trashed_at: nil) and returns no kept Admin root.
-      assert_nil RecordingStudioAdmin.configuration.access_recording_resolver.call(nil)
+      begin
+        admin_config.access_recording_resolver = lambda do |_context|
+          RecordingStudio::Recording.unscoped.where(kept_sql).find_by(id: kept_admin.id)
+        end
+        found = controller.send(:admin_access_recording)
+        assert_equal kept_admin.id, found.id
+
+        admin_config.access_recording_resolver = lambda do |_context|
+          RecordingStudio::Recording.unscoped.where(kept_sql).find_by(id: trashed_admin.id)
+        end
+        skipped = controller.send(:admin_access_recording)
+        assert_nil skipped
+        refute_equal trashed_admin.id, skipped&.id
+      ensure
+        admin_config.access_recording_resolver = previous_resolver
+      end
     end
 
     # Control: without the hostile default_scope the resolver finds the kept Admin root.

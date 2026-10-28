@@ -54,7 +54,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "p-[var(--card-padding-md)]"
     assert_select "[role='list']"
     assert_select "[role='list'] [role='list']", count: 0
-    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes labels, @root_recording.recordable.name
     assert_includes labels, second_root.recordable.name
     assert_not_includes labels, folder_name
@@ -86,7 +86,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "#{@oauth_client.name} wants to connect to Studio"
-    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes labels, @root_recording.recordable.name
     assert_includes labels, other_root.recordable.name
     refute_equal ["Studio"], labels.uniq
@@ -103,7 +103,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "#{@oauth_client.name} wants to connect"
     refute_includes response.body, "wants to connect to Harbor"
     refute_includes response.body, "wants to connect to Meadow"
-    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes labels, "Harbor"
     assert_includes labels, "Meadow"
   end
@@ -120,7 +120,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params
 
     assert_response :success
-    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes labels, @root_recording.recordable.name
     assert_not_includes labels, admin_root_recording.recordable.name
     assert_not_includes response.body, "access_recording_id=#{admin_root_access.id}"
@@ -128,7 +128,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get named_authorize_path("operations"), params: authorize_params.merge(client_id: ops_client.client_id)
 
     assert_response :success
-    ops_labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    ops_labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes ops_labels, @root_recording.recordable.name
     assert_includes ops_labels, admin_root_recording.recordable.name
     assert_includes response.body, "access_recording_id=#{admin_root_access.id}"
@@ -281,7 +281,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params
 
     assert_response :success
-    labels = css_select("[role='listitem'] p").map { |node| node.text.strip }
+    labels = css_select("[role='listitem'] .min-w-0.flex-1").map { |node| node.text.strip }
     assert_includes labels, root_recording.recordable.name
     refute_includes labels, "Release Notes"
     refute_includes response.body, "access_recording_id=#{folder_access.id}"

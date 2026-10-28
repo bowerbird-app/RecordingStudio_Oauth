@@ -26,7 +26,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.add_dependency "flat_pack", ">= 0.1.315"
   spec.add_dependency "rails", "~> 8.1.0"
   spec.add_dependency "recording_studio", ">= 6.1.0"
-  spec.add_dependency "recording_studio_accessible", "~> 0.11"
+  spec.add_dependency "recording_studio_accessible", ">= 0.18"
   spec.add_dependency "recording_studio_admin", "~> 2.0"
   spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.18"
   spec.add_dependency "recording_studio_cache", "~> 0.5"

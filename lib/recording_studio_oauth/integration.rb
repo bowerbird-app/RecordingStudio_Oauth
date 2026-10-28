@@ -10,16 +10,13 @@ module RecordingStudioOauth
     def actor_access_recordings(actor:)
       return [] if actor.nil?
 
-      access_ids = RecordingStudio::Access.where(actor: actor).pluck(:id)
-      return [] if access_ids.empty?
+      roots = RecordingStudioAccessible.root_recordings_for(actor: actor)
+      return [] if roots.empty?
 
-      # Additive kept_sql matches main's kept filter on this unscoped base
-      # (the shared active scope unscopes trashed_at first and is not used here).
-      RecordingStudio::Recording.unscoped
-                                .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
-                                .where(recordable_type: "RecordingStudio::Access", recordable_id: access_ids)
-                                .order(:created_at, :id)
-                                .to_a
+      recordings = roots.flat_map do |root|
+        RecordingStudioAccessible.access_recordings_for_actor(recording: root, actor: actor).to_a
+      end
+      recordings.uniq(&:id).sort_by { |recording| [recording.created_at, recording.id] }
     end
 
     def connect_access_recordings(actor:, oauth_client: nil)

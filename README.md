@@ -95,7 +95,7 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
 5. Enable `:accessible` on the root recordables people Connect from. Nested grants do not appear on Connect. Set `config.connectable_root_recordable_type_names` to those type names (`["Workspace"]` by default). Do not add conversation types such as `RecordingStudioMessages::MessageGroup`.
-6. Host authentication stays on the host. Dummy uses Devise. Do not add Users as a dependency of this gem.
+6. Host authentication stays on the host. Connect controllers include Accessible `ControllerAuth` and call `recording_studio_auth` with this gem's `authentication_method` / `current_actor_method`. Dummy uses Devise. Do not add Users as a dependency of this gem. Connect rows come from Accessible `root_recordings_for` plus `access_recordings_for_actor`, then this gem keeps only connectable parents. Staff Oauth admin uses `RecordingStudioAdmin.configuration.access_recording_resolver`. Role ranks come from `RecordingStudio::Access.roles` (or Accessible `AccessRoles`).
 7. Install Recording Studio Site Settings (and Attachable, which that gem needs). Register `RecordingStudioSiteSettings::SiteSetting` and `RecordingStudioAttachable::Attachment`. Set `site_root_types` so Connect can read a site name.
 8. If you mount staff admin, pin Turbo and Recording Studio Admin's screen controllers in the host importmap (see `test/dummy/config/importmap.rb`).
 
@@ -444,4 +444,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.20.0
+0.21.0

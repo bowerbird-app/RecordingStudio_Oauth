@@ -4,9 +4,6 @@ module RecordingStudioOauth
   class ConnectedAppsController < ApplicationController
     include Concerns::HostAuthentication
 
-    before_action :authenticate_host_user!
-    before_action :set_current_actor
-
     helper_method :connected_app_status
 
     def index

@@ -61,10 +61,13 @@ class TrashableParityTest < Minitest::Test
     )
 
     assert_includes trashable_scopes, "unscope(where: :trashed_at).where(trashed_at: nil)"
-    assert_includes integration, "recording_studio_trashable_kept_sql"
+    assert_includes integration, "RecordingStudioAccessible.root_recordings_for"
+    assert_includes integration, "RecordingStudioAccessible.access_recordings_for_actor"
+    refute_includes integration, "RecordingStudio::Access.where"
     refute_includes integration, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, integration)
-    assert_includes admin, "recording_studio_trashable_kept_sql"
+    assert_includes admin, "Api::Access.admin_root_recording"
+    refute_includes admin, "recording_studio_trashable_kept_sql"
     refute_includes admin, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, admin)
   end

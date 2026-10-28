@@ -2,8 +2,6 @@
 
 module RecordingStudioOauth
   class Configuration
-    ACCESS_ROLE_RANKS = { view: 0, edit: 1, admin: 2 }.freeze
-
     attr_accessor :authentication_method,
                   :current_actor_method,
                   :admin_root_recordable_type_names,
