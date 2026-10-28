@@ -1,8 +1,8 @@
 # Upgrading
 
-## 0.20.1
+## 0.21.0
 
-No Oauth migration. Install Oauth `0.20.1`. Host auth config keys are
+No Oauth migration. Install Oauth `0.21.0`. Host auth config keys are
 unchanged. Connect uses Accessible `ControllerAuth` and Accessible
 recording lookups. Staff Oauth admin uses Admin
 `access_recording_resolver` for the Admin root. Role ranks follow
