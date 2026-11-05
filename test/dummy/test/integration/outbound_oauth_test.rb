@@ -858,7 +858,8 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
       action: "created",
       recordable: folder,
       root_recording: @root_recording,
-      parent_recording: @root_recording
+      parent_recording: @root_recording,
+      actor: @user
     ).recording
   end
 

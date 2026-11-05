@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.21.2
+
+No Oauth migration. Install Oauth `0.21.2`. The gem still does not write
+through core. Dummy `authorize_write` and test/seed actors are only for
+the dummy app against Recording Studio 6.5.0 fail-closed writes. Hosts
+set their own authorizer and actor.
+
 ## 0.21.1
 
 No Oauth migration. Install Oauth `0.21.1`. Host lockfiles should pick up
