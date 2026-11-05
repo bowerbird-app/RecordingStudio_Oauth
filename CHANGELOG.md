@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.2] - 2026-11-05
+
+### Changed
+- Dummy initializer sets `config.authorize_write` so writes stay allowed when
+  Recording Studio core 6.5.0 fails closed. Dummy seeds and tests pass `actor:`
+  on `record!` calls that omitted it.
+
+### Upgrade notes
+- Bump to `0.21.2`. No migration. Hosts still set their own `authorize_write`
+  and actor. This gem does not write through core.
+
 ## [0.21.1] - 2026-11-05
 
 ### Security
@@ -823,6 +834,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.21.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.1...v0.21.2
 [0.21.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.19.1...v0.20.0

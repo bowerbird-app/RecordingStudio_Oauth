@@ -108,13 +108,14 @@ module OauthDummyHelpers
       workspace_name: workspace_name || "Folder workspace #{SecureRandom.hex(4)}"
     )
     folder = Folder.create!(name: folder_name)
+    Current.actor = owner
     folder_recording = RecordingStudio.record!(
       action: "created",
       recordable: folder,
       root_recording: root_recording,
-      parent_recording: root_recording
+      parent_recording: root_recording,
+      actor: owner
     ).recording
-    Current.actor = owner
     result = RecordingStudioAccessible.grant_access(
       recording: folder_recording,
       actor: user,
