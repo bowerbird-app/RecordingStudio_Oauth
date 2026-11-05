@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.21.1
+
+No Oauth migration. Install Oauth `0.21.1`. Host lockfiles should pick up
+Rails 8.1.4.1 plus rack 3.2.8, nokogiri 1.19.7, loofah 2.25.3, and
+rails-html-sanitizer 1.7.2. The `recording_studio_api` cap stays
+`>= 0.5.2, < 0.18`.
+
 ## 0.21.0
 
 No Oauth migration. Install Oauth `0.21.0`. Host auth config keys are
