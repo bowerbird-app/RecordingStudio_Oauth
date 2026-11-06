@@ -1,4 +1,7 @@
 <% content_for :title, connect_page_title %>
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(tooltip: oauth_t("layout.go_back")) %>
+<% end %>
 
 <% if @errors.any? %>
   <%= render FlatPack::Alert::Component.new(

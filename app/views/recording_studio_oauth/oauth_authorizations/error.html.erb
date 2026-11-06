@@ -1,5 +1,7 @@
 <% content_for :title, oauth_t("errors.page_title") %>
-<% flat_pack_page_nav(round: true, style: :default, back_tooltip: oauth_t("layout.go_back")) %>
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(tooltip: oauth_t("layout.go_back")) %>
+<% end %>
 
 <%= render FlatPack::Alert::Component.new(
   description: oauth_error_page_description(@oauth_error),

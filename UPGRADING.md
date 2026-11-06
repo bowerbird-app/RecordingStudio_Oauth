@@ -1,5 +1,26 @@
 # Upgrading
 
+## 0.21.3
+
+No Oauth migration. Install Oauth `0.21.3`. Pin Flatpack `>= 0.1.341` at tag
+`v0.1.341`. Keep `view_component` `>= 4.14, < 5`.
+
+Connect and staff Registered-app screens use the Flatpack 0.1.341 PageNav
+block API. Do not copy those views into the host, and do not pass removed
+kwargs to `FlatPack::PageNav::Component`.
+
+```erb
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(tooltip: "Go back") %>
+  <% nav.with_close(href: root_path, tooltip: "Close") %>
+<% end %>
+```
+
+History back is used when `with_back` has no `href`. The connect layout
+renders `flat_pack_page_nav_tag` and adds that back control when a view
+did not set a spec. `FlatPack::Card::Component` still does not take
+`style:`; use `background:`, `border:`, `hover:`, and `shadow:`.
+
 ## 0.21.2
 
 No Oauth migration. Install Oauth `0.21.2`. The gem still does not write

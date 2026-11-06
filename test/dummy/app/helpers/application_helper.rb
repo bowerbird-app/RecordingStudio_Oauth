@@ -4,12 +4,9 @@ module ApplicationHelper
     content_for(:subtitle, subtitle) if subtitle.present?
 
     if back_url.present?
-      flat_pack_page_nav(
-        round: true,
-        style: :default,
-        back_href: back_url,
-        back_tooltip: back_label
-      )
+      flat_pack_page_nav(round: true, style: :default) do |nav|
+        nav.with_back(href: back_url, tooltip: back_label)
+      end
     end
 
     recording_studio_page_nav_right do

@@ -9,14 +9,10 @@
    end %>
 <% content_for :title, "App credentials" %>
 <% content_for :subtitle, credentials_subtitle if credentials_subtitle %>
-<% flat_pack_page_nav(
-     round: true,
-     style: :default,
-     back_href: oauth_clients_admin_screen_path,
-     back_tooltip: oauth_t("layout.go_back"),
-     anchor_href: oauth_clients_admin_screen_path,
-     anchor_tooltip: "Close"
-   ) %>
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(href: oauth_clients_admin_screen_path, tooltip: oauth_t("layout.go_back")) %>
+  <% nav.with_close(href: oauth_clients_admin_screen_path, tooltip: "Close") %>
+<% end %>
 <% register_page_nav "Edit", edit_admin_oauth_client_path(@oauth_client), role: :secondary %>
 
 <div class="space-y-6">

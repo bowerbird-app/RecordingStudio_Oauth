@@ -22,6 +22,11 @@
   <body class="bg-(--surface-page-background-color) text-(--surface-content-color)" data-theme="rounded">
     <main class="flex min-h-dvh items-center justify-center p-6">
       <div class="w-full max-w-sm space-y-6">
+        <% unless request.env["flat_pack.page_nav"] %>
+          <% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+            <% nav.with_back(tooltip: oauth_t("layout.go_back")) %>
+          <% end %>
+        <% end %>
         <%= flat_pack_page_nav_tag %>
         <% if heading %>
           <%= render FlatPack::PageTitle::Component.new(
