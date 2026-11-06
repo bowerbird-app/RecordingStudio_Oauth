@@ -1,13 +1,9 @@
 <% content_for :title, "New app" %>
 <% content_for :subtitle, "People will see this name when they Connect." %>
-<% flat_pack_page_nav(
-     round: true,
-     style: :default,
-     back_href: oauth_clients_admin_screen_path,
-     back_tooltip: oauth_t("layout.go_back"),
-     anchor_href: oauth_clients_admin_screen_path,
-     anchor_tooltip: "Close"
-   ) %>
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(href: oauth_clients_admin_screen_path, tooltip: oauth_t("layout.go_back")) %>
+  <% nav.with_close(href: oauth_clients_admin_screen_path, tooltip: "Close") %>
+<% end %>
 
 <%= render "form",
      form_url: admin_oauth_clients_path,

@@ -173,6 +173,14 @@ class AdminDefinitionsTest < Minitest::Test
     assert_includes show_view, 'register_page_nav "Edit"'
     refute_includes show_view, 'register_page_nav "Edit app"'
     refute_includes show_view, 'register_page_nav "Done"'
+    assert_includes new_view, "nav.with_back"
+    assert_includes new_view, "nav.with_close"
+    refute_includes new_view, "back_href:"
+    refute_includes new_view, "anchor_href:"
+    assert_includes show_view, "nav.with_back"
+    assert_includes show_view, "nav.with_close"
+    refute_includes show_view, "back_href:"
+    refute_includes show_view, "anchor_href:"
     assert_includes show_view, 'text: "Done"'
     assert_includes show_view, "style: :primary"
     refute_includes show_view, "PageTitle::Component"

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.3] - 2026-11-06
+
+### Changed
+- Require Flatpack `>= 0.1.341` (git tag `v0.1.341`). Dummy and development
+  pin that tag instead of commit `1fcbafe…`.
+- Consent, error, and staff Registered-app screens set PageNav with
+  `flat_pack_page_nav { |nav| nav.with_back(...) }` and `with_close(href:)`
+  instead of helper arrangement kwargs. History back is used when `href` is
+  omitted. The connect layout still renders `flat_pack_page_nav_tag`. The
+  Connect list has no PageNav.
+
+### Upgrade notes
+- Bump to `0.21.3`. No migration.
+- Pin Flatpack `>= 0.1.341` at tag `v0.1.341`. Keep `view_component`
+  `>= 4.14, < 5`.
+- Call `nav.with_back` / `nav.with_close(href:)` in a `flat_pack_page_nav`
+  block. Do not pass `back_href:` / `anchor_href:` to
+  `FlatPack::PageNav::Component`. Do not pass `style:` to
+  `FlatPack::Card::Component`. Do not copy Connect views into the host to
+  shim PageNav.
+
 ## [0.21.2] - 2026-11-05
 
 ### Changed
@@ -834,6 +855,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.21.3]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.2...v0.21.3
 [0.21.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.1...v0.21.2
 [0.21.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.20.0...v0.21.0

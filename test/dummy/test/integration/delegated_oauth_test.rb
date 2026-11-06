@@ -71,8 +71,6 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
     refute_equal @root_recording.id, folder_recording.id
-    assert_select "[role='tooltip']", count: 0
-    assert_select "[data-controller='flat-pack--tooltip']", count: 0
     assert_select "[data-controller='recording-studio-root-switchable--root-switch-dropdown']", count: 0
     assert_not_includes response.body, "Sign out"
   end
@@ -207,6 +205,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "You can view"
     assert_select "h1", count: 1
     assert_select ".flat-pack-page-nav", count: 1
+    assert_select "[data-controller='flat-pack--page-nav']", count: 1
   end
 
   test "screen 2 connect issues a code and token pair" do
@@ -221,6 +220,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_select "button[name='decision'][value='connect']"
     assert_select "button[name='decision'][value='cancel']"
     assert_select ".flat-pack-page-nav", count: 1
+    assert_select "[data-controller='flat-pack--page-nav']", count: 1
     assert_select "form[action=?][method=post][data-turbo=false]", authorize_path
     assert_select "form[data-turbo=false] button[name='decision'][value='connect']"
     assert_select "form[data-turbo=false] button[name='decision'][value='cancel']"
@@ -861,6 +861,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "max-w-sm"
     refute_includes response.body, "data-recording-studio-default-layout"
     assert_select ".flat-pack-page-nav", count: 1
+    assert_select "[data-controller='flat-pack--page-nav']", count: 1
   end
 
   private

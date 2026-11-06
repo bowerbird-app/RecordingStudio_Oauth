@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.21.2", ::RecordingStudioOauth::VERSION
+    assert_equal "0.21.3", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -21,8 +21,9 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.341"'
     assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
+    refute_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
     refute_includes gemspec, "recording_studio_logs"
     refute_includes gemspec, "recording_studio_users"
     refute_includes gemspec, "recording_studio_internationalization"
@@ -56,6 +57,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
   def test_dummy_gemfile_pins_verified_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
+    root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"'
     assert_includes gemfile, "widen_recording_studio_requirement"
@@ -69,7 +71,10 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.8.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0", require: false'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
+    refute_includes gemfile, "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"
+    refute_includes root_gemfile, "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"
     assert_includes gemfile, "recording_studio_internationalization"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
     refute_includes gemfile, "recording_studio_users"
@@ -191,19 +196,29 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes index, "connection_status_trailing"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
+    refute_includes index, "back_tooltip:"
+    refute_includes index, "Card::Component.new(style:"
+    Dir[File.expand_path("../app/views/**/*.erb", __dir__)].each do |path|
+      refute_includes File.read(path), "Card::Component.new(style:",
+                      "#{path} must not pass style: to FlatPack::Card::Component"
+    end
     refute_includes consent, "ButtonGroup"
     refute_includes consent, "Grid::Component"
     refute_includes consent, "cols: 2"
     refute_includes consent, "page_nav_back_url"
     refute_includes consent, "help_text"
     refute_includes consent, "Permission"
+    refute_includes consent, "back_tooltip:"
     assert_includes consent, 'oauth_t("connect.allow")'
     assert_includes consent, 'value: "connect"'
     assert_includes consent, 'value: "cancel"'
     assert_includes consent, "data: { turbo: false }"
+    assert_includes consent, "nav.with_back(tooltip: oauth_t(\"layout.go_back\"))"
     refute_includes index, "data: { turbo: false }"
     refute_includes error, "Grid::Component"
     refute_includes error, "cols: 2"
+    refute_includes error, "back_tooltip:"
+    assert_includes error, "nav.with_back(tooltip: oauth_t(\"layout.go_back\"))"
     assert_includes layout, "min-h-dvh"
     assert_includes layout, "max-w-sm"
     assert_includes layout, "flat_pack_page_nav_tag"

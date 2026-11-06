@@ -1,13 +1,9 @@
 <% content_for :title, "Edit app" %>
 <% content_for :subtitle, @oauth_client.name %>
-<% flat_pack_page_nav(
-     round: true,
-     style: :default,
-     back_href: admin_oauth_client_path(@oauth_client),
-     back_tooltip: oauth_t("layout.go_back"),
-     anchor_href: oauth_clients_admin_screen_path,
-     anchor_tooltip: "Close"
-   ) %>
+<% flat_pack_page_nav(round: true, style: :default) do |nav| %>
+  <% nav.with_back(href: admin_oauth_client_path(@oauth_client), tooltip: oauth_t("layout.go_back")) %>
+  <% nav.with_close(href: oauth_clients_admin_screen_path, tooltip: "Close") %>
+<% end %>
 
 <%= render "form",
      form_url: admin_oauth_client_path(@oauth_client),
