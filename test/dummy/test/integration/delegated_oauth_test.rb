@@ -40,8 +40,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "data-recording-studio-default-layout"
     assert_includes response.body, "min-h-dvh"
     assert_includes response.body, "max-w-sm"
-    assert_select ".flat-pack-page-nav", count: 1
-    assert_select "[data-controller='flat-pack--page-nav']", count: 1
+    assert_select ".flat-pack-page-nav", count: 0
     assert_select "h1", count: 1
     assert_includes response.body, "#{@oauth_client.name} wants to connect"
     refute_match(/wants to connect to\s*</, response.body)
@@ -72,7 +71,6 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       assert_match(/\bConnect(ed)?\b|\bReconnect\b/, item.text)
     end
     refute_equal @root_recording.id, folder_recording.id
-    assert_select ".flat-pack-page-nav [data-controller='flat-pack--tooltip']", count: 1
     assert_select "[data-controller='recording-studio-root-switchable--root-switch-dropdown']", count: 0
     assert_not_includes response.body, "Sign out"
   end
@@ -466,9 +464,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_nil connected_item.at_css("[role='tooltip']")
     assert_nil connected_button["title"]
     assert_nil reconnect_button["title"]
-    assert_select "[data-controller='flat-pack--tooltip']", count: 2
-    assert_select ".flat-pack-page-nav [data-controller='flat-pack--tooltip']", count: 1
-    assert_select ".flat-pack-page-nav", count: 1
+    assert_select "[data-controller='flat-pack--tooltip']", count: 1
   end
 
   test "authorization code reuse voids the grant" do

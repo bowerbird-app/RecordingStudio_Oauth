@@ -194,7 +194,6 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes index, "recording_studio_page_nav"
     assert_includes index, "content_for :title"
     assert_includes index, "connection_status_trailing"
-    assert_includes index, "nav.with_back(tooltip: oauth_t(\"layout.go_back\"))"
     refute_includes index, "Grid::Component"
     refute_includes index, "cols: 2"
     refute_includes index, "back_tooltip:"
@@ -223,7 +222,6 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes layout, "min-h-dvh"
     assert_includes layout, "max-w-sm"
     assert_includes layout, "flat_pack_page_nav_tag"
-    assert_includes layout, "nav.with_back(tooltip: oauth_t(\"layout.go_back\"))"
     refute_includes layout, "FlatPack::PageNav::Component"
     refute_includes layout, "skip_connect_page_nav"
     assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'

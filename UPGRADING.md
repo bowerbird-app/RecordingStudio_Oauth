@@ -17,9 +17,9 @@ kwargs to `FlatPack::PageNav::Component`.
 ```
 
 History back is used when `with_back` has no `href`. The connect layout
-renders `flat_pack_page_nav_tag` and adds that back control when a view
-did not set a spec. `FlatPack::Card::Component` still does not take
-`style:`; use `background:`, `border:`, `hover:`, and `shadow:`.
+renders `flat_pack_page_nav_tag`. Consent and error set `with_back`. The
+Connect list has no PageNav. `FlatPack::Card::Component` still does not
+take `style:`; use `background:`, `border:`, `hover:`, and `shadow:`.
 
 ## 0.21.2
 

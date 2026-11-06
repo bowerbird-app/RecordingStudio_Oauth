@@ -10,12 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Require Flatpack `>= 0.1.341` (git tag `v0.1.341`). Dummy and development
   pin that tag instead of commit `1fcbafe…`.
-- Connect and staff Registered-app screens set PageNav with
+- Consent, error, and staff Registered-app screens set PageNav with
   `flat_pack_page_nav { |nav| nav.with_back(...) }` and `with_close(href:)`
-  instead of helper arrangement kwargs. Connect history back is used when
-  `href` is omitted. The connect layout still renders `flat_pack_page_nav_tag`
-  and fills in `with_back` when a view did not set a spec.
-- Connect list now uses the same back control as consent and error.
+  instead of helper arrangement kwargs. History back is used when `href` is
+  omitted. The connect layout still renders `flat_pack_page_nav_tag`. The
+  Connect list has no PageNav.
 
 ### Upgrade notes
 - Bump to `0.21.3`. No migration.
