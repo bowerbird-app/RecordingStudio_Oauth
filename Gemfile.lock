@@ -33,16 +33,17 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_api.git
-  revision: 71376286926e6e078cd32b03a52106eb04f3b1cf
-  tag: v0.17.1
+  revision: ed1d152a6b14d0110e5bb8ebbd3e9d6a59aa9f01
+  tag: v0.19.0
   specs:
-    recording_studio_api (0.17.1)
-      flat_pack (>= 0.1.315)
+    recording_studio_api (0.19.0)
+      flat_pack (>= 0.1.341)
       rails (~> 8.1.0)
       recording_studio (>= 6.1.0)
       recording_studio_accessible (~> 0.11)
       recording_studio_logs (>= 0.4.1, < 1.0)
       recording_studio_metrics (>= 0.3.0, < 1.0)
+      recording_studio_moveable (~> 4.0)
       recording_studio_trashable (~> 0.10)
       redis (~> 5.3)
       view_component (>= 4.14, < 5)
@@ -68,6 +69,14 @@ GIT
       recording_studio (>= 6.1.0)
 
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_icons.git
+  revision: 98ca011dfc98aa5a8281da6e2a746ca6afc27af2
+  tag: v0.1.3
+  specs:
+    recording_studio_icons (0.1.3)
+      rails (>= 8.1.0)
+
+GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_logs.git
   revision: 6f612ceba651b285f4452583617d5d5b866f3e56
   tag: v0.4.1
@@ -84,6 +93,19 @@ GIT
     recording_studio_metrics (0.5.0)
       rails (~> 8.1.0)
       recording_studio (>= 6.1.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_moveable.git
+  revision: 8fac42eae770d04938957b3225ebc617ab04617e
+  tag: v4.1.1
+  specs:
+    recording_studio_moveable (4.1.1)
+      flat_pack (>= 0.1.331)
+      rails (>= 8.1.0, < 9.0)
+      recording_studio (>= 6.1.0)
+      recording_studio_accessible (~> 0.6)
+      recording_studio_icons (>= 0.1.0)
+      view_component (>= 4.14, < 5)
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_site_settings.git
@@ -123,13 +145,13 @@ GIT
 PATH
   remote: .
   specs:
-    recording_studio_oauth (0.21.3)
+    recording_studio_oauth (0.21.4)
       flat_pack (>= 0.1.341)
       rails (~> 8.1.0)
       recording_studio (>= 6.1.0)
       recording_studio_accessible (>= 0.18)
       recording_studio_admin (~> 2.0)
-      recording_studio_api (>= 0.5.2, < 0.18)
+      recording_studio_api (>= 0.5.2, < 0.21)
       recording_studio_cache (~> 0.5)
       recording_studio_metrics (>= 0.3, < 1.0)
       recording_studio_site_settings (~> 0.2)
@@ -443,8 +465,10 @@ DEPENDENCIES
   recording_studio_api!
   recording_studio_attachable!
   recording_studio_cache!
+  recording_studio_icons!
   recording_studio_logs!
   recording_studio_metrics!
+  recording_studio_moveable!
   recording_studio_oauth!
   recording_studio_site_settings!
   recording_studio_trashable!
@@ -532,12 +556,14 @@ CHECKSUMS
   recording_studio (6.1.0)
   recording_studio_accessible (0.18.0)
   recording_studio_admin (2.7.0)
-  recording_studio_api (0.17.1)
+  recording_studio_api (0.19.0)
   recording_studio_attachable (0.15.0)
   recording_studio_cache (0.5.0)
+  recording_studio_icons (0.1.3)
   recording_studio_logs (0.4.1)
   recording_studio_metrics (0.5.0)
-  recording_studio_oauth (0.21.3)
+  recording_studio_moveable (4.1.1)
+  recording_studio_oauth (0.21.4)
   recording_studio_site_settings (0.2.0)
   recording_studio_trashable (0.11.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
