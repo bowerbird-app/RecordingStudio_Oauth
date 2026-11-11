@@ -1,5 +1,12 @@
 # Upgrading
 
+## 0.21.5
+
+No Oauth migration. Install Oauth `0.21.5` to allow Recording Studio API
+`>= 0.5.2, < 0.22`. Dummy and development pin API tag `v0.21.0`. RS_API
+0.21.0 only adds public helpers (`RequestPayload`, `InvalidParentInput`).
+Oauth needs no code change.
+
 ## 0.21.4
 
 No Oauth migration. Install Oauth `0.21.4` to allow Recording Studio API
