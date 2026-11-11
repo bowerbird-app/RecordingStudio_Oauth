@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.21.4", ::RecordingStudioOauth::VERSION
+    assert_equal "0.21.5", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -16,7 +16,7 @@ class RecordingStudioOauthTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.18"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.21"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.22"'
     refute_includes gemspec, "recording_studio_moveable"
     refute_includes gemspec, "recording_studio_icons"
     assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
@@ -64,10 +64,10 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"'
     assert_includes gemfile, "widen_recording_studio_requirement"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.19.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.1.3"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.19.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.1.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.4.1"'
@@ -140,7 +140,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "TokenAuthenticator"
-    assert_includes readme, ">= 0.5.2, < 0.21"
+    assert_includes readme, ">= 0.5.2, < 0.22"
     assert_includes readme, "name_for"
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"
