@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (and Icons `>= 0.1.0`). Hosts that lock API 0.19+ should pin those gems
   themselves. Latest Icons `v0.2.1` needs Recording Studio `>= 6.3.0`; dummy
   and development stay on Icons `v0.1.3` with Recording Studio `v6.1.0`.
+- OAuth user writes on RS_API 0.20.0 record the signed-in user
+  (`access_grant.actor`) as the event actor and the OAuth app as the
+  impersonator; that change comes from RS_API 0.20, not from Oauth, and
+  Oauth needs no code change.
 
 ## [0.21.3] - 2026-11-06
 

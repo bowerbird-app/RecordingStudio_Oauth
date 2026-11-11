@@ -7,6 +7,10 @@ No Oauth migration. Install Oauth `0.21.4` to allow Recording Studio API
 tag `v4.1.1`, and Icons tag `v0.1.3`. Do not add Moveable or Icons to this
 gemspec. Hosts that lock API 0.19+ pin those gems themselves. Latest Icons
 `v0.2.1` needs Recording Studio `>= 6.3.0`; this dummy stays on `v6.1.0`.
+OAuth user writes on RS_API 0.20.0 record the signed-in user
+(`access_grant.actor`) as the event actor and the OAuth app as the
+impersonator; that change comes from RS_API 0.20, not from Oauth, and
+Oauth needs no code change.
 
 ## 0.21.3
 
