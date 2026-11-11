@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.21.4
+
+No Oauth migration. Install Oauth `0.21.4` to allow Recording Studio API
+`>= 0.5.2, < 0.21`. Dummy and development pin API tag `v0.19.0`, Moveable
+tag `v4.1.1`, and Icons tag `v0.1.3`. Do not add Moveable or Icons to this
+gemspec. Hosts that lock API 0.19+ pin those gems themselves. Latest Icons
+`v0.2.1` needs Recording Studio `>= 6.3.0`; this dummy stays on `v6.1.0`.
+
 ## 0.21.3
 
 No Oauth migration. Install Oauth `0.21.3`. Pin Flatpack `>= 0.1.341` at tag
