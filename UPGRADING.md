@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.21.7
+
+No Oauth migration. Install Oauth `0.21.7`. Runtime ranges are Recording Studio
+`~> 6.0`, Admin `>= 2.0, < 3.0`, and `< 1.0` on the 0.x ecosystem gems (API
+`>= 0.5.2`, Accessible `>= 0.18`, Cache `>= 0.5`, Metrics `>= 0.3`, Site
+Settings `>= 0.2`, Trashable `>= 0.10`). Dummy and development pins stay on
+the current tags, including API `v0.22.1` and Recording Studio `v6.1.0`.
+
 ## 0.21.6
 
 No Oauth migration. Install Oauth `0.21.6` to allow Recording Studio API
