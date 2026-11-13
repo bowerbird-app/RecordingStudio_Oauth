@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.21.6
+
+No Oauth migration. Install Oauth `0.21.6` to allow Recording Studio API
+`>= 0.5.2, < 0.23`. Dummy and development pin API tag `v0.22.1`. RS_API
+0.22.1 adds `RecordingStudioApi::RateLimit`. Oauth needs no code change.
+
 ## 0.21.5
 
 No Oauth migration. Install Oauth `0.21.5` to allow Recording Studio API
