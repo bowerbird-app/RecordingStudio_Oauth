@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.21.6", ::RecordingStudioOauth::VERSION
+    assert_equal "0.21.7", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -14,15 +14,16 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.18"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 0.23"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 6.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.18", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0", "< 3.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 1.0"'
     refute_includes gemspec, "recording_studio_moveable"
     refute_includes gemspec, "recording_studio_icons"
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", "~> 0.5"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", ">= 0.5", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3", "< 1.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", "~> 0.2"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", "~> 0.10"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_site_settings", ">= 0.2", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.10", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.341"'
     assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
     refute_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
@@ -140,7 +141,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "TokenAuthenticator"
-    assert_includes readme, ">= 0.5.2, < 0.23"
+    assert_includes readme, ">= 0.5.2, < 1.0"
     assert_includes readme, "name_for"
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"
@@ -155,7 +156,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "record_external_install"
     assert_includes readme, "recording_studio.oauth"
     assert_includes readme, "recording_studio_metrics"
-    assert_includes readme, "Cache `~> 0.5`"
+    assert_includes readme, "Cache `>= 0.5, < 1.0`"
     assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/oauth_clients/total"
     assert_includes readme, "RecordingStudioMetrics::Api.register!(api: :operations)"
     assert_includes readme, "Trashable"
