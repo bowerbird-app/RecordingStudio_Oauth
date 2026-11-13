@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.21.7
+
+No Oauth migration. Install Oauth `0.21.7`. Pin Cache `~> 0.6` (development
+and dummy tag `v0.6.3`) and Site Settings `~> 0.5` (development and dummy tag
+`v0.5.6`). `RegisterRateLimit` still uses `RecordingStudioCache::RateLimiter`.
+Connect still reads `name_for`, `site_root?`, and `site_root_for`. The site
+settings table is unchanged. No Oauth code change.
+
 ## 0.21.6
 
 No Oauth migration. Install Oauth `0.21.6` to allow Recording Studio API
