@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.8] - 2026-11-13
+
+### Changed
+- Development and dummy pins move to the current Recording Studio and FlatPack
+  release tags, including Recording Studio `v6.7.0`, Accessible `v0.32.0`,
+  Admin `v2.13.0`, API `v0.23.1`, Flatpack `v0.1.357`, and Trashable `v0.14.0`.
+  The published dependency ranges stay the same.
+- Log filtering drops Accessible's partial `:code` filter. The exact `code`
+  key filter stays, so `code_challenge` and `country_code` remain visible.
+
+### Upgrade notes
+- Bump to `0.21.8`. No migration.
+- Dummy installs Trashable's `purge_at` column. Hosts that install Trashable
+  `0.14.0` should run that gem's migration.
+- The mounted root switch page needs an Accessible `:view` grant on the
+  current root.
+- If a host relied on Accessible's partial `:code` log filter, `code_challenge`
+  is visible again. The authorization `code` parameter stays filtered.
+
 ## [0.21.7] - 2026-11-13
 
 ### Changed
@@ -915,6 +934,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.21.8]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.7...v0.21.8
 [0.21.7]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.6...v0.21.7
 [0.21.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.5...v0.21.6
 [0.21.5]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.4...v0.21.5

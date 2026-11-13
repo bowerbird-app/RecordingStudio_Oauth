@@ -118,7 +118,8 @@ module RecordingStudioOauth
       Dir.glob(File.join(root, "lib/tasks", "*.rake")).each { |path| load path }
     end
 
-    initializer "recording_studio_oauth.filter_parameters" do |app|
+    initializer "recording_studio_oauth.filter_parameters",
+                after: "recording_studio_accessible.filter_parameters" do |app|
       app.config.filter_parameters += [
         /\Acode\z/,
         :code_verifier,
@@ -128,6 +129,9 @@ module RecordingStudioOauth
         :access_token,
         :refresh_token
       ]
+      # Accessible adds a partial :code filter. That also hides code_challenge.
+      # Keep the exact code key filter above and drop the partial one.
+      app.config.filter_parameters.delete(:code)
     end
 
     initializer "recording_studio_oauth.append_migrations" do |app|

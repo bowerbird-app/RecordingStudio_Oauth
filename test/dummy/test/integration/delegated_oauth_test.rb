@@ -371,6 +371,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
       role: "admin",
       pkce: @pkce
     )
+    other_admin = create_user
+    grant_or_bootstrap_access!(recording: @root_recording, actor: other_admin, role: :admin)
     update = RecordingStudioAccessible::Services::UpdateRecordingAccess.call(
       recording: @root_recording,
       access_recording: @access_recording,

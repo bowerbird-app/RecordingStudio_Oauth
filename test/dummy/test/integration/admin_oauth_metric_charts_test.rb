@@ -75,7 +75,7 @@ class AdminOauthMetricChartsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Self-registered apps"
     assert_includes response.body, "View connections"
     assert_includes CGI.unescapeHTML(response.body),
-                    '"labels":{"style":{"colors":"var(--surface-muted-content-color)"},"show":false}'
+                    '"labels":{"style":{"colors":"var(--surface-muted-content-color)"},"hideOverlappingLabels":true,"rotate":0,"show":false}'
     %w[View apps View connections More].each do |label|
       button = css_select("a, button").find { |element| element.text.strip == label }
       next unless button

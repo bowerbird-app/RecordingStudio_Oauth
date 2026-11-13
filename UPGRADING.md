@@ -1,5 +1,20 @@
 # Upgrading
 
+## 0.21.8
+
+No Oauth migration. Install Oauth `0.21.8`. Dependency ranges are unchanged.
+Development and dummy pins are the current release tags (Recording Studio
+`v6.7.0`, Accessible `v0.32.0`, API `v0.23.1`, Flatpack `v0.1.357`, Trashable
+`v0.14.0`).
+
+Oauth removes Accessible's partial `:code` log filter and keeps `/\Acode\z/`.
+`code_challenge` and `country_code` stay in the logs. The authorization `code`
+parameter stays filtered.
+
+The mounted root switch page requires an Accessible `:view` grant on the
+current root. Trashable `0.14.0` adds nullable `purge_at` on recordings.
+Install that gem's migration in the host.
+
 ## 0.21.7
 
 No Oauth migration. Install Oauth `0.21.7`. Runtime ranges are Recording Studio
