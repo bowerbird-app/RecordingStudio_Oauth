@@ -22,15 +22,15 @@ RecordingStudioRootSwitchable.configure do |config|
   config.scope :all_workspaces do |scope|
     scope.label = "All workspaces"
     scope.description = "Every workspace root in the dummy app."
-    scope.available_roots = lambda do |**|
-      workspace_roots = Workspace.order(:name).filter_map do |workspace|
-        RecordingStudio.root_recording_for(workspace)
-      end
-      admin_root = AdminRoot.find_by(name: "Admin")
-      admin_recording = RecordingStudio.root_recording_for(admin_root) if admin_root
-      (workspace_roots + [admin_recording]).compact
+    scope.available_roots = lambda do |actor:, **|
+      next [] if actor.blank?
+
+      RecordingStudioAccessible.root_recordings_for(actor: actor, minimum_role: :view)
     end
-    scope.access_check = ->(**) { true }
+    scope.access_check = lambda do |actor:, recording:, **|
+      actor.present? &&
+        RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
+    end
 
     scope.default_root = lambda do |roots:, **|
       roots.first

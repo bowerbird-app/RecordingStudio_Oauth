@@ -28,7 +28,7 @@ class OauthI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Français"
     assert_select "html[lang='en']"
     language_at = response.body.index("dummy-language-selector")
-    switcher_at = response.body.index("recording-studio-root-switchable--root-switch-dropdown")
+    switcher_at = response.body.index("flat-pack--button-dropdown")
     assert language_at, "expected a language selector in the top nav"
     assert switcher_at, "expected a root switcher in the top nav"
     assert language_at < switcher_at, "language selector should sit left of the root switcher"
