@@ -8,13 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.21.9] - 2026-11-15
 
 ### Changed
-- Allow recording_studio < 8.0 (core 7 phase 1). The published range is
-  `>= 6.14.0, < 8.0`. Development and dummy pins stay on Recording Studio
-  `v6.7.0`.
+- Allow recording_studio < 8.0 (core 7 phase 1). The lower bound stays
+  `>= 6.0`. Development and dummy pins stay on Recording Studio `v6.7.0`.
 
 ### Upgrade notes
 - Bump to `0.21.9`. No migration.
-- Hosts may pin Recording Studio `>= 6.14.0, < 8.0`. This release does not
+- Hosts may pin Recording Studio `>= 6.0, < 8.0`. This release does not
   require core 7.
 
 ## [0.21.8] - 2026-11-13

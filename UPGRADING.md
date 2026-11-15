@@ -3,8 +3,8 @@
 ## 0.21.9
 
 No Oauth migration. Install Oauth `0.21.9` to allow Recording Studio
-`>= 6.14.0, < 8.0`. This release does not require core 7. Dummy and
-development stay on tag `v6.7.0`.
+`>= 6.0, < 8.0`. The lower bound is unchanged. This release does not require
+core 7. Dummy and development stay on tag `v6.7.0`.
 
 ## 0.21.8
 
