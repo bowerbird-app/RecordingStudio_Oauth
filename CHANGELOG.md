@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.9] - 2026-11-15
+
+### Changed
+- Allow recording_studio < 8.0 (core 7 phase 1). The published range is
+  `>= 6.14.0, < 8.0`. Development and dummy pins stay on Recording Studio
+  `v6.7.0`.
+
+### Upgrade notes
+- Bump to `0.21.9`. No migration.
+- Hosts may pin Recording Studio `>= 6.14.0, < 8.0`. This release does not
+  require core 7.
+
 ## [0.21.8] - 2026-11-13
 
 ### Changed
@@ -934,6 +946,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.21.9]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.8...v0.21.9
 [0.21.8]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.7...v0.21.8
 [0.21.7]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.6...v0.21.7
 [0.21.6]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.5...v0.21.6

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.21.8", ::RecordingStudioOauth::VERSION
+    assert_equal "0.21.9", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -14,7 +14,7 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 6.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.14.0", "< 8.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.18", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0", "< 3.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.5.2", "< 1.0"'
