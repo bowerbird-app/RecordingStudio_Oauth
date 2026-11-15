@@ -11,7 +11,7 @@ class RecordingStudioWriteAuthorizationTest < ActiveSupport::TestCase
     assert_respond_to authorizer, :call
     user = create_user
     workspace = Workspace.create!(name: "Write auth #{SecureRandom.hex(4)}")
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: user)
     folder = Folder.new(name: "Write auth folder #{SecureRandom.hex(4)}")
 
     event = RecordingStudio.record!(

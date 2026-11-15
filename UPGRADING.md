@@ -1,5 +1,39 @@
 # Upgrading
 
+## 0.22.0
+
+No Oauth migration. Install Oauth `0.22.0` and Recording Studio `>= 7.0, < 8.0`.
+
+`RecordingStudio.root_recording_for` only finds a root. Create one with
+`RecordingStudio.create_root_recording!(recordable, actor:)`. The dummy
+`authorize_write` callback still allows a write when an actor is present.
+Pass that actor. Do not set `allow_unauthorized_writes`.
+
+Copy Recording Studio migration
+`20261114090000_add_root_recording_id_to_recording_studio_events` into the
+host before writing events. `recording_studio_events.root_recording_id` is
+required.
+
+Trashable `0.17.0` removed `recording_studio_trashable_kept_sql`. Kept
+lookups use `Recording.kept`. Admin `2.15.0` removed
+`site_admin_recording_resolver`. Staff admin uses
+`access_recording_resolver`. Site screens also need Accessible
+`admin_root_resolver` to return that same kept admin root. The dummy
+sets both.
+
+Runtime ranges are Recording Studio `>= 7.0, < 8.0`, Accessible
+`>= 0.44.0, < 1.0`, Admin `>= 2.16.0, < 3.0`, API `>= 0.24.0, < 1.0`,
+Cache `>= 0.6.0, < 1.0`, Metrics `>= 0.9.0, < 1.0`, Site Settings
+`>= 0.6.0, < 1.0`, Trashable `>= 0.17.0, < 1.0`, and Flatpack
+`>= 0.1.376, < 1.0`. Dummy and development pin those release tags, plus
+Attachable `v0.28.0`, Moveable `v5.0.0`, Logs `v0.8.0`, Root Switchable
+`v0.16.0`, Internationalization `v0.3.0`, Cache `v0.6.3`, and Icons
+`v0.2.1`. Logs, Root Switchable, and Internationalization moved because
+their previous tags do not allow Recording Studio 7. They are not new
+Oauth gemspec dependencies.
+
+OAuth authorize, token, scope, PKCE, and redirect behavior is unchanged.
+
 ## 0.21.9
 
 No Oauth migration. Install Oauth `0.21.9` to allow Recording Studio

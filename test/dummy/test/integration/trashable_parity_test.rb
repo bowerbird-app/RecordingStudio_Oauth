@@ -40,7 +40,7 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal time.to_i, granted.updated_at.to_i
     assert granted.recording_studio_trashable_trashed?
     refute granted.recording_studio_trashable_kept?
-    assert_empty RecordingStudio::Recording.recording_studio_trashable_active.where(id: granted.id)
+    assert_empty RecordingStudio::Recording.kept.where(id: granted.id)
 
     # Idempotent: already-trashed row is left alone (shared void_recording! early return).
     later = Time.utc(2026, 10, 14, 9, 0, 0)
@@ -49,7 +49,7 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal time.to_i, granted.trashed_at.to_i
   end
 
-  test "actor_access_recordings excludes trashed access via additive kept_sql" do
+  test "actor_access_recordings excludes trashed access via Recording.kept" do
     # Void the user's own access recording — the Oauth grant's access_recording is
     # owned by the authorization actor, so it is never in this list.
     granted = @access_recording
@@ -60,9 +60,7 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     after = RecordingStudioOauth::Integration.actor_access_recordings(actor: @user).map(&:id)
 
     refute_includes after, granted.id
-    assert_empty RecordingStudio::Recording.unscoped
-                                           .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
-                                           .where(id: granted.id)
+    assert_empty RecordingStudio::Recording.kept.where(id: granted.id)
   end
 
   test "authorization active? uses trashable kept predicates" do
@@ -75,7 +73,7 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     refute authorization.active?
   end
 
-  test "kept_sql matches main where(trashed_at: nil) under where.not(trashed_at: nil) default_scope; active does not" do
+  test "Recording.kept matches where(trashed_at: nil) under a trashed default scope" do
     granted = @approved.fetch(:access_recording)
     RecordingStudioTrashable.void_recording!(granted, time: Time.utc(2026, 10, 13, 12, 0, 0))
     assert granted.reload.recording_studio_trashable_trashed?
@@ -83,35 +81,21 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     host = Class.new(RecordingStudio::Recording) do
       def self.name = "OauthTrashableParityHostRecording"
 
-      # Host default scope already limits to trashed rows — the case where
-      # active's unscope diverges from main's additive where(trashed_at: nil).
       default_scope -> { where.not(trashed_at: nil) }
     end
-    host.include(RecordingStudioTrashable::RecordingScopes)
 
     only_trashed = host.all
     assert_includes only_trashed.pluck(:id), granted.id
 
     main_ids = only_trashed.where(trashed_at: nil).order(:id).pluck(:id)
-    kept_sql_ids = only_trashed.where(host.recording_studio_trashable_kept_sql).order(:id).pluck(:id)
-    active_ids = only_trashed.recording_studio_trashable_active.order(:id).pluck(:id)
-    all_kept_ids = host.unscope(where: :trashed_at).where(trashed_at: nil).order(:id).pluck(:id)
+    kept_ids = only_trashed.kept.order(:id).pluck(:id)
 
-    assert_equal main_ids, kept_sql_ids
+    assert_equal main_ids, kept_ids
     assert_empty main_ids
-    assert_equal all_kept_ids, active_ids
-    refute_equal main_ids, active_ids
-
-    # Oauth integration base is unscoped + kept_sql (same additive filter as main).
-    oauth_ids = RecordingStudio::Recording.unscoped
-                                          .where(RecordingStudio::Recording.recording_studio_trashable_kept_sql)
-                                          .where(id: only_trashed.select(:id))
-                                          .order(:id)
-                                          .pluck(:id)
-    assert_equal main_ids, oauth_ids
+    assert_empty RecordingStudio::Recording.kept.where(id: granted.id)
   end
 
-  test "real call sites keep additive filter under where.not(trashed_at: nil) default_scope" do
+  test "admin resolver uses Recording.kept and skips a trashed admin root" do
     kept_access = @access_recording
     _trashed_root, trashed_access = create_access_recording_for(
       user: @user,
@@ -125,50 +109,15 @@ class TrashableParityIntegrationTest < ActionDispatch::IntegrationTest
     assert kept_admin.recording_studio_trashable_kept?
 
     other_admin = AdminRoot.create!(name: "Trashable Parity Trashed Admin #{SecureRandom.hex(4)}")
-    trashed_admin = RecordingStudio.root_recording_for(other_admin)
+    trashed_admin = RecordingStudio.create_root_recording!(other_admin, actor: @user)
     RecordingStudioTrashable.void_recording!(trashed_admin, time: Time.utc(2026, 10, 13, 12, 30, 0))
     assert trashed_admin.reload.recording_studio_trashable_trashed?
 
-    with_recording_default_scope(-> { where.not(trashed_at: nil) }) do
-      ids = RecordingStudioOauth::Integration.actor_access_recordings(actor: @user).map(&:id)
-      assert_includes ids, kept_access.id
-      refute_includes ids, trashed_access.id
+    ids = RecordingStudioOauth::Integration.actor_access_recordings(actor: @user).map(&:id)
+    assert_includes ids, kept_access.id
+    refute_includes ids, trashed_access.id
 
-      controller = RecordingStudioOauth::Admin::OauthClientsController.new
-      admin_config = RecordingStudioAdmin.configuration
-      previous_resolver = admin_config.access_recording_resolver
-      kept_sql = RecordingStudio::Recording.recording_studio_trashable_kept_sql
-
-      begin
-        admin_config.access_recording_resolver = lambda do |_context|
-          RecordingStudio::Recording.unscoped.where(kept_sql).find_by(id: kept_admin.id)
-        end
-        found = controller.send(:admin_access_recording)
-        assert_equal kept_admin.id, found.id
-
-        admin_config.access_recording_resolver = lambda do |_context|
-          RecordingStudio::Recording.unscoped.where(kept_sql).find_by(id: trashed_admin.id)
-        end
-        skipped = controller.send(:admin_access_recording)
-        assert_nil skipped
-        refute_equal trashed_admin.id, skipped&.id
-      ensure
-        admin_config.access_recording_resolver = previous_resolver
-      end
-    end
-
-    # Control: without the hostile default_scope the resolver finds the kept Admin root.
     assert_equal kept_admin.id, RecordingStudioAdmin.configuration.access_recording_resolver.call(nil).id
-  end
-
-  private
-
-  def with_recording_default_scope(scope_body)
-    recording = RecordingStudio::Recording
-    previous = recording.default_scopes.dup
-    recording.send(:default_scope, scope_body)
-    yield
-  ensure
-    recording.default_scopes = previous
+    assert_nil RecordingStudio::Recording.kept.find_by(id: trashed_admin.id)
   end
 end

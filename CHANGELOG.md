@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2026-11-15
+
+### Changed
+- Require Recording Studio `>= 7.0, < 8.0`. Development and dummy pin tag
+  `v7.0.0`.
+- Open the other runtime floors to the core 7 line: Accessible
+  `>= 0.44.0, < 1.0`, Admin `>= 2.16.0, < 3.0`, API `>= 0.24.0, < 1.0`,
+  Cache `>= 0.6.0, < 1.0`, Metrics `>= 0.9.0, < 1.0`, Site Settings
+  `>= 0.6.0, < 1.0`, Trashable `>= 0.17.0, < 1.0`, and Flatpack
+  `>= 0.1.376, < 1.0`.
+- Dummy and development pins: Accessible `v0.44.0`, Admin `v2.16.0`, API
+  `v0.24.0`, Cache `v0.6.3`, Metrics `v0.9.0`, Site Settings `v0.6.0`,
+  Trashable `v0.17.0`, Attachable `v0.28.0`, Moveable `v5.0.0`, Flatpack
+  `v0.1.376`, Icons `v0.2.1`. Logs `v0.8.0`, Root Switchable `v0.16.0`,
+  and Internationalization `v0.3.0` move with them so the dummy resolves.
+  Those three stay off the gemspec.
+- Dummy seeds and tests create roots with `create_root_recording!`.
+  `root_recording_for` stays a lookup. Dummy `authorize_write` is unchanged.
+- Dummy copies the Recording Studio `events.root_recording_id` migration.
+- Dummy admin resolver uses `Recording.kept`. `site_admin_recording_resolver`
+  is removed. Dummy sets Accessible `admin_root_resolver` to that same kept
+  Admin root so Admin site screens can authorize.
+- Dummy lockfile picks up puma `>= 8.1.0` and msgpack `>= 1.8.7`.
+
+### Upgrade notes
+- Bump to `0.22.0`. Oauth ships no new migration.
+- Require Recording Studio 7. Copy
+  `20261114090000_add_root_recording_id_to_recording_studio_events` before
+  writing events.
+- Create roots with `RecordingStudio.create_root_recording!(recordable, actor:)`.
+  Set `authorize_write` and pass an actor.
+- Replace `recording_studio_trashable_kept_sql` with `Recording.kept`.
+- Drop `site_admin_recording_resolver`. Use `access_recording_resolver`.
+- OAuth authorize, token, scope, PKCE, and redirect behavior is unchanged.
+
 ## [0.21.9] - 2026-11-15
 
 ### Changed
@@ -945,6 +980,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.22.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.9...v0.22.0
 [0.21.9]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.8...v0.21.9
 [0.21.8]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.7...v0.21.8
 [0.21.7]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.6...v0.21.7
