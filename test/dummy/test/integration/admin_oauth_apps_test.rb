@@ -276,6 +276,31 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     }
   end
 
+  test "admin form warns when a saved return pattern matches any host" do
+    pattern = "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    post "/recording_studio_oauth/admin/oauth_clients", params: {
+      oauth_client: {
+        name: "Any Host Relay",
+        redirect_uris: "https://example.com/recording_studio_oauth/callback",
+        secret: "public",
+        use_central_relay: "1",
+        allowed_return_patterns: pattern,
+        exact_return_urls: ""
+      }
+    }
+
+    client = RecordingStudioOauth::OauthClient.find_by!(name: "Any Host Relay")
+    get "/recording_studio_oauth/admin/oauth_clients/#{client.id}/edit"
+
+    assert_response :success
+    rules = css_select("#central_relay_rules").first
+    assert_nil rules["hidden"]
+    assert_includes rules.text, "This matches any site."
+    assert_includes response.body, "*.example.com"
+    refute_includes response.body, "A star stands in for any text."
+    refute_includes response.body, "One http or https address per line"
+  end
+
   test "staff can save central relay rules and edit them later" do
     pattern = "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
     exact = "https://shop.example.com/oauth/done"

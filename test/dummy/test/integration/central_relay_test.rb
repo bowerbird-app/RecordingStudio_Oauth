@@ -84,6 +84,37 @@ class CentralRelayTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "That return address is not allowed."
   end
 
+  test "consent shows the return host and hides connect when the return no longer matches" do
+    authorize_query = start_authorize_query
+    consent_params = authorize_query.merge("access_recording_id" => @access_recording.id)
+
+    get authorize_path, params: consent_params
+
+    assert_response :success
+    assert_includes response.body, "blog.example.com"
+    assert_select "button[value=connect]"
+
+    @oauth_client.update!(
+      allowed_return_patterns: ["https://shop.example.com/oauth/done"],
+      exact_return_urls: []
+    )
+
+    get authorize_path, params: consent_params
+
+    assert_response :success
+    assert_includes response.body, "blog.example.com"
+    assert_select "button[value=connect]", count: 0
+    assert_select "button[value=cancel]"
+
+    assert_no_difference -> { RecordingStudioOauth::OauthAuthorization.count } do
+      post authorize_path, params: consent_params.merge("role" => "view", "decision" => "connect")
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "button[value=connect]", count: 0
+    refute_includes response.body, "rsoauth_ac_"
+  end
+
   test "start rejects an open redirect return_to" do
     get central_connect_path, params: start_params.merge(return_to: "https://evil.example/steal")
 

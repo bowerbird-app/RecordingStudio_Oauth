@@ -101,6 +101,18 @@ class StartCentralRelayTest < Minitest::Test
     assert_equal "That return address is not allowed.", result.error.fetch(:error_description)
   end
 
+  def test_rejects_a_return_that_copies_the_pattern_into_the_path
+    @client.allowed_return_patterns = [
+      "https://*.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    ]
+    result = start_relay(
+      return_to: "https://attacker.tld/x.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    )
+
+    assert result.failure?
+    assert_equal "That return address is not allowed.", result.error.fetch(:error_description)
+  end
+
   def test_rejects_clients_with_the_central_relay_off
     @client.use_central_relay = false
 

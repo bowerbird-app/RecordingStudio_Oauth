@@ -85,6 +85,22 @@ class FinishCentralRelayTest < Minitest::Test
     assert_equal RecordingStudioOauth::Services::FinishCentralRelay::INVALID_RETURN, result.error.fetch(:error_description)
   end
 
+  def test_does_not_send_the_code_when_the_return_copies_the_pattern_into_the_path
+    @client.allowed_return_patterns = [
+      "https://*.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    ]
+    attacker = "https://attacker.tld/x.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+    result = finish_relay(
+      state: sign_state(return_to: attacker, challenge: CHALLENGE_A),
+      code: CODE,
+      find_authorization_code: ->(_code) { FakeCode.new(CHALLENGE_A, CLIENT_ID) }
+    )
+
+    assert result.failure?
+    assert_equal RecordingStudioOauth::Services::FinishCentralRelay::INVALID_RETURN, result.error.fetch(:error_description)
+    assert_nil result.value
+  end
+
   def test_rejects_a_relay_off_client_even_with_a_signed_return
     @client.use_central_relay = false
     result = finish_relay(
