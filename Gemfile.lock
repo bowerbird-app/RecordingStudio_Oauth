@@ -148,10 +148,10 @@ GIT
 PATH
   remote: .
   specs:
-    recording_studio_oauth (0.21.8)
+    recording_studio_oauth (0.21.9)
       flat_pack (>= 0.1.341)
       rails (~> 8.1.0)
-      recording_studio (~> 6.0)
+      recording_studio (>= 6.0, < 8.0)
       recording_studio_accessible (>= 0.18, < 1.0)
       recording_studio_admin (>= 2.0, < 3.0)
       recording_studio_api (>= 0.5.2, < 1.0)
@@ -566,7 +566,7 @@ CHECKSUMS
   recording_studio_logs (0.7.4)
   recording_studio_metrics (0.8.0)
   recording_studio_moveable (4.1.1)
-  recording_studio_oauth (0.21.8)
+  recording_studio_oauth (0.21.9)
   recording_studio_site_settings (0.5.6)
   recording_studio_trashable (0.14.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae

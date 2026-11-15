@@ -4,7 +4,7 @@
 
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
-- Recording Studio `~> 6.0` (dummy tag `v6.7.0`). `config.authorize_write` must be set. Dummy allows a write when an actor is present.
+- Recording Studio `>= 6.0, < 8.0` (dummy tag `v6.7.0`). `config.authorize_write` must be set. Dummy allows a write when an actor is present.
 - Accessible `>= 0.18, < 1.0` (dummy tag `v0.32.0`). Access roles are strings (`view`, `edit`, `admin`). Dummy also has access invitations plus audience constraint/rule tables from Accessible `0.14.0`. View copy uses Rails I18n (`recording_studio.accessible.*`). Soft-trash query helpers need Trashable `>= 0.10, < 1.0`. `ControllerAuth` is optional for sibling engines (no migration).
 - API `>= 0.5.2, < 1.0` (dummy tag `v0.23.1`).
 - Metrics `>= 0.3, < 1.0` (dummy tag `v0.8.0`). The host calls `RecordingStudioMetrics::Api.register!(api: :operations)`. Registered-apps charts pass `{ x:, y: }` points from `chart_series` through unchanged.
