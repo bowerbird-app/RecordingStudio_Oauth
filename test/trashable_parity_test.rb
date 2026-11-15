@@ -10,9 +10,9 @@ class TrashableParityTest < Minitest::Test
     gemfile = File.read(File.expand_path("../Gemfile", __dir__))
     dummy_gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.10", "< 1.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.14.0", require: false'
-    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.14.0", require: false'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.17.0", "< 1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0", require: false'
+    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0", require: false'
   end
 
   def test_engine_requires_trashable_query_only
@@ -44,7 +44,7 @@ class TrashableParityTest < Minitest::Test
     refute_includes method_source, "update!("
   end
 
-  def test_integration_and_admin_use_additive_kept_sql_not_active_scope
+  def test_integration_and_admin_use_kept_not_removed_trashable_sql
     integration = strip_ruby_comments(
       File.read(File.expand_path("../lib/recording_studio_oauth/integration.rb", __dir__))
     )
@@ -53,6 +53,12 @@ class TrashableParityTest < Minitest::Test
         File.expand_path("../app/controllers/recording_studio_oauth/admin/oauth_clients_controller.rb", __dir__)
       )
     )
+    resolver = File.read(
+      File.expand_path("dummy/config/initializers/recording_studio_admin.rb", __dir__)
+    )
+    accessible = File.read(
+      File.expand_path("dummy/config/initializers/recording_studio_accessible.rb", __dir__)
+    )
     trashable_scopes = File.read(
       File.join(
         Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
@@ -60,30 +66,35 @@ class TrashableParityTest < Minitest::Test
       )
     )
 
-    assert_includes trashable_scopes, "unscope(where: :trashed_at).where(trashed_at: nil)"
+    refute_includes trashable_scopes, "recording_studio_trashable_kept_sql"
+    refute_includes trashable_scopes, "recording_studio_trashable_active"
+    assert_includes trashable_scopes, "when :active then kept"
     assert_includes integration, "RecordingStudioAccessible.root_recordings_for"
     assert_includes integration, "RecordingStudioAccessible.access_recordings_for_actor"
     refute_includes integration, "RecordingStudio::Access.where"
-    refute_includes integration, "recording_studio_trashable_active"
+    refute_includes integration, "recording_studio_trashable_kept_sql"
     refute_match(/trashed_at:\s*nil/, integration)
     assert_includes admin, "Api::Access.admin_root_recording"
     refute_includes admin, "recording_studio_trashable_kept_sql"
-    refute_includes admin, "recording_studio_trashable_active"
     refute_match(/trashed_at:\s*nil/, admin)
+    assert_includes resolver, "RecordingStudio::Recording.kept"
+    refute_includes resolver, "site_admin_recording_resolver"
+    refute_includes resolver, "recording_studio_trashable_kept_sql"
+    assert_includes accessible, "config.admin_root_resolver"
+    assert_includes accessible, "RecordingStudio::Recording.kept"
   end
 
-  def test_active_scope_unscopes_trashed_at_unlike_main_where_filter
+  def test_trashable_filter_keeps_rows_with_trashed_at_nil
     source = File.read(
       File.join(
         Gem.loaded_specs.fetch("recording_studio_trashable").full_gem_path,
-        "lib/recording_studio_trashable/recording_scopes.rb"
+        "lib/recording_studio_trashable/recording_filter.rb"
       )
     )
-    active_scope = source[/scope :recording_studio_trashable_active, -> \{.*?\}/m]
 
-    refute_nil active_scope
-    assert_includes active_scope, "unscope(where: :trashed_at)"
-    assert_includes active_scope, "where(trashed_at: nil)"
+    assert_includes source, "where(trashed_at: nil)"
+    assert_includes source, "trashed_at IS NULL"
+    refute_includes source, "unscope"
   end
 
   def test_authorization_model_and_create_use_predicates
@@ -178,18 +189,10 @@ class TrashableParityTest < Minitest::Test
     assert_equal "recording is required", error.message
   end
 
-  def test_kept_and_trashed_sql_helpers_quote_identifiers
-    assert_equal '"recording_studio_recordings"."trashed_at" IS NULL',
-                 ScopedRecording.recording_studio_trashable_kept_sql
-    assert_equal '"child"."trashed_at" IS NULL',
-                 ScopedRecording.recording_studio_trashable_kept_sql("child")
-    assert_equal '"recording_studio_recordings"."trashed_at" IS NOT NULL',
-                 ScopedRecording.recording_studio_trashable_trashed_sql
-    assert_equal '"child"."trashed_at" IS NOT NULL',
-                 ScopedRecording.recording_studio_trashable_trashed_sql("child")
-
-    error = assert_raises(ArgumentError) { ScopedRecording.recording_studio_trashable_kept_sql(nil) }
-    assert_equal "table is required", error.message
+  def test_removed_sql_helpers_are_not_on_recording_scopes
+    refute ScopedRecording.respond_to?(:recording_studio_trashable_kept_sql)
+    refute ScopedRecording.respond_to?(:recording_studio_trashable_trashed_sql)
+    refute ScopedRecording.respond_to?(:recording_studio_trashable_active)
   end
 
   private

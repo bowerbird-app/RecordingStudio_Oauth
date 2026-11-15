@@ -154,7 +154,7 @@ class OutboundOauthTest < ActionDispatch::IntegrationTest
 
   test "shared true roots are rejected on start callback and lookup" do
     shared = SharedRoot.create!(name: "Inbox #{SecureRandom.hex(4)}")
-    shared_root = RecordingStudio.root_recording_for(shared)
+    shared_root = RecordingStudio.create_root_recording!(shared, actor: @user)
 
     result = RecordingStudioOauth::Services::StartOutboundConnect.call(
       provider: "fake_drive",

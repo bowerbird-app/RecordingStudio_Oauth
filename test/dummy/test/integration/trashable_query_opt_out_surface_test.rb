@@ -46,7 +46,8 @@ class TrashableQueryOptOutSurfaceTest < ActionDispatch::IntegrationTest
     assert_empty trash_metric_names, "trash.* metrics must not register (got #{trash_metric_names.inspect})"
 
     # Query helpers are intentional; capability RecordingMethods must not load.
-    assert RecordingStudio::Recording.respond_to?(:recording_studio_trashable_kept_sql)
+    assert RecordingStudio::Recording.respond_to?(:kept)
+    refute RecordingStudio::Recording.respond_to?(:recording_studio_trashable_kept_sql)
     assert_includes RecordingStudio::Recording.included_modules, RecordingStudioTrashable::RecordingScopes
     instance_methods = RecordingStudio::Recording.instance_methods.grep(/trashable/).sort
     refute_includes instance_methods, :recording_studio_trashable_trash!

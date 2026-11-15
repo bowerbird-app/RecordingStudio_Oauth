@@ -92,7 +92,7 @@ RecordingStudioOauth.record_external_install(
   client: client,
   provider: "channel",
   external_id: host_computed_id,
-  root_recording: RecordingStudio.root_recording_for(workspace),
+  root_recording: RecordingStudio.create_root_recording!(workspace, actor: current_user),
   connected_by: current_user
 )
 ```

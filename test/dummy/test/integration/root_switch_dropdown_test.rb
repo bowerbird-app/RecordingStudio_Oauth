@@ -106,7 +106,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
   def grant_workspace_view!(user, workspace)
     Current.actor = user
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: user)
     granted = RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: user)
     raise granted.error if granted.failure?
 
