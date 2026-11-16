@@ -11,8 +11,8 @@ class TrashableParityTest < Minitest::Test
     dummy_gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.17.0", "< 2.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0", require: false'
-    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0", require: false'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1", require: false'
+    assert_includes dummy_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1", require: false'
   end
 
   def test_engine_requires_trashable_query_only
