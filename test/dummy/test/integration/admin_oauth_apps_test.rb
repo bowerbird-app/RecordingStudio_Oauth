@@ -308,7 +308,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     post "/recording_studio_oauth/admin/oauth_clients", params: {
       oauth_client: {
         name: "Relay Staff App",
-        redirect_uris: "http://www.example.com/recording_studio_oauth/callback",
+        redirect_uris: "https://www.example.com/recording_studio_oauth/callback",
         secret: "public",
         use_central_relay: "1",
         allowed_return_patterns: pattern,
@@ -340,7 +340,7 @@ class AdminOauthAppsTest < ActionDispatch::IntegrationTest
     patch "/recording_studio_oauth/admin/oauth_clients/#{client.id}", params: {
       oauth_client: {
         name: "Relay Staff App",
-        redirect_uris: "http://www.example.com/recording_studio_oauth/callback",
+        redirect_uris: "https://www.example.com/recording_studio_oauth/callback",
         use_central_relay: "0",
         allowed_return_patterns: pattern,
         exact_return_urls: exact

@@ -40,7 +40,7 @@ module RecordingStudioOauth
     validate :redirect_uris_must_be_absolute
     validate :return_lists_are_strings
     validate :exact_return_urls_must_be_absolute
-    validate :allowed_return_patterns_must_be_short
+    validate :allowed_return_patterns_must_be_valid
     validate :central_relay_has_a_return_rule
     validate :confidential_clients_require_secret_digest
     validate :api_key_must_not_change, on: :update
@@ -148,7 +148,15 @@ module RecordingStudioOauth
     end
 
     def redirect_uris_must_be_absolute
-      each_absolute_http(:redirect_uris, allow_userinfo: true)
+      return unless list_changed?(:redirect_uris)
+
+      Array(redirect_uris).each do |uri|
+        error = RedirectUriRules.self_registered_uri_error(uri)
+        next if error.nil?
+
+        errors.add(:redirect_uris, error)
+        break
+      end
     end
 
     def return_lists_are_strings
@@ -164,13 +172,22 @@ module RecordingStudioOauth
       each_absolute_http(:exact_return_urls, allow_userinfo: false)
     end
 
-    def allowed_return_patterns_must_be_short
-      Array(allowed_return_patterns).each do |pattern|
-        next if pattern.to_s.bytesize <= ReturnUrlRules::MAX_LENGTH
+    def allowed_return_patterns_must_be_valid
+      return unless list_changed?(:allowed_return_patterns)
 
-        errors.add(:allowed_return_patterns, "must be #{ReturnUrlRules::MAX_LENGTH} characters or fewer")
+      Array(allowed_return_patterns).each do |pattern|
+        error = ReturnUrlRules.pattern_error(pattern)
+        next if error.nil?
+
+        errors.add(:allowed_return_patterns, error)
         break
       end
+    end
+
+    def list_changed?(attribute)
+      return true unless persisted?
+
+      Array(attribute_in_database(attribute)).map(&:to_s) != Array(public_send(attribute)).map(&:to_s)
     end
 
     def central_relay_has_a_return_rule

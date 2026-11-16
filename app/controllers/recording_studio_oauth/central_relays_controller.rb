@@ -39,10 +39,10 @@ module RecordingStudioOauth
     end
 
     def relay_callback_url
-      origin = RecordingStudioOauth.configuration.public_origin
-      return RecordingStudioOauth.central_relay_callback_url(base_url: origin) if origin.present?
-
-      central_oauth_callback_url
+      CentralRelay.callback_for(
+        public_origin: RecordingStudioOauth.configuration.public_origin,
+        request_callback_url: central_oauth_callback_url
+      )
     end
 
     def authorize_location(payload)

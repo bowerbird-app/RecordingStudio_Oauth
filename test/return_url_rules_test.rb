@@ -6,6 +6,7 @@ class ReturnUrlRulesTest < Minitest::Test
   PATTERN = "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
   EXACT = "https://shop.example.com/oauth/done"
   MATCHED = "https://blog.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
+  LABEL = "https://*.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
 
   def test_pattern_matches_a_wordpress_admin_post_return
     assert RecordingStudioOauth::ReturnUrlRules.allow?(
@@ -137,8 +138,6 @@ class ReturnUrlRulesTest < Minitest::Test
   end
 
   private
-
-  LABEL = "https://*.example.com/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
 
   def allow_pattern?(url, pattern)
     RecordingStudioOauth::ReturnUrlRules.allow?(url, patterns: [pattern], exact_urls: [])

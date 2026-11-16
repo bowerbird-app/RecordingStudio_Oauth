@@ -266,6 +266,6 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
 
     assert result.failure?
     client = result.errors.first
-    assert_includes client.errors[:redirect_uris].join, "absolute HTTP(S) URIs without fragments"
+    assert_includes client.errors[:redirect_uris].join, "must not include a fragment"
   end
 end

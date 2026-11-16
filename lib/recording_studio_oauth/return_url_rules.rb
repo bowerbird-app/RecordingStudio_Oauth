@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "uri"
+require_relative "return_url_pattern"
 
 module RecordingStudioOauth
   module ReturnUrlRules
@@ -15,7 +16,22 @@ module RecordingStudioOauth
 
       return true if Array(exact_urls).any? { |exact| exact.to_s == url }
 
-      Array(patterns).any? { |pattern| glob_match?(pattern.to_s, url) }
+      candidate = http_uri(url)
+      return false if candidate.nil?
+
+      Array(patterns).any? { |pattern| pattern_match?(pattern.to_s, candidate) }
+    end
+
+    def any_host_pattern?(pattern)
+      parsed, error = ReturnUrlPattern.parse(pattern.to_s)
+      error.nil? && parsed.any_host?
+    end
+
+    def pattern_error(pattern)
+      return "must be text" unless pattern.is_a?(String)
+
+      _parsed, error = ReturnUrlPattern.parse(pattern)
+      error
     end
 
     def safe_relative_path(value)
@@ -55,14 +71,15 @@ module RecordingStudioOauth
     end
 
     def unsafe_http?(uri)
-      uri.userinfo.present? || uri.fragment.present? || uri.host.blank?
+      host = uri.host.to_s
+      uri.userinfo.present? || uri.fragment.present? || host.blank? || host.end_with?(".") || host.include?("%")
     end
 
-    def glob_match?(pattern, url)
-      return false if pattern.blank? || pattern.bytesize > MAX_LENGTH
+    def pattern_match?(pattern, candidate)
+      parsed, error = ReturnUrlPattern.parse(pattern)
+      return false unless error.nil?
 
-      body = pattern.split("*", -1).map { |part| Regexp.escape(part) }.join(".*")
-      Regexp.new("\\A#{body}\\z").match?(url)
+      parsed.match?(candidate)
     end
   end
 end

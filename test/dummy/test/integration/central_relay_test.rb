@@ -11,6 +11,7 @@ class CentralRelayTest < ActionDispatch::IntegrationTest
   PATTERN = "https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback"
 
   setup do
+    https!
     @user = create_user
     @root_recording, @access_recording = create_access_recording_for(user: @user)
     @pkce = pkce_pair
@@ -143,27 +144,32 @@ class CentralRelayTest < ActionDispatch::IntegrationTest
       redirect_uri: @relay_url,
       state: "attacker",
       code_challenge: @pkce.fetch(:challenge),
-      code_challenge_method: "S256"
+      code_challenge_method: "S256",
+      access_recording_id: @access_recording.id
     }
     assert_response :success
+    assert_select "button[value=connect]", count: 0
 
-    post authorize_path, params: {
-      response_type: "code",
-      client_id: off_client.client_id,
-      redirect_uri: @relay_url,
-      state: "attacker",
-      code_challenge: @pkce.fetch(:challenge),
-      code_challenge_method: "S256",
-      access_recording_id: @access_recording.id,
-      role: "view",
-      decision: "connect"
-    }
+    assert_no_difference -> { RecordingStudioOauth::OauthAuthorization.count } do
+      post authorize_path, params: {
+        response_type: "code",
+        client_id: off_client.client_id,
+        redirect_uri: @relay_url,
+        state: "attacker",
+        code_challenge: @pkce.fetch(:challenge),
+        code_challenge_method: "S256",
+        access_recording_id: @access_recording.id,
+        role: "view",
+        decision: "connect"
+      }
+    end
 
-    assert_response :redirect
-    follow_redirect!
+    assert_response :unprocessable_entity
+    refute_includes response.body, "blog.example.com"
+
+    get central_callback_path, params: { state: "attacker", code: "not-a-code" }
     assert_response :bad_request
     assert_includes response.body, "This Connect return is not valid. Start again."
-    refute_includes response.body, "blog.example.com"
   end
 
   test "token exchange rejects the client return address as redirect_uri" do
@@ -219,7 +225,7 @@ class CentralRelayTest < ActionDispatch::IntegrationTest
   end
 
   def central_callback_url
-    "http://www.example.com/recording_studio_oauth/callback"
+    "https://www.example.com/recording_studio_oauth/callback"
   end
 
   def start_params(return_to: @return_to, state: "site-csrf", pkce: @pkce)

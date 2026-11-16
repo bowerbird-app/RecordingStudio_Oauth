@@ -15,6 +15,8 @@ en:
         permissions_with_name: "%{name} permissions"
         allow: "Connect"
         deny: "Cancel"
+        return_host: "After you connect, you go back to this site."
+        return_refused: "This app wants to send you to a site that isn't allowed. Start again from the app."
         reconnect_hint: "This connection is no longer live."
         status:
           connect: "Connect"

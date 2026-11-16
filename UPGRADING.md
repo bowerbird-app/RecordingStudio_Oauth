@@ -1,5 +1,22 @@
 # Upgrading
 
+## 0.23.0
+
+No Oauth migration. Install Oauth `0.23.0`. Issued tokens and grants stay
+valid.
+
+Return patterns match a parsed URL. A star is the whole host, or the first
+label of a host with at least two more labels (`*.example.com`). Scheme,
+port, path, and query have to match. `https://*/...` still matches any
+ordinary host, and the admin form warns. Patterns that no longer match fail
+until staff save a new pattern. A connect already in progress can fail. The
+signed return lasts 10 minutes.
+
+Staff redirect URLs follow the https-or-loopback rule when that list
+changes. Plain http on a public host is rejected. A username in the URL is
+rejected. Leave the list unchanged to revoke or edit the rest of a legacy
+app. Return-pattern checks use that same change-only rule.
+
 ## 0.22.0
 
 No Oauth migration. Install Oauth `0.22.0` and Recording Studio `>= 7.0, < 8.0`.

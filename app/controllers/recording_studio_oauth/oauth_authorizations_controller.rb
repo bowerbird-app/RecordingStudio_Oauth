@@ -22,6 +22,7 @@ module RecordingStudioOauth
     def create
       return unless @oauth_client
       return deny_authorization if deny_requested?
+      return render_refused_return if relay_consent.refused?
       return render_selection_error unless @selected_access_recording
       return render_role_error unless role_allowed_for?(@selected_access_recording, requested_role)
 
@@ -35,6 +36,10 @@ module RecordingStudioOauth
 
     def deny_authorization
       redirect_to_client(error: "access_denied", error_description: "The resource owner denied the request")
+    end
+
+    def render_refused_return
+      render :new, status: :unprocessable_entity
     end
 
     def render_create_failure(result)
