@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class LookupOutboundConnection < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(provider:, root:, actor:)
         @provider_key = provider.to_s
         @root = root

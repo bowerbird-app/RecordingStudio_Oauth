@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class PrepareOauthAuthorize < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(params:, actor:, base_url:)
         @params = params
         @actor = actor

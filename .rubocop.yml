@@ -5,6 +5,8 @@ AllCops:
     - 'test/dummy/**/*'
     - 'vendor/**/*'
     - 'bin/**/*'
+    # Generated Attachable checkout. Its dummy config asks for a gem this bundle does not install.
+    - 'tmp/**/*'
 
 Style/Documentation:
   Enabled: false

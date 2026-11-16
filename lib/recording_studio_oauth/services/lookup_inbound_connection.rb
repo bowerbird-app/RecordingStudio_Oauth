@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class LookupInboundConnection < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(plugin_key:, root:, actor:)
         @plugin_key = OauthClient.normalize_plugin_key(plugin_key)
         @root = root

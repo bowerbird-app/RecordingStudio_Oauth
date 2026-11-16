@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.23.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.24.0", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -14,10 +14,10 @@ class RecordingStudioOauthTest < Minitest::Test
   def test_gemspec_pins
     gemspec = File.read(File.expand_path("../recording_studio_oauth.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 7.1.0", "< 8.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.44.0", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.16.0", "< 3.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 0.24.0", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_api", ">= 1.0.0", "< 2.0"'
     refute_includes gemspec, "recording_studio_moveable"
     refute_includes gemspec, "recording_studio_icons"
     assert_includes gemspec, 'spec.add_dependency "recording_studio_cache", ">= 0.6.0", "< 1.0"'
@@ -62,18 +62,22 @@ class RecordingStudioOauthTest < Minitest::Test
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
     root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.0.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.1.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.24.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v1.0.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v5.0.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.24.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v1.0.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.1.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v5.0.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.6.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.28.0"'
+    assert_includes gemfile, 'path: "../../tmp/recording_studio_attachable"'
+    assert_includes root_gemfile, 'path: "tmp/recording_studio_attachable"'
+    assert_includes gemfile, "attachable_api_1_checkout"
+    assert_includes root_gemfile, "attachable_api_1_checkout"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.9.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.0"'
@@ -148,7 +152,7 @@ class RecordingStudioOauthTest < Minitest::Test
     assert_includes readme, "recording_studio_api"
     assert_includes readme, "register_oauth_grant"
     assert_includes readme, "TokenAuthenticator"
-    assert_includes readme, ">= 0.24.0, < 1.0"
+    assert_includes readme, ">= 1.0.0, < 2.0"
     assert_includes readme, "name_for"
     assert_includes readme, "oauth-protected-resource/recording_studio_mcp"
     assert_includes readme, "www_authenticate_challenge"

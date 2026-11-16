@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class StartCentralRelay < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       NOT_REGISTERED = "This app is not registered."
       RELAY_OFF = "This app is not set up for the central relay."
       RETURN_REJECTED = "That return address is not allowed."

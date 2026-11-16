@@ -5,6 +5,8 @@ require "uri"
 module RecordingStudioOauth
   module Services
     class FinishCentralRelay < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       INVALID_RETURN = "This Connect return is not valid. Start again."
 
       def initialize(state:, code: nil, error: nil, error_description: nil, find_authorization_code: nil, resolve_client: nil, state_secret: nil)

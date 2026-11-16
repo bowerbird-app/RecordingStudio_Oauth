@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class RegisterOauthClient < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       DEFAULT_NAME = "Self-registered app"
       PUBLIC_AUTH_METHOD = "none"
       SECRET_AUTH_METHODS = %w[client_secret_basic client_secret_post].freeze

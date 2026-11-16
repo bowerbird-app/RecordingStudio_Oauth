@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class IssueDelegatedAccessToken < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       SUPPORTED_GRANT_TYPES = %w[authorization_code refresh_token].freeze
 
       def initialize(grant_type:, client_id:, client_secret: nil, api: :public, code: nil, redirect_uri: nil, code_verifier: nil, refresh_token: nil, resource: nil)

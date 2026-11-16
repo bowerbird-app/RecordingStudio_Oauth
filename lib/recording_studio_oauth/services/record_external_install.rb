@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class RecordExternalInstall < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(client:, external_id:, provider: nil, root_recording: nil, connected_by: nil)
         @client = client
         @external_id = external_id.to_s

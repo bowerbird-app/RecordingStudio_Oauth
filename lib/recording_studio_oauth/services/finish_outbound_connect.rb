@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class FinishOutboundConnect < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       HandshakeGone = Class.new(StandardError)
 
       def initialize(state:, code:, actor:, callback_url:)

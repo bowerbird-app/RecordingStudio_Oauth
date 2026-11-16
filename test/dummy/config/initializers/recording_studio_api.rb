@@ -9,6 +9,7 @@ RecordingStudioApi.configure do |config|
   config.admin_layout_name = "recording_studio/default_layout"
   config.rate_limit_oauth_enabled = false if config.respond_to?(:rate_limit_oauth_enabled=)
   config.rate_limit_api_pre_auth_enabled = false if config.respond_to?(:rate_limit_api_pre_auth_enabled=)
+  config.rate_limit_api_failed_auth_enabled = false if config.respond_to?(:rate_limit_api_failed_auth_enabled=)
   config.rate_limit_api_enabled = false if config.respond_to?(:rate_limit_api_enabled=)
   config.api_request_logging_enabled = false if config.respond_to?(:api_request_logging_enabled=)
   config.api_management_authorization_required = false if config.respond_to?(:api_management_authorization_required=)
