@@ -22,8 +22,9 @@ class HookSecretRedactionTest < Minitest::Test
     StartOutboundConnect
     UpdateOauthClient
     VerifySessionToken
+    LookupInboundConnection
+    VoidOauthAuthorization
   ].freeze
-  PLAIN = %w[LookupInboundConnection VoidOauthAuthorization].freeze
   SECRET = "dummy-client-secret"
   CODE = "dummy-auth-code-value"
   STATE = "dummy-state-value"
@@ -74,8 +75,8 @@ class HookSecretRedactionTest < Minitest::Test
     end
 
     assert_equal 19, classes.size
+    assert_empty plain
     assert_equal REDACTED.sort, redacted.map { |klass| klass.name.split("::").last }.sort
-    assert_equal PLAIN.sort, plain.map { |klass| klass.name.split("::").last }.sort
   end
 
   def test_nested_values_are_hidden_and_the_caller_keeps_them

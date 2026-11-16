@@ -545,6 +545,88 @@ class HookSecretRedactionTest < ActiveSupport::TestCase
     assert_hidden(failed_payloads, failed_subjects, RecordingStudioOauth::Services::RefreshOutboundConnection, [ACCESS, FakeOauth::SERVER_ERROR_REFRESH])
   end
 
+  test "void hides the session secret reached through the client" do
+    client, secret = create_oauth_client(confidential: true, session_token_secret: SESSION, plugin_key: "hook_void")
+    approved = connect_inbound!(oauth_client: client, user: @user, access_recording: @access_recording)
+    authorization = approved.fetch(:authorization)
+    authorization.oauth_client
+    authorization.access_tokens.load
+    authorization.refresh_tokens.load
+    authorization.authorization_codes.load
+
+    result, payloads, subjects = capture do
+      RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: authorization)
+    end
+
+    assert result.success?, result.error.inspect
+    assert_equal SESSION, authorization.reload.oauth_client.session_token_secret
+    assert_equal SESSION, client.reload.session_token_secret
+    assert authorization.access_tokens.exists?
+    assert_hidden(payloads, subjects, RecordingStudioOauth::Services::VoidOauthAuthorization, [SESSION, secret])
+    copies = hook_authorizations(payloads + subjects)
+    assert_predicate copies, :any?
+    assert_secret_associations_hidden(copies, client)
+
+    other_client, other_secret = create_oauth_client(confidential: true, session_token_secret: SESSION, plugin_key: "hook_void_fail")
+    other = connect_inbound!(oauth_client: other_client, user: @user, access_recording: @access_recording).fetch(:authorization)
+    other.oauth_client
+    other.readonly!
+    failed, failed_payloads, failed_subjects = capture do
+      RecordingStudioOauth::Services::VoidOauthAuthorization.call(authorization: other)
+    end
+
+    assert failed.failure?
+    assert_equal SESSION, other_client.reload.session_token_secret
+    assert_nil other.revoked_at
+    assert_hidden(failed_payloads, failed_subjects, RecordingStudioOauth::Services::VoidOauthAuthorization, [SESSION, secret, other_secret])
+    failed_copies = hook_authorizations(failed_payloads + failed_subjects)
+    assert_predicate failed_copies, :any?
+    assert_secret_associations_hidden(failed_copies, other_client)
+  end
+
+  test "lookup does not hand the hook an authorization or its client" do
+    client, secret = create_oauth_client(confidential: true, session_token_secret: SESSION, plugin_key: "hook_lookup")
+    connect_inbound!(oauth_client: client, user: @user, access_recording: @access_recording)
+
+    result, payloads, subjects = capture do
+      RecordingStudioOauth::Services::LookupInboundConnection.call(
+        plugin_key: "hook_lookup",
+        root: @root_recording,
+        actor: @user
+      )
+    end
+
+    assert result.success?, result.error.inspect
+    assert_equal true, result.value.fetch(:connected)
+    assert_equal 1, result.value.fetch(:connected_count)
+    assert_equal client.name, result.value.fetch(:people).first.fetch(:app_name)
+    assert_equal SESSION, client.reload.session_token_secret
+    assert_hidden(payloads, subjects, RecordingStudioOauth::Services::LookupInboundConnection, [SESSION, secret])
+    assert_empty records_of(payloads + subjects, RecordingStudioOauth::OauthAuthorization)
+    assert_empty records_of(payloads + subjects, RecordingStudioOauth::OauthClient)
+    lookup_subjects(subjects).each do |subject|
+      assert_nil subject.instance_variable_get(:@connected_authorizations)
+      assert subject.is_a?(RecordingStudioOauth::Services::LookupInboundConnection)
+    end
+
+    stranger = create_user
+    denied, denied_payloads, denied_subjects = capture do
+      RecordingStudioOauth::Services::LookupInboundConnection.call(
+        plugin_key: "hook_lookup",
+        root: @root_recording,
+        actor: stranger
+      )
+    end
+
+    assert denied.success?
+    assert_equal false, denied.value.fetch(:connected)
+    assert_nil denied.value.fetch(:connected_count)
+    assert_equal SESSION, client.reload.session_token_secret
+    assert_hidden(denied_payloads, denied_subjects, RecordingStudioOauth::Services::LookupInboundConnection, [SESSION, secret])
+    assert_empty records_of(denied_payloads + denied_subjects, RecordingStudioOauth::OauthAuthorization)
+    assert_empty records_of(denied_payloads + denied_subjects, RecordingStudioOauth::OauthClient)
+  end
+
   test "disconnect hides tokens and does not clear them when disconnect is refused" do
     connection = connection_with(access_token: ACCESS, refresh_token: REFRESH)
     stranger = create_user
@@ -614,6 +696,32 @@ class HookSecretRedactionTest < ActiveSupport::TestCase
 
   def hook_connections(payloads)
     records_of(payloads, RecordingStudioOauth::OutboundConnection)
+  end
+
+  def hook_authorizations(payloads)
+    records_of(payloads, RecordingStudioOauth::OauthAuthorization)
+  end
+
+  def lookup_subjects(subjects)
+    subjects.select { |subject| subject.instance_of?(RecordingStudioOauth::Services::LookupInboundConnection) }
+  end
+
+  def assert_secret_associations_hidden(authorizations, client)
+    authorizations.each do |row|
+      copy = row.oauth_client
+      assert_equal client.client_id, copy.client_id
+      assert_nil copy.session_token_secret
+      refute_same client, copy
+      assert_empty row.access_tokens
+      assert_empty row.refresh_tokens
+      assert_empty row.authorization_codes
+      copy.authorizations.each do |nested|
+        assert_nil nested.oauth_client.session_token_secret
+      end
+      copy.external_installs.each do |install|
+        assert_nil install.oauth_client.session_token_secret
+      end
+    end
   end
 
   def hook_hashes(payloads)

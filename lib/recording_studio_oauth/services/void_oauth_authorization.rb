@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class VoidOauthAuthorization < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(authorization:, time: nil)
         @authorization = authorization
         @time = time

@@ -30,9 +30,17 @@ covered. Ids, `client_id`, scopes, expiry, and success or failure stay.
 - `StartOutboundConnect`
 - `UpdateOauthClient`
 - `VerifySessionToken`
+- `LookupInboundConnection`
+- `VoidOauthAuthorization`
 
-`LookupInboundConnection` and `VoidOauthAuthorization` are unchanged. A hook
-can still load the client from an authorization and read the session secret.
+`VoidOauthAuthorization` gives the hook a copy of the authorization. That
+copy's client is a separate record with the session secret hidden. Its
+access tokens, refresh tokens, and authorization codes are empty. The
+caller's authorization still has those records. A client copy does not
+load its authorizations or external installs. `LookupInboundConnection`
+gives the hook a copy of the service taken before the lookup runs. The
+result is ids, names, and times. The authorization list is not on that
+copy.
 
 `PrepareOauthAuthorize` keeps `grant_type`, `client_id`, `redirect_uri`,
 `scope`, `resource`, `token_type_hint`, `response_type`, `code_challenge`,
@@ -43,11 +51,11 @@ by default). The dummy turns that limiter off with the other test limiters.
 A host test suite that already turns the other limiters off should turn
 this one off too, or a burst of rejected tokens returns 429.
 
-Published Attachable through `0.30.0` still requires API `< 1.0`. Site
-Settings `0.6.0` needs Attachable. A host that installs both cannot resolve
-Oauth `0.24.0` until Attachable allows API 1. This repo checks out Attachable
-`v0.28.0` and opens that one requirement so the suite can boot. Hosts need
-an Attachable release that allows API 1. They cannot use that checkout.
+Attachable main still pins API `< 1.0`. Published Attachable through
+`0.30.0` does too. Site Settings `0.6.0` needs Attachable. Oauth `0.24.0`
+cannot be released until Attachable ships a release that allows API 1.
+This repo checks out Attachable `v0.28.0` and opens that one requirement
+so the suite can boot. Hosts cannot use that checkout.
 
 ## 0.23.0
 

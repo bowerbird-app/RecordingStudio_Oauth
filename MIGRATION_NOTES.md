@@ -4,7 +4,7 @@
 
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
-- Recording Studio `>= 7.1.0, < 8.0` (dummy tag `v7.1.0`). `config.authorize_write` must be set. Dummy allows a write when an actor is present. `root_recording_for` only finds a root. Create one with `create_root_recording!(recordable, actor:)`. Dummy copies `20261114090000_add_root_recording_id_to_recording_studio_events`. Core `after_service` and `around_service` for secret-handling services receive those secrets hidden. The caller still receives the real result.
+- Recording Studio `>= 7.1.0, < 8.0` (dummy tag `v7.1.0`). `config.authorize_write` must be set. Dummy allows a write when an actor is present. `root_recording_for` only finds a root. Create one with `create_root_recording!(recordable, actor:)`. Dummy copies `20261114090000_add_root_recording_id_to_recording_studio_events`. Core `after_service` and `around_service` receive secrets hidden for every Oauth service. The caller still receives the real result. An authorization on a hook is a copy. Its client copy has no session secret, and its token associations are empty.
 - Accessible `>= 0.44.0, < 1.0` (dummy tag `v0.44.0`). Access roles are strings (`view`, `edit`, `admin`). Dummy also has access invitations plus audience constraint/rule tables from Accessible `0.14.0`. View copy uses Rails I18n (`recording_studio.accessible.*`). Soft-trash query helpers need Trashable `>= 0.17.0, < 1.0`. `ControllerAuth` is optional for sibling engines (no migration).
 - API `>= 1.0.0, < 2.0` (dummy tag `v1.0.0`).
 - Metrics `>= 0.9.0, < 1.0` (dummy tag `v0.9.0`). The host calls `RecordingStudioMetrics::Api.register!(api: :operations)`. Registered-apps charts pass `{ x:, y: }` points from `chart_series` through unchanged.

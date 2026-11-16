@@ -14,7 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   copy is the same class. Request params on the copy keep the public OAuth
   fields (`grant_type`, `client_id`, `redirect_uri`, `scope`, `resource`,
   `token_type_hint`, `response_type`, `code_challenge`,
-  `code_challenge_method`).
+  `code_challenge_method`). Every Oauth service is covered, including
+  `LookupInboundConnection` and `VoidOauthAuthorization`. An authorization
+  the hook can see is a copy. Its client copy has the session secret
+  hidden, and its token associations are empty.
 
 ### Changed
 - Require Recording Studio `>= 7.1.0, < 8.0`. Development and dummy pin tag
@@ -28,7 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hosts need Recording Studio `>= 7.1.0` and Recording Studio API
   `>= 1.0.0, < 2.0`.
 - A host hook that read a secret from one of these services now sees it
-  hidden. See `UPGRADING.md` for the service list.
+  hidden. See `UPGRADING.md` for the service list. That includes
+  `LookupInboundConnection` and `VoidOauthAuthorization`. A hook that
+  walked `authorization.oauth_client` now gets a copy whose session
+  secret is hidden.
 - Published Attachable through `0.30.0` still requires API `< 1.0`. Site
   Settings `0.6.0` needs Attachable, so a host that installs both cannot
   resolve this release until Attachable allows API 1. This repo checks out
