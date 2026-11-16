@@ -165,6 +165,98 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
     assert_nil client.reload.plugin_key
   end
 
+  test "rejects userinfo and plain http when redirect URIs change" do
+    userinfo = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Userinfo Redirect",
+      redirect_uris: ["https://user:pass@example.com/callback"],
+      confidential: false
+    )
+    assert userinfo.failure?
+    assert_includes userinfo.errors.first.errors[:redirect_uris].join, "user info"
+
+    plain_http = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Plain HTTP Redirect",
+      redirect_uris: ["http://example.com/callback"],
+      confidential: false
+    )
+    assert plain_http.failure?
+    assert_includes plain_http.errors.first.errors[:redirect_uris].join, "localhost"
+  end
+
+  test "revoke and an unrelated edit still save a legacy redirect list" do
+    created = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Legacy Redirect",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false
+    )
+    client = created.value.fetch(:client)
+    client.update_columns(redirect_uris: ["http://user:pass@example.com/callback"])
+
+    client.revoke!
+    assert_predicate client.reload, :revoked?
+
+    client.update_columns(revoked_at: nil, redirect_uris: ["http://example.com/callback"])
+    updated = RecordingStudioOauth::Services::UpdateOauthClient.call(
+      client: client,
+      name: "Legacy Redirect Renamed",
+      redirect_uris: client.redirect_uris,
+      use_central_relay: false,
+      allowed_return_patterns: [],
+      exact_return_urls: []
+    )
+
+    assert updated.success?, updated.error.inspect
+    assert_equal "Legacy Redirect Renamed", client.reload.name
+    assert_equal ["http://example.com/callback"], client.redirect_uris
+  end
+
+  test "rejects a public-suffix return pattern when that list changes" do
+    created = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Relay Patterns",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      use_central_relay: true,
+      allowed_return_patterns: ["https://*.example.com/cb"]
+    )
+    client = created.value.fetch(:client)
+
+    updated = RecordingStudioOauth::Services::UpdateOauthClient.call(
+      client: client,
+      name: client.name,
+      redirect_uris: client.redirect_uris,
+      use_central_relay: true,
+      allowed_return_patterns: ["https://*.com/cb"],
+      exact_return_urls: []
+    )
+
+    assert updated.failure?
+    assert_includes updated.errors.first.errors[:allowed_return_patterns].join, "two more labels"
+  end
+
+  test "keeps a legacy return pattern when that list does not change" do
+    created = RecordingStudioOauth::Services::CreateOauthClient.call(
+      name: "Legacy Pattern",
+      redirect_uris: ["https://example.com/callback"],
+      confidential: false,
+      use_central_relay: true,
+      allowed_return_patterns: ["https://*.example.com/cb"]
+    )
+    client = created.value.fetch(:client)
+    client.update_columns(allowed_return_patterns: ["https://*.com/cb"])
+
+    updated = RecordingStudioOauth::Services::UpdateOauthClient.call(
+      client: client,
+      name: "Legacy Pattern Renamed",
+      redirect_uris: client.redirect_uris,
+      use_central_relay: true,
+      allowed_return_patterns: client.allowed_return_patterns,
+      exact_return_urls: []
+    )
+
+    assert updated.success?, updated.error.inspect
+    assert_equal ["https://*.com/cb"], client.reload.allowed_return_patterns
+  end
+
   test "rejects a redirect URI with a fragment" do
     result = RecordingStudioOauth::Services::CreateOauthClient.call(
       name: "Bad Redirect",
@@ -174,6 +266,6 @@ class CreateOauthClientServiceTest < ActiveSupport::TestCase
 
     assert result.failure?
     client = result.errors.first
-    assert_includes client.errors[:redirect_uris].join, "absolute HTTP(S) URIs without fragments"
+    assert_includes client.errors[:redirect_uris].join, "must not include a fragment"
   end
 end

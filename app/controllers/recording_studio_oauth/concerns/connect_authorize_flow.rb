@@ -9,6 +9,7 @@ module RecordingStudioOauth
 
       included do
         before_action :load_oauth_request
+        helper_method :relay_consent
       end
 
       private
@@ -53,6 +54,18 @@ module RecordingStudioOauth
         else
           render_oauth_error(halt[:error], halt[:error_description])
         end
+      end
+
+      def relay_consent
+        @relay_consent ||= RelayConsent.new(
+          client: @oauth_client,
+          redirect_uri: @redirect_uri,
+          state: @state,
+          callback_url: CentralRelay.callback_for(
+            public_origin: RecordingStudioOauth.configuration.public_origin,
+            request_callback_url: central_oauth_callback_url
+          )
+        )
       end
 
       def create_authorization

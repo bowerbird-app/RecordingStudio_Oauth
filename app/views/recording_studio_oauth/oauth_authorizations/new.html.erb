@@ -33,16 +33,32 @@
     <%= hidden_field_tag :role, default_consent_role %>
   <% end %>
 
-  <div class="space-y-3">
-    <%= render FlatPack::Button::Component.new(
-      text: oauth_t("connect.allow"),
-      style: :primary,
-      size: :md,
-      type: "submit",
-      name: "decision",
-      value: "connect",
-      class: "w-full"
+  <% if relay_consent.relay? %>
+    <% if relay_consent.host.present? %>
+      <%= render FlatPack::Heading::Component.new(
+        text: relay_consent.host,
+        level: :h2,
+        size: :xl
+      ) %>
+    <% end %>
+    <%= render FlatPack::Alert::Component.new(
+      description: relay_consent.show_allow? ? oauth_t("connect.return_host") : oauth_t("connect.return_refused"),
+      style: relay_consent.show_allow? ? :info : :danger
     ) %>
+  <% end %>
+
+  <div class="space-y-3">
+    <% if relay_consent.show_allow? %>
+      <%= render FlatPack::Button::Component.new(
+        text: oauth_t("connect.allow"),
+        style: :primary,
+        size: :md,
+        type: "submit",
+        name: "decision",
+        value: "connect",
+        class: "w-full"
+      ) %>
+    <% end %>
     <%= render FlatPack::Button::Component.new(
       text: oauth_t("connect.deny"),
       style: :secondary,

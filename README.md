@@ -143,9 +143,9 @@ GET /recording_studio_oauth/connect
   code_challenge_method=S256
 ```
 
-`return_to` must match one of that app's patterns or exact URLs. A star in a pattern matches any text. It is not a regular expression. Token exchange sends the fixed callback as `redirect_uri`. The code verifier stays with the app.
+`return_to` must match one of that app's patterns or exact URLs. A star is the whole host (`https://*/...`), or the first label of a host with at least two more labels (`https://*.example.com/...`). Scheme, port, path, and query have to match. `https://*.com/...` is rejected. A star in the path or query does not match. The consent screen shows the return host. Connect stays hidden when the return does not match. Token exchange sends the fixed callback as `redirect_uri`. The code verifier stays with the app.
 
-A WordPress site can use `https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback`. The WordPress plugin still calls the old `/wordpress/` paths until its own update.
+A WordPress site on an unknown host can use `https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback`. That form matches any host, and the admin screen warns. The path and query still have to match. The WordPress plugin still calls the old `/wordpress/` paths until its own update.
 
 See `docs/central-connect-relay.md`.
 
@@ -185,7 +185,7 @@ Defaults:
 
 - Public client, `token_endpoint_auth_method` `none`, PKCE S256 required
 - `client_secret_basic` or `client_secret_post` when requested; the secret is returned once and `client_secret_expires_at` is `0`
-- Redirect URIs must be https, or http on localhost, 127.0.0.1, or `[::1]`, with any port. Fragments and wildcard hosts are rejected
+- Redirect URIs must be https, or http on localhost, 127.0.0.1, or `[::1]`, with any port. Fragments, a username in the URL, and wildcard hosts are rejected. Staff saves use this same rule when the redirect list changes. A revoke, or an edit that leaves that list alone, still saves a legacy list.
 - `/register` is limited to `config.self_registered_apps_per_minute` (default 10) per IP
 - The app shows in Admin Registered apps as Self-registered. Staff can revoke it. Registration does not Connect
 
@@ -444,4 +444,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.22.0
+0.23.0

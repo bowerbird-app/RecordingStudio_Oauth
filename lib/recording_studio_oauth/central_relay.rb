@@ -23,6 +23,13 @@ module RecordingStudioOauth
       "#{normalize_base(base_url)}#{callback_path}"
     end
 
+    def callback_for(public_origin:, request_callback_url:)
+      origin = public_origin.to_s.strip.presence
+      return callback_url(base_url: origin) if origin
+
+      request_callback_url.to_s
+    end
+
     def mount_path
       path = RecordingStudioOauth.configuration.engine_mount_path.to_s
       path.start_with?("/") ? path.chomp("/") : "/#{path}".chomp("/")

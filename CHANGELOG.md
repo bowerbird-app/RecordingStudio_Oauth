@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-11-15
+
+### Security
+- Return patterns match the parsed URL. A star is the whole host, or one
+  leftmost label in front of at least two more labels (`*.example.com`).
+  Scheme, port, path, and query have to match. `*.com`, a star in the path
+  or query, a trailing-dot host, a `%` in the host, and an IP address under
+  a wildcard do not match. `https://*/path` still matches any ordinary host
+  with that exact path and query. The admin form warns on that shape.
+- The consent screen shows the return host when the redirect is the central
+  relay callback. Connect stays hidden when that return does not match the
+  app's current rules, and the approve request does not issue a code.
+- Staff-saved redirect URLs use the same https-or-loopback rule as
+  self-registered apps, including no username in the URL. The check runs
+  when the redirect list changes.
+
+### Upgrade notes
+- Bump to `0.23.0`. No migration. Issued tokens and grants stay valid.
+- A relay connect whose saved pattern no longer matches fails until staff
+  save a pattern that matches these rules.
+- A connect already in progress can fail. The signed return lasts 10 minutes.
+- Saving a redirect list now rejects plain http on a public host and rejects
+  a username in the URL. Leave the list unchanged to revoke or edit the rest
+  of a legacy app. The same change-only rule applies to return patterns.
+
 ## [0.22.0] - 2026-11-15
 
 ### Changed
@@ -980,6 +1005,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.23.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.9...v0.22.0
 [0.21.9]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.8...v0.21.9
 [0.21.8]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.7...v0.21.8

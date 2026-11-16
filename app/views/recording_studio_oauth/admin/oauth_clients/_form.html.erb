@@ -30,7 +30,7 @@
     value: Array(@oauth_client.redirect_uris).join("\n"),
     rows: 4,
     required: true,
-    help_text: "One http or https address per line, like https://example.com/callback.",
+    help_text: "One address per line. Use https, or http on localhost, 127.0.0.1, or [::1].",
     error: @oauth_client.errors[:redirect_uris].to_sentence.presence
   ) %>
 
@@ -139,12 +139,19 @@
   </div>
 
   <div id="central_relay_rules" class="space-y-6"<% unless @oauth_client.use_central_relay? %> hidden<% end %>>
+    <% if Array(@oauth_client.allowed_return_patterns).any? { |pattern| RecordingStudioOauth::ReturnUrlRules.any_host_pattern?(pattern) } %>
+      <%= render FlatPack::Alert::Component.new(
+        description: "This matches any site. The code can go to any host with this path and query.",
+        style: :warning
+      ) %>
+    <% end %>
+
     <%= render FlatPack::TextArea::Component.new(
       name: "oauth_client[allowed_return_patterns]",
       label: "Allowed return patterns",
       value: Array(@oauth_client.allowed_return_patterns).join("\n"),
       rows: 4,
-      help_text: "One pattern per line. A star stands in for any text. Not a regular expression. Example: https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback",
+      help_text: "One pattern per line. A star is the whole host, or the first label of a host with at least two more labels (*.example.com). Path and query have to match exactly. Example: https://*/wp-admin/admin-post.php?action=recording_studio_oauth_callback",
       error: @oauth_client.errors[:allowed_return_patterns].to_sentence.presence
     ) %>
 
