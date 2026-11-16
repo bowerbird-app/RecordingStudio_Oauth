@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class RefreshOutboundConnection < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       PERMANENT_ERRORS = %w[invalid_grant invalid_client unauthorized_client].freeze
       PERMANENT_STATUSES = [400, 401].freeze
 

@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class VerifySessionToken < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(token:, client_id: nil, client: nil, expected_external_id: nil, external_id: nil, secret: nil, now: nil)
         @token = token.to_s
         @client_id = client_id.to_s.presence

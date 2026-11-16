@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class CreateOauthClient < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       DEFAULT_API_KEY = "public"
       PUBLIC_SECRET_CHOICE = "public"
       HAS_SECRET_CHOICE = "has_secret"

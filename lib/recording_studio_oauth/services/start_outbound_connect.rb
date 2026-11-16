@@ -5,6 +5,8 @@ require "uri"
 module RecordingStudioOauth
   module Services
     class StartOutboundConnect < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       RESERVED_AUTHORIZE_KEYS = %w[
         redirect_uri
         state

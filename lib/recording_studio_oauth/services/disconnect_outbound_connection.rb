@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class DisconnectOutboundConnection < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(connection:, actor:)
         @connection = connection
         @actor = actor

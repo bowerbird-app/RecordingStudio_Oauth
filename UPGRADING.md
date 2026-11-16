@@ -1,5 +1,54 @@
 # Upgrading
 
+## 0.24.0
+
+No Oauth migration. Install Oauth `0.24.0`, Recording Studio `>= 7.1.0, < 8.0`,
+and Recording Studio API `>= 1.0.0, < 2.0`. Issued tokens, grants, and scopes
+stay the same.
+
+Core `after_service` and `around_service` hooks see secrets hidden for these
+services. `call` still returns the real result. The `around_service` argument
+is a copy, and that copy is the same class. Secret readers and secret
+instance variables are absent on the copy. A hook that called one of those
+readers now raises `NameError`. Nested hashes, arrays, and records are
+covered. Ids, `client_id`, scopes, expiry, and success or failure stay.
+
+- `AuthenticateOauthClient`
+- `CreateOauthAuthorization`
+- `CreateOauthClient`
+- `DisconnectOutboundConnection`
+- `FinishCentralRelay`
+- `FinishOutboundConnect`
+- `IssueDelegatedAccessToken`
+- `LookupOutboundConnection`
+- `PrepareOauthAuthorize`
+- `RecordExternalInstall`
+- `RefreshOutboundConnection`
+- `RegisterOauthClient`
+- `ResolveOauthClient`
+- `StartCentralRelay`
+- `StartOutboundConnect`
+- `UpdateOauthClient`
+- `VerifySessionToken`
+
+`LookupInboundConnection` and `VoidOauthAuthorization` are unchanged. A hook
+can still load the client from an authorization and read the session secret.
+
+`PrepareOauthAuthorize` keeps `grant_type`, `client_id`, `redirect_uri`,
+`scope`, `resource`, `token_type_hint`, `response_type`, `code_challenge`,
+and `code_challenge_method` on the copy. Other request params are dropped.
+
+API 1.0 counts rejected bearer tokens on `api_failed_auth` (20 per minute
+by default). The dummy turns that limiter off with the other test limiters.
+A host test suite that already turns the other limiters off should turn
+this one off too, or a burst of rejected tokens returns 429.
+
+Published Attachable through `0.30.0` still requires API `< 1.0`. Site
+Settings `0.6.0` needs Attachable. A host that installs both cannot resolve
+Oauth `0.24.0` until Attachable allows API 1. This repo checks out Attachable
+`v0.28.0` and opens that one requirement so the suite can boot. Hosts need
+an Attachable release that allows API 1. They cannot use that checkout.
+
 ## 0.23.0
 
 No Oauth migration. Install Oauth `0.23.0`. Issued tokens and grants stay

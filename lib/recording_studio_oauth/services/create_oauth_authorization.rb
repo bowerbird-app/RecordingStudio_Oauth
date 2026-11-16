@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class CreateOauthAuthorization < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       ACCESS_GONE_MESSAGE = "That access is gone. Connect again."
       ROLE_CHANGED_MESSAGE = "Your access changed. Connect again."
       STAFF_ADMIN_ONLY_MESSAGE = "Staff Admin is only for operations apps."

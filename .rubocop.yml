@@ -19,6 +19,10 @@ Layout/LineLength:
 Metrics/ParameterLists:
   CountKeywordArgs: false
 
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/recording_studio_oauth/services/redacts_hook_secrets.rb'
+
 # Relax metrics for test files, generators, and the Connect/token services.
 Metrics/ClassLength:
   Exclude:

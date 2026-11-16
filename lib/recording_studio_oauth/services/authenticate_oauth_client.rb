@@ -3,6 +3,8 @@
 module RecordingStudioOauth
   module Services
     class AuthenticateOauthClient < RecordingStudio::Services::BaseService
+      include RedactsHookSecrets
+
       def initialize(client_id:, client_secret: nil, api: :public)
         @client_id = client_id.to_s
         @client_secret = client_secret.to_s.presence
