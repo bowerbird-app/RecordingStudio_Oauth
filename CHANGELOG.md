@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2026-11-16
+
+### Changed
+- Widen 0.x Recording Studio ecosystem runtime caps from `< 1.0` to `< 2.0`.
+  Floors stay at the last tested release: Accessible `>= 0.44.0`, Cache
+  `>= 0.6.0`, Metrics `>= 0.9.0`, Site Settings `>= 0.6.0`, Trashable
+  `>= 0.17.0`, and Flatpack `>= 0.1.376`. API stays `>= 1.0.0, < 2.0`.
+  Recording Studio stays `>= 7.1.0, < 8.0`. Admin stays `>= 2.16.0, < 3.0`.
+  Rails and `view_component` are unchanged. Development and dummy pins stay
+  on the same tags.
+
+### Upgrade notes
+- Bump to `0.25.0`. No migration. Issued tokens, grants, and scopes stay
+  the same.
+- A host may resolve those 0.x ecosystem gems below `2.0`. The tested
+  floors are unchanged.
+
 ## [0.24.0] - 2026-11-16
 
 ### Security
@@ -1041,6 +1058,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.25.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.21.9...v0.22.0

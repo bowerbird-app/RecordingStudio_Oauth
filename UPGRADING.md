@@ -1,5 +1,18 @@
 # Upgrading
 
+## 0.25.0
+
+No Oauth migration. Install Oauth `0.25.0`. Issued tokens, grants, and
+scopes stay the same.
+
+0.x ecosystem runtime caps are `< 2.0`. Floors stay at the last tested
+release: Accessible `>= 0.44.0`, Cache `>= 0.6.0`, Metrics `>= 0.9.0`,
+Site Settings `>= 0.6.0`, Trashable `>= 0.17.0`, and Flatpack
+`>= 0.1.376`. API stays `>= 1.0.0, < 2.0`. Recording Studio stays
+`>= 7.1.0, < 8.0`. Admin stays `>= 2.16.0, < 3.0`. Rails and
+`view_component` are unchanged. Development and dummy pins stay on the
+same tags.
+
 ## 0.24.0
 
 No Oauth migration. Install Oauth `0.24.0`, Recording Studio `>= 7.1.0, < 8.0`,

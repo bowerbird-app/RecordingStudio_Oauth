@@ -88,9 +88,9 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `>= 7.1.0, < 8.0` (tag `v7.1.0`), Accessible `>= 0.44.0, < 1.0` (tag `v0.44.0`), Admin `>= 2.16.0, < 3.0` (tag `v2.16.0`), API `>= 1.0.0, < 2.0` (tag `v1.0.0`), Cache `>= 0.6.0, < 1.0` (tag `v0.6.3`), Site Settings `>= 0.6.0, < 1.0` (tag `v0.6.0`), Flatpack `>= 0.1.376, < 1.0` (git tag `v0.1.376`), Trashable `>= 0.17.0, < 1.0` (tag `v0.17.0`), and `view_component` `>= 4.14, < 5`.
+1. Add the gem and pin Recording Studio `>= 7.1.0, < 8.0` (tag `v7.1.0`), Accessible `>= 0.44.0, < 2.0` (tag `v0.44.0`), Admin `>= 2.16.0, < 3.0` (tag `v2.16.0`), API `>= 1.0.0, < 2.0` (tag `v1.0.0`), Cache `>= 0.6.0, < 2.0` (tag `v0.6.3`), Site Settings `>= 0.6.0, < 2.0` (tag `v0.6.0`), Flatpack `>= 0.1.376, < 2.0` (git tag `v0.1.376`), Trashable `>= 0.17.0, < 2.0` (tag `v0.17.0`), and `view_component` `>= 4.14, < 5`.
    Core `after_service` and `around_service` hooks for services that handle a live secret see that secret hidden. The caller still receives it. Published Attachable through `0.30.0` still requires API `< 1.0`. Site Settings `0.6.0` needs Attachable, so a host that installs both needs an Attachable release that allows API 1.
-   Also add `recording_studio_metrics` `>= 0.9.0, < 1.0` (tag `v0.9.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
+   Also add `recording_studio_metrics` `>= 0.9.0, < 2.0` (tag `v0.9.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
    Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, `Recording.kept`). Pin git tag `v0.17.0` with `require: false` when Bundler would auto-require the gem. Install Trashable's `purge_at` migration so trashed rows can carry a purge date. Copy Recording Studio's `events.root_recording_id` migration before writing events. Create a root with `RecordingStudio.create_root_recording!(recordable, actor:)`. `root_recording_for` only finds one.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
@@ -445,4 +445,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.24.0
+0.25.0
