@@ -2,7 +2,6 @@
 
 module RecordingStudioOauth
   class CentralRelaysController < ApplicationController
-
     def start
       result = Services::StartCentralRelay.call(**start_args)
       return render_oauth_error(result.error) if result.failure?
