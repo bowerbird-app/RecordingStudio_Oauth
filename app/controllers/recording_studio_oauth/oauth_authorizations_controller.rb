@@ -6,8 +6,6 @@ module RecordingStudioOauth
     include Concerns::ConnectConsent
     include Concerns::ConnectAuthorizeFlow
 
-    layout "recording_studio_oauth/authorization"
-
     def new
       return unless @oauth_client
 

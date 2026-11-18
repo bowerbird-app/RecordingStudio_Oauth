@@ -1,5 +1,19 @@
 # Upgrading
 
+## 0.25.2
+
+No Oauth migration. Install Oauth `0.25.2`. Issued tokens, grants, and
+scopes stay the same.
+
+Inbound Connect uses `recording_studio/default_layout`. The workspace list,
+permissions, Could not connect, and central relay errors no longer render
+`recording_studio_oauth/authorization`.
+
+No action is needed when `config.layout` is nil. A host that set
+`config.layout` now sees Connect use that layout too. A host that replaced
+`layouts/recording_studio_oauth/authorization` should move that markup onto
+the layout `config.layout` names.
+
 ## 0.25.0
 
 No Oauth migration. Install Oauth `0.25.0`. Issued tokens, grants, and

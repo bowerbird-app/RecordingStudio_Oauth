@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.25.1", ::RecordingStudioOauth::VERSION
+    assert_equal "0.25.2", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
@@ -206,7 +206,7 @@ class RecordingStudioOauthTest < Minitest::Test
     index = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/index.html.erb", __dir__))
     consent = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/new.html.erb", __dir__))
     error = File.read(File.expand_path("../app/views/recording_studio_oauth/oauth_authorizations/error.html.erb", __dir__))
-    layout = File.read(File.expand_path("../app/views/layouts/recording_studio_oauth/authorization.html.erb", __dir__))
+    layout = File.expand_path("../app/views/layouts/recording_studio_oauth/authorization.html.erb", __dir__)
 
     assert_includes index, "FlatPack::List::Component"
     assert_includes index, "FlatPack::Card::Component"
@@ -240,19 +240,7 @@ class RecordingStudioOauthTest < Minitest::Test
     refute_includes error, "cols: 2"
     refute_includes error, "back_tooltip:"
     assert_includes error, "nav.with_back(tooltip: oauth_t(\"layout.go_back\"))"
-    assert_includes layout, "min-h-dvh"
-    assert_includes layout, "max-w-sm"
-    assert_includes layout, "flat_pack_page_nav_tag"
-    refute_includes layout, "FlatPack::PageNav::Component"
-    refute_includes layout, "skip_connect_page_nav"
-    assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
-    assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
-    assert_includes layout, 'stylesheet_link_tag "flat_pack/rich_text"'
-    variables_at = layout.index('stylesheet_link_tag "flat_pack/variables"')
-    tailwind_at = layout.index('stylesheet_link_tag "tailwind"')
-    assert variables_at < tailwind_at
-    assert_includes layout, "oauth_document_attributes"
-    refute_includes layout, "max-w-6xl"
+    refute File.exist?(layout)
   end
 
   def test_connect_title_reads_site_settings_name_for
