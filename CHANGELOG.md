@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Explain the RFC 8414 split. Issuer, authorize, and registration stay
+  on this mount. Token and revocation URLs stay on the Recording Studio
+  API mount. Clients read those URLs from discovery metadata. The API
+  revoke route revokes `rsapi_at_` access tokens. Calling that route
+  leaves an `rsoauth_at_` bearer unchanged.
+
 ## [0.25.0] - 2026-11-16
 
 ### Changed

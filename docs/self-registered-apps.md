@@ -42,6 +42,6 @@ Serve RFC 8414 path insertion from the host helper you already draw:
 RecordingStudioOauth::ProtectedResourceRegistry.draw_origin_well_known(self)
 ```
 
-That includes `/.well-known/oauth-authorization-server/recording_studio_oauth`. `issuer` is the mount URL. OpenID Connect discovery stays 404.
+That includes `/.well-known/oauth-authorization-server/recording_studio_oauth`. `issuer` is the mount URL. `authorization_endpoint` and `registration_endpoint` are under that URL. `token_endpoint` and `revocation_endpoint` are on the Recording Studio API mount. Read those URLs from the metadata. Do not build them from `issuer`. See the README section Discovery metadata. OpenID Connect discovery stays 404.
 
 MCP 2025-11-25 prefers Client ID Metadata Documents. This gem ships DCR because Inspector v2.9.0 and MCP 2025-06-18 use it. CIMD is not implemented.

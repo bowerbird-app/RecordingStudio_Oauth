@@ -14,7 +14,33 @@ It is not Users. It is not Doorkeeper. It is not OIDC or SAML. It is not OAuth s
 
 Public clients must use PKCE S256. Refresh tokens rotate. Reusing an authorization code or a **rotated** refresh token voids the grant. Re-consent for the same app keeps live tokens. A refresh token revoked for any other reason returns `invalid_grant` and leaves the rest of the grant alone. Disconnect still voids the grant. Re-consent drops unused codes so they cannot void a later grant.
 
-RFC 8414 discovery lives here. `authorization_endpoint` is this engine. `token_endpoint` and `revocation_endpoint` point at the API mount. Path-inserted metadata is at `/.well-known/oauth-authorization-server/recording_studio_oauth`. `issuer` is the mount URL. This gem is not an OpenID Connect provider, so `openid-configuration` stays 404.
+## Discovery metadata
+
+Read `issuer`, `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, and `registration_endpoint` from the RFC 8414 document. Do not build those URLs from `issuer`.
+
+`issuer` identifies this authorization server. [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414) section 3 uses the issuer to locate that metadata document. `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, and `registration_endpoint` are separate URLs. RFC 8414 allows an endpoint URL to use a path other than the issuer path.
+
+Consent, Connect, discovery, and Dynamic Client Registration stay on this mount. Recording Studio API issues tokens at `POST /recording_studio_api/oauth/token`. This gem registers `authorization_code` and `refresh_token` through `RecordingStudioApi.register_oauth_grant`. `RecordingStudioOauth::TokenAuthenticator` accepts `rsoauth_at_` bearers on that API. This engine does not route `POST /recording_studio_oauth/oauth/token`.
+
+`revocation_endpoint` is the API route `POST /recording_studio_api/oauth/revoke`. That route revokes an API credential's `rsapi_at_` access token. That route does not revoke an `rsoauth_at_` bearer. Disconnect voids the Connect grant.
+
+Path-inserted metadata is `GET /.well-known/oauth-authorization-server/recording_studio_oauth`. This gem is not an OpenID Connect provider, so `openid-configuration` stays 404.
+
+When `config.allow_self_registered_apps` is on, public metadata on the default mounts includes these URLs.
+
+```json
+{
+  "issuer": "https://app.example.com/recording_studio_oauth",
+  "authorization_endpoint": "https://app.example.com/recording_studio_oauth/oauth/authorize",
+  "token_endpoint": "https://app.example.com/recording_studio_api/oauth/token",
+  "revocation_endpoint": "https://app.example.com/recording_studio_api/oauth/revoke",
+  "registration_endpoint": "https://app.example.com/recording_studio_oauth/register"
+}
+```
+
+When self-registered apps are off, the document omits `registration_endpoint`. A named API keeps this split. For `operations`, `issuer` is `https://app.example.com/recording_studio_oauth/apis/operations`. The authorize URL and the registration URL stay on that issuer. The token URL is `https://app.example.com/recording_studio_api/apis/operations/oauth/token`. The revocation URL is `https://app.example.com/recording_studio_api/apis/operations/oauth/revoke`.
+
+The document also returns `response_types_supported`, `grant_types_supported`, `code_challenge_methods_supported`, `token_endpoint_auth_methods_supported`, `revocation_endpoint_auth_methods_supported`, and `response_modes_supported`. `grant_types_supported` is `authorization_code` and `refresh_token`. `code_challenge_methods_supported` is `S256`.
 
 ## Protected resources
 
@@ -58,7 +84,7 @@ The document at that URL is:
 }
 ```
 
-`authorization_servers` is this gem's issuer. Token exchange stays `/recording_studio_api/oauth/token`. A token minted after an MCP `resource` value is still an `rsoauth_at_` bearer and authenticates on API and MCP.
+`authorization_servers` is this gem's issuer. Token exchange stays `/recording_studio_api/oauth/token`. Take that URL from the `token_endpoint` field in discovery metadata. A token minted after an MCP `resource` value is still an `rsoauth_at_` bearer and authenticates on API and MCP.
 
 API 401 stays `Bearer realm="RecordingStudioApi"`. Do not reuse that realm as MCP identity.
 
