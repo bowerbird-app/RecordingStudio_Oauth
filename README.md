@@ -101,7 +101,7 @@ A present `resource` on authorize or token must match a registry entry for that 
 
 ## Connect
 
-Two screens, Flatpack, `data-theme="rounded"`. Connect uses a login-style frame: viewport-centered, `max-w-sm`. The access list has no back control. Permission and error keep a round PageNav back button. Connected apps and staff admin stay on the Recording Studio default layout. That layout draws one page title from `content_for :title` and `content_for :subtitle`. Set `RecordingStudioOauth.configuration.layout` to `nil` for that default, `false` for no layout, a layout name, or `->(controller:) { ... }`. Do not set `layout "recording_studio/default_layout"`.
+Two screens, Flatpack, `data-theme="rounded"`. Connect, permissions, Could not connect, and central relay errors use the Recording Studio default layout, the same layout as connected apps and staff admin. `ApplicationController` calls `recording_studio_layout` with `RecordingStudioOauth.configuration.layout`. `nil` resolves to `recording_studio/default_layout` from the recording_studio gem. That layout draws one page title from `content_for :title` and `content_for :subtitle`, and places the PageNav back button in the top bar. The access list has no back control. Permission and error keep a round PageNav back button. Set `RecordingStudioOauth.configuration.layout` to `nil` for that default, `false` for no layout, a layout name, or `->(controller:) { ... }`. Do not set `layout "recording_studio/default_layout"`.
 
 The list title is `{app} wants to connect to {site}`. The app name is the registered OauthClient. The site name comes from Recording Studio Site Settings (`name_for`). If there is no site name, the title stops at `{app} wants to connect`. Several workspaces that share one site name keep that sentence. Different site names put each `name_for` on the row instead.
 
@@ -471,4 +471,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.25.1
+0.25.2

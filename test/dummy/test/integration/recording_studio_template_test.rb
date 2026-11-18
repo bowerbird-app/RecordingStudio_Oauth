@@ -98,7 +98,7 @@ class DummyHostTest < ActiveSupport::TestCase
     assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
   end
 
-  test "layout setting falls through for the host and connect overrides it" do
+  test "layout setting falls through for the host and connect uses the default layout" do
     host = ApplicationController.new
     host.define_singleton_method(:devise_controller?) { false }
     assert_equal "recording_studio/default_layout", host.recording_studio_resolved_layout
@@ -108,7 +108,12 @@ class DummyHostTest < ActiveSupport::TestCase
     assert_equal "application", login.recording_studio_resolved_layout
 
     connect = RecordingStudioOauth::OauthAuthorizationsController.new
-    assert_equal "recording_studio_oauth/authorization", connect.send(:_layout, nil, nil, nil)
+    connect.define_singleton_method(:devise_controller?) { false }
+    assert_equal "recording_studio/default_layout", connect.recording_studio_resolved_layout
+
+    relay = RecordingStudioOauth::CentralRelaysController.new
+    relay.define_singleton_method(:devise_controller?) { false }
+    assert_equal "recording_studio/default_layout", relay.recording_studio_resolved_layout
 
     assert_empty RecordingStudio::Layout.hardcoded_layout_paths(Rails.root)
   end

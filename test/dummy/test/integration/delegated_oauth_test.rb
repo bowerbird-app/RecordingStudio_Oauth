@@ -36,10 +36,8 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     get authorize_path, params: authorize_params
 
     assert_response :success
-    assert_select "body[data-theme='rounded']", count: 1
-    refute_includes response.body, "data-recording-studio-default-layout"
-    assert_includes response.body, "min-h-dvh"
-    assert_includes response.body, "max-w-sm"
+    assert_select "html[data-theme='rounded']", count: 1
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select ".flat-pack-page-nav", count: 0
     assert_select "h1", count: 1
     assert_includes response.body, "#{@oauth_client.name} wants to connect"
@@ -201,6 +199,7 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "#{@root_recording.recordable.name} permissions"
     refute_includes response.body, "wants to connect"
     refute_includes response.body, @oauth_client.name
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "label", count: 0
     refute_includes response.body, "You can view"
     assert_select "h1", count: 1
@@ -853,15 +852,14 @@ class DelegatedOauthTest < ActionDispatch::IntegrationTest
     refute_equal @user.id, granted.actor_id
   end
 
-  test "error screen uses the login frame not a two-column grid" do
+  test "error screen uses the default layout" do
     get authorize_path, params: authorize_params.merge(response_type: "token")
 
     assert_response :bad_request
     assert_includes response.body, "Could not connect"
     assert_includes response.body, "response_type must be code"
-    assert_includes response.body, "min-h-dvh"
-    assert_includes response.body, "max-w-sm"
-    refute_includes response.body, "data-recording-studio-default-layout"
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "h1", text: "Could not connect", count: 1
     assert_select ".flat-pack-page-nav", count: 1
     assert_select "[data-controller='flat-pack--page-nav']", count: 1
   end
