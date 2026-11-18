@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.1] - 2026-11-18
+
+### Changed
+- Explain the RFC 8414 split. Issuer, authorize, and registration stay
+  on this mount. Token and revocation URLs stay on the Recording Studio
+  API mount. Clients read those URLs from discovery metadata. The API
+  revoke route revokes `rsapi_at_` access tokens. Calling that route
+  leaves an `rsoauth_at_` bearer unchanged.
+
+### Upgrade notes
+- No action is needed. No migration. Issued tokens, grants, and scopes
+  stay the same.
+
 ## [0.25.0] - 2026-11-16
 
 ### Changed
@@ -1058,6 +1071,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.25.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.22.0...v0.23.0
