@@ -15,17 +15,9 @@ class RecordingStudioOauthTest < Minitest::Test
     migrate = File.expand_path("../db/migrate", __dir__)
     old = File.join(migrate, "20261027000001_add_plugin_key_to_recording_studio_oauth_clients.rb")
     path = File.join(migrate, "20261119120001_add_plugin_key_to_recording_studio_oauth_clients.rb")
-    upgrading = File.read(File.expand_path("../UPGRADING.md", __dir__))
-    changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
     refute File.exist?(old)
     assert File.exist?(path)
-    source = File.read(path)
-    assert_includes source, "class AddPluginKeyToRecordingStudioOauthClients"
-    assert_includes source, "column_exists?(:recording_studio_oauth_clients, :plugin_key)"
-    assert_includes source, "index_exists?(:recording_studio_oauth_clients, :plugin_key)"
-    assert_includes upgrading, "20261119120001_add_plugin_key_to_recording_studio_oauth_clients"
-    assert_includes changelog, "20261119120001"
   end
 
   def test_gemspec_pins

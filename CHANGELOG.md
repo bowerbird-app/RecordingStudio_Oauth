@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Studio Downloadable migrations do not hit `Duplicate migration 20261027000001`.
 
 ### Upgrade notes
-- Copy migrations with `recording_studio_oauth:migrations` (or
-  `install:migrations`) and run `db:migrate`. The new file no-ops when
-  `plugin_key` already exists. Delete the old copied
-  `20261027000001_add_plugin_key_to_recording_studio_oauth_clients.rb` if it
-  is still in the host `db/migrate` folder.
+- Pick one migration route. Either let the engine append its migrations
+  path, or copy them with `recording_studio_oauth:migrations` (or
+  `install:migrations`). Do not do both: that loads two
+  `AddPluginKeyToRecordingStudioOauthClients` classes and raises
+  `DuplicateMigrationNameError`. If you copied migrations, delete the old
+  copied `20261027000001_add_plugin_key_to_recording_studio_oauth_clients.rb`.
+  The new file no-ops when `plugin_key` already exists.
 
 ## [0.26.0] - 2026-11-19
 

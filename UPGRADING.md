@@ -2,14 +2,17 @@
 
 ## 0.26.1
 
-Install Oauth `0.26.1`. Copy migrations with
-`recording_studio_oauth:migrations` (or `install:migrations`) and run
-`db:migrate`. `20261119120001_add_plugin_key_to_recording_studio_oauth_clients`
-replaces `20261027000001` of the same class so it no longer collides with
+Install Oauth `0.26.1`. Pick one migration route. Either let the engine
+append its migrations path, or copy them with
+`recording_studio_oauth:migrations` (or `install:migrations`). Do not do
+both: that loads two `AddPluginKeyToRecordingStudioOauthClients` classes
+and raises `DuplicateMigrationNameError`.
+`20261119120001_add_plugin_key_to_recording_studio_oauth_clients` replaces
+`20261027000001` of the same class so it no longer collides with
 Downloadable's `20261027000001`. The new file no-ops when `plugin_key`
-already exists. Hosts that already ran the old version can delete the
-old copied file from `db/migrate`. Issued tokens, grants, and scopes stay
-the same.
+already exists. If you copied migrations, delete the old copied
+`20261027000001` file from `db/migrate`. Issued tokens, grants, and
+scopes stay the same.
 
 ## 0.26.0
 
