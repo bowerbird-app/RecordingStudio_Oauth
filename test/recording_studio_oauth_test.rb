@@ -4,11 +4,20 @@ require "test_helper"
 
 class RecordingStudioOauthTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.26.0", ::RecordingStudioOauth::VERSION
+    assert_equal "0.26.1", ::RecordingStudioOauth::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioOauth::Engine
+  end
+
+  def test_plugin_key_migration_uses_non_colliding_timestamp
+    migrate = File.expand_path("../db/migrate", __dir__)
+    old = File.join(migrate, "20261027000001_add_plugin_key_to_recording_studio_oauth_clients.rb")
+    path = File.join(migrate, "20261119120001_add_plugin_key_to_recording_studio_oauth_clients.rb")
+
+    refute File.exist?(old)
+    assert File.exist?(path)
   end
 
   def test_gemspec_pins

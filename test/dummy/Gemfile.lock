@@ -170,7 +170,7 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_oauth (0.26.0)
+    recording_studio_oauth (0.26.1)
       flat_pack (>= 0.1.376, < 2.0)
       rails (~> 8.1.0)
       recording_studio (>= 7.1.0, < 8.0)
@@ -773,7 +773,7 @@ CHECKSUMS
   recording_studio_logs (0.9.0)
   recording_studio_metrics (0.10.0)
   recording_studio_moveable (6.1.0)
-  recording_studio_oauth (0.26.0)
+  recording_studio_oauth (0.26.1)
   recording_studio_root_switchable (0.17.0)
   recording_studio_site_settings (0.7.0)
   recording_studio_trashable (1.3.0)
