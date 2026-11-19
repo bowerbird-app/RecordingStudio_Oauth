@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.1] - 2026-11-19
+
+### Fixed
+- Rename `add_plugin_key_to_recording_studio_oauth_clients` from
+  `20261027000001` to `20261119120001` so hosts that also copy Recording
+  Studio Downloadable migrations do not hit `Duplicate migration 20261027000001`.
+
+### Upgrade notes
+- Copy migrations with `recording_studio_oauth:migrations` (or
+  `install:migrations`) and run `db:migrate`. The new file no-ops when
+  `plugin_key` already exists. Delete the old copied
+  `20261027000001_add_plugin_key_to_recording_studio_oauth_clients.rb` if it
+  is still in the host `db/migrate` folder.
+
 ## [0.26.0] - 2026-11-19
 
 ### Changed
@@ -1089,6 +1103,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.26.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.24.0...v0.25.0

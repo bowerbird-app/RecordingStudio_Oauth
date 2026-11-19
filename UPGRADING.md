@@ -1,5 +1,16 @@
 # Upgrading
 
+## 0.26.1
+
+Install Oauth `0.26.1`. Copy migrations with
+`recording_studio_oauth:migrations` (or `install:migrations`) and run
+`db:migrate`. `20261119120001_add_plugin_key_to_recording_studio_oauth_clients`
+replaces `20261027000001` of the same class so it no longer collides with
+Downloadable's `20261027000001`. The new file no-ops when `plugin_key`
+already exists. Hosts that already ran the old version can delete the
+old copied file from `db/migrate`. Issued tokens, grants, and scopes stay
+the same.
+
 ## 0.26.0
 
 No Oauth migration. Install Oauth `0.26.0`. Issued tokens, grants, and
