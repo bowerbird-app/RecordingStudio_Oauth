@@ -114,10 +114,11 @@ To let ChatGPT or Grok Connect as staff later, create an operations app: pick Op
 
 ## Install
 
-1. Add the gem and pin Recording Studio `>= 7.1.0, < 8.0` (tag `v7.3.0`), Accessible `>= 0.44.0, < 2.0` (tag `v0.45.1`), Admin `>= 2.16.0, < 3.0` (tag `v2.18.0`), API `>= 1.0.0, < 2.0` (tag `v1.2.1`), Cache `>= 0.6.0, < 2.0` (tag `v0.7.0`), Site Settings `>= 0.6.0, < 2.0` (tag `v0.6.0`), Flatpack `>= 0.1.376, < 2.0` (git tag `v0.1.377`), Trashable `>= 0.17.0, < 2.0` (tag `v1.0.1`), and `view_component` `>= 4.14, < 5`.
-   Core `after_service` and `around_service` hooks for services that handle a live secret see that secret hidden. The caller still receives it. Site Settings `0.6.0` needs Attachable. Pin Attachable `v0.31.0`, which requires API `>= 1.1.0`, `< 2.0`.
-   Also add `recording_studio_metrics` `>= 0.9.0, < 2.0` (tag `v0.9.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
-   Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, `Recording.kept`). Pin git tag `v1.0.1` with `require: false` when Bundler would auto-require the gem. Install Trashable's `purge_at` migration so trashed rows can carry a purge date. Copy Recording Studio's `events.root_recording_id` migration before writing events. Create a root with `RecordingStudio.create_root_recording!(recordable, actor:)`. `root_recording_for` only finds one.
+1. Add the gem and pin Recording Studio `>= 7.1.0, < 8.0` (`~> 7.8`, tag `v7.8.0`), Accessible `>= 0.44.0, < 2.0` (`~> 0.58`, tag `v0.58.0`), Admin `>= 2.16.0, < 3.0` (`~> 2.20`, tag `v2.20.0`), API `>= 1.0.0, < 2.0` (`~> 1.21`, tag `v1.21.2`), Cache `>= 0.6.0, < 2.0` (`~> 0.8`, tag `v0.8.0`), Site Settings `>= 0.6.0, < 2.0` (`~> 0.7`, tag `v0.7.0`), Flatpack `>= 0.1.376, < 2.0` (`~> 0.2`, git tag `v0.2.0`), Trashable `>= 0.17.0, < 2.0` (`~> 1.3`, tag `v1.3.0`), and `view_component` `>= 4.14, < 5`.
+   Core `after_service` and `around_service` hooks for services that handle a live secret see that secret hidden. The caller still receives it. Site Settings `0.7.0` needs Attachable. Pin Attachable `~> 0.34` (`v0.34.0`), which requires API `>= 1.1.0`, `< 2.0`.
+   Also add `recording_studio_metrics` `>= 0.9.0, < 2.0` (`~> 0.10`, tag `v0.10.0`) and call `RecordingStudioMetrics::Api.register!(api: :operations)` once.
+   Trashable owns Access grant voids and kept/trashed recording lookups via the query-only entry (`require "recording_studio_trashable/query"`: `void_recording!`, predicates, `Recording.kept`). Pin `~> 1.3` (git tag `v1.3.0`) with `require: false` when Bundler would auto-require the gem. Install Trashable's `purge_at` migration so trashed rows can carry a purge date. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not. Create a root with `RecordingStudio.create_root_recording!(recordable, actor:)`. `root_recording_for` only finds one.
+   flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
 2. Run `bin/rails generate recording_studio_oauth:install`.
 3. Run `bin/rails generate recording_studio_oauth:migrations` and migrate.
 4. Allow `RecordingStudioOauth::OauthAuthorization` in Accessible `access_actor_types`.
@@ -147,9 +148,9 @@ Staff Registered-app admin screens stay English. OAuth protocol error codes and 
 
 `test/dummy` on port 3000. Sign in with `admin@admin.com` / `Password`. Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key. Seed Demo App is registered. Studio Workspace starts Connected (success), Docs Workspace starts as Reconnect (danger), Admin is staff-only for public apps. Product Docs is a folder under Studio Workspace and is not a Connect row. Dummy names an `operations` API so Registered apps can create an operations OauthClient. Switch to Admin, then Registered apps can add an app, show credentials once, and revoke. Both Studio Workspace and Docs Workspace seed site name `Studio` through Site Settings. Dummy Tailwind imports resolved engine paths from `gem_sources.css` before each build so Flatpack classes are not missed when gems sit under `/usr/local/lib/ruby/gems`.
 
-Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `v7.3.0`, Accessible `v0.45.1`, Admin `v2.18.0`, Site Settings `v0.6.0`, Root Switchable `v0.16.0`, Trashable `v1.0.1`, Flatpack tag `v0.1.377`, Attachable `v0.31.0`, and Recording Studio Internationalization `v0.3.0` (dummy only). The mounted switch page needs an Accessible `:view` grant on the current root.
+Dummy offers English and French. The language selector sits in the top nav, left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French. Dummy pins Recording Studio `~> 7.8` (`v7.8.0`), Accessible `~> 0.58` (`v0.58.0`), Admin `~> 2.20` (`v2.20.0`), Site Settings `~> 0.7` (`v0.7.0`), Root Switchable `~> 0.17` (`v0.17.0`), Trashable `~> 1.3` (`v1.3.0`), Flatpack `~> 0.2` (`v0.2.0`), Attachable `~> 0.34` (`v0.34.0`), and Recording Studio Internationalization `v0.3.0` (dummy only). The mounted switch page needs an Accessible `:view` grant on the current root.
 
-Dummy also pins Metrics `v0.9.0`, API `v1.2.1`, Logs `v0.8.0`, Cache `v0.7.0`, Moveable `v6.0.0`, and Icons `v0.4.0`.
+Dummy also pins Metrics `~> 0.10` (`v0.10.0`), API `~> 1.21` (`v1.21.2`), Logs `~> 0.9` (`v0.9.0`), Cache `~> 0.8` (`v0.8.0`), Moveable `~> 6.1` (`v6.1.0`), and Icons `~> 0.5` (`v0.5.0`).
 
 ## Central Connect relay
 
@@ -471,4 +472,4 @@ Root admins get one row per person, ordered by `connected_at`. `role` is the hig
 
 ## Version
 
-0.25.1
+0.26.0
