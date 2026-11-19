@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2026-11-19
+
+### Changed
+- Development and dummy pins move to the 2026-11-19 sweep. Recording Studio
+  `~> 7.8` (`v7.8.0`), Flatpack `~> 0.2` (`v0.2.0`), Accessible `~> 0.58`
+  (`v0.58.0`), Admin `~> 2.20` (`v2.20.0`), API `~> 1.21` (`v1.21.2`),
+  Attachable `~> 0.34` (`v0.34.0`), Cache `~> 0.8` (`v0.8.0`), Icons
+  `~> 0.5` (`v0.5.0`), Logs `~> 0.9` (`v0.9.0`), Metrics `~> 0.10`
+  (`v0.10.0`), Moveable `~> 6.1` (`v6.1.0`), Site Settings `~> 0.7`
+  (`v0.7.0`), and Trashable `~> 1.3` (`v1.3.0`, still `require: false`).
+  The dummy also pins Root Switchable `~> 0.17` (`v0.17.0`).
+  Internationalization stays `v0.3.0`. Gemspec floors are unchanged.
+
+### Upgrade notes
+- Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
+- flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
+- No Oauth migration. Issued tokens, grants, and scopes stay the same.
+
 ## [0.25.1] - 2026-11-18
 
 ### Changed
@@ -1071,6 +1089,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.26.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.23.0...v0.24.0

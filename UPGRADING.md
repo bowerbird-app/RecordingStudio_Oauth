@@ -1,5 +1,22 @@
 # Upgrading
 
+## 0.26.0
+
+No Oauth migration. Install Oauth `0.26.0`. Issued tokens, grants, and
+scopes stay the same. Gemspec floors are unchanged.
+
+Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
+
+flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
+
+Development and dummy pins: Recording Studio `~> 7.8` (`v7.8.0`), Flatpack
+`~> 0.2` (`v0.2.0`), Accessible `~> 0.58` (`v0.58.0`), Admin `~> 2.20`
+(`v2.20.0`), API `~> 1.21` (`v1.21.2`), Attachable `~> 0.34` (`v0.34.0`),
+Cache `~> 0.8` (`v0.8.0`), Icons `~> 0.5` (`v0.5.0`), Logs `~> 0.9`
+(`v0.9.0`), Metrics `~> 0.10` (`v0.10.0`), Moveable `~> 6.1` (`v6.1.0`),
+Site Settings `~> 0.7` (`v0.7.0`), Trashable `~> 1.3` (`v1.3.0`), and dummy
+Root Switchable `~> 0.17` (`v0.17.0`). Internationalization stays `v0.3.0`.
+
 ## 0.25.0
 
 No Oauth migration. Install Oauth `0.25.0`. Issued tokens, grants, and
