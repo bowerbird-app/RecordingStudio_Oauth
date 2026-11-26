@@ -53,13 +53,7 @@ module RecordingStudioOauth
             )
           end
 
-          grant_result = RecordingStudioAccessible.grant_access(
-            recording: access_point_recording,
-            actor: authorization,
-            role: role,
-            manager_actor: manager_actor,
-            depends_on: access_recording
-          )
+          grant_result = grant_self_delegated_access!(authorization)
           raise StandardError, grant_result.error if grant_result.failure?
 
           granted_access_recording = grant_result.value
@@ -129,6 +123,16 @@ module RecordingStudioOauth
       def prepare_reopen!(authorization)
         OauthAuthorizationCode.where(oauth_authorization_id: authorization.id, used_at: nil).delete_all
         authorization.update!(role: role, revoked_at: nil)
+      end
+
+      def grant_self_delegated_access!(authorization)
+        RecordingStudioAccessible.grant_self_delegated_access(
+          recording: access_point_recording,
+          actor: authorization,
+          role: role,
+          manager_actor: manager_actor,
+          depends_on: access_recording
+        )
       end
 
       def manager_access_present?
