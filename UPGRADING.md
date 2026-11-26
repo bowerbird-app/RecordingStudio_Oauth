@@ -1,11 +1,12 @@
 # Upgrading
 
-## 0.26.2
+## 0.27.0
 
-Install Oauth `0.26.2` and Accessible `>= 0.61.0`, `< 2.0`. Connect uses
+Install Oauth `0.27.0` and Accessible `>= 0.61.1`, `< 2.0`. Connect uses
 `grant_self_delegated_access` so a view or edit member can connect an app
-to their own account at or below their role. No Oauth migration. Issued
-tokens, grants, and scopes stay the same.
+to their own account at or below their role. A different-role reconnect
+updates the grant in place. Oauth does not revoke or void it. No Oauth
+migration. Issued tokens, grants, and scopes stay the same.
 
 Hosts that copy Accessible locale files should add
 `errors.self_delegated_not_a_member`, `errors.self_delegated_existing_grant`,
@@ -13,7 +14,7 @@ and `errors.self_delegated_depends_on_invalid`. A missing `depends_on` uses
 `errors.dependent_missing_manager`. A role above the member's own uses
 `errors.role_exceeds_manager`. Oauth still ships English only.
 
-Dummy and development pins: Accessible `~> 0.61` (`v0.61.0`).
+Dummy and development pins: Accessible `~> 0.61` (`v0.61.1`).
 
 ## 0.26.1
 

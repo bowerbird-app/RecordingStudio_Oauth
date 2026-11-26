@@ -126,8 +126,6 @@ module RecordingStudioOauth
       end
 
       def grant_self_delegated_access!(authorization)
-        replace_existing_grant_if_role_changed!(authorization)
-
         RecordingStudioAccessible.grant_self_delegated_access(
           recording: access_point_recording,
           actor: authorization,
@@ -135,26 +133,6 @@ module RecordingStudioOauth
           manager_actor: manager_actor,
           depends_on: access_recording
         )
-      end
-
-      def replace_existing_grant_if_role_changed!(authorization)
-        existing = authorization.access_recording
-        return if existing.blank?
-        return unless existing.recording_studio_trashable_kept?
-        return if existing.recordable.role.to_s == role
-
-        revoked = RecordingStudioAccessible.revoke_access(
-          recording: access_point_recording,
-          access_recording: existing,
-          manager_actor: manager_actor
-        )
-        if revoked.success?
-          authorization.association(:access_recording).reset
-          return
-        end
-
-        RecordingStudioTrashable.void_recording!(existing)
-        authorization.association(:access_recording).reset
       end
 
       def manager_access_present?

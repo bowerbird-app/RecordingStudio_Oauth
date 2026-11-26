@@ -133,7 +133,7 @@ class SelfDelegatedConnectTest < ActionDispatch::IntegrationTest
     assert second.value.fetch(:access_recording).recording_studio_trashable_kept?
   end
 
-  test "reconnect at a different role replaces the grant" do
+  test "reconnect at a different role updates the grant in place and refuses a role above the member" do
     editor = create_user(email: "edit-member-role-change@example.com")
     root_recording, edit_access = create_access_recording_for(user: editor, role: :edit)
     first = connect_as(
@@ -160,14 +160,31 @@ class SelfDelegatedConnectTest < ActionDispatch::IntegrationTest
     )
     assert_equal 1, authorizations.count
     assert_equal first.value.fetch(:authorization).id, second.value.fetch(:authorization).id
+    assert_equal first_grant.id, second.value.fetch(:access_recording).id
     assert_equal "edit", second.value.fetch(:authorization).role
     assert_equal "edit", second.value.fetch(:access_recording).recordable.role
-    refute_equal first_grant.id, second.value.fetch(:access_recording).id
+    assert second.value.fetch(:access_recording).recording_studio_trashable_kept?
     assert RecordingStudioAccessible.authorized?(
       actor: second.value.fetch(:authorization),
       recording: root_recording,
       role: :edit
     )
+
+    refused = connect_as(
+      user: editor,
+      oauth_client: @oauth_client,
+      access_recording: edit_access,
+      role: "admin"
+    )
+
+    refute refused.success?
+    assert_equal RecordingStudioOauth::Services::CreateOauthAuthorization.role_changed_message, refused.error.to_s
+    grant_after_refusal = RecordingStudio::Recording.find(first_grant.id)
+    authorization_after_refusal = RecordingStudioOauth::OauthAuthorization.find(second.value.fetch(:authorization).id)
+    assert_equal "edit", authorization_after_refusal.role
+    assert_equal "edit", grant_after_refusal.recordable.role
+    assert grant_after_refusal.recording_studio_trashable_kept?
+    assert_equal first_grant.id, authorization_after_refusal.access_recording_id
   end
 
   test "an admin can still connect" do

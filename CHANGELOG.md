@@ -5,19 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.26.2] - 2026-11-26
+## [0.27.0] - 2026-11-26
 
 ### Changed
 - Connect grants the app's Access with
   `RecordingStudioAccessible.grant_self_delegated_access`. A view or edit
   member can connect at or below their own role. Admins still use the same
   path. Same-role reconnect stays idempotent. A reconnect at a different
-  role replaces the previous grant through Accessible `revoke_access` or,
-  when manage-access is not allowed, Trashable `void_recording!`.
+  role updates the grant in place through Accessible. The grant id stays
+  the same. Oauth does not revoke or void that grant.
 
 ### Upgrade notes
-- Hosts need Accessible `>= 0.61.0`, `< 2.0`. Dummy and development pins
-  move to Accessible `~> 0.61` (`v0.61.0`).
+- Hosts need Accessible `>= 0.61.1`, `< 2.0`. Dummy and development pins
+  move to Accessible `~> 0.61` (`v0.61.1`).
 - No Oauth migration. Issued tokens, grants, and scopes stay the same.
 - Hosts that copy Accessible locale files should add
   `errors.self_delegated_not_a_member`, `errors.self_delegated_existing_grant`,
@@ -1126,7 +1126,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
-[0.26.2]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.1...v0.26.2
+[0.27.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.1...v0.27.0
 [0.26.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.0...v0.25.1
