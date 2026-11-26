@@ -53,13 +53,7 @@ module RecordingStudioOauth
             )
           end
 
-          grant_result = RecordingStudioAccessible.grant_access(
-            recording: access_point_recording,
-            actor: authorization,
-            role: role,
-            manager_actor: manager_actor,
-            depends_on: access_recording
-          )
+          grant_result = grant_self_delegated_access!(authorization)
           raise StandardError, grant_result.error if grant_result.failure?
 
           granted_access_recording = grant_result.value
@@ -129,6 +123,38 @@ module RecordingStudioOauth
       def prepare_reopen!(authorization)
         OauthAuthorizationCode.where(oauth_authorization_id: authorization.id, used_at: nil).delete_all
         authorization.update!(role: role, revoked_at: nil)
+      end
+
+      def grant_self_delegated_access!(authorization)
+        replace_existing_grant_if_role_changed!(authorization)
+
+        RecordingStudioAccessible.grant_self_delegated_access(
+          recording: access_point_recording,
+          actor: authorization,
+          role: role,
+          manager_actor: manager_actor,
+          depends_on: access_recording
+        )
+      end
+
+      def replace_existing_grant_if_role_changed!(authorization)
+        existing = authorization.access_recording
+        return if existing.blank?
+        return unless existing.recording_studio_trashable_kept?
+        return if existing.recordable.role.to_s == role
+
+        revoked = RecordingStudioAccessible.revoke_access(
+          recording: access_point_recording,
+          access_recording: existing,
+          manager_actor: manager_actor
+        )
+        if revoked.success?
+          authorization.association(:access_recording).reset
+          return
+        end
+
+        RecordingStudioTrashable.void_recording!(existing)
+        authorization.association(:access_recording).reset
       end
 
       def manager_access_present?
