@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.1] - 2026-11-26
+
+### Security
+- Dummy Brakeman is `8.1.1`. Dummy `net-ssh` is `7.3.10`. Dummy and
+  development `puma` is `8.1.3`.
+- Dummy and root Ruby is `3.3.14` (CVE-2026-132825).
+
+### Upgrade notes
+- No Oauth migration. Issued tokens, grants, and scopes stay the same.
+- Dummy and development lockfiles pick up Brakeman `8.1.1`, `net-ssh`
+  `7.3.10`, and Puma `8.1.3`. Gemspec floors are unchanged.
+
 ## [0.27.0] - 2026-11-26
 
 ### Changed
@@ -1126,6 +1138,7 @@ First release of the Recording Studio authorization server.
 - Flatpack `~> 0.1.144` so Site Settings `v0.1.0` can install
 - Site Settings `~> 0.1` / dummy tag `v0.1.0`. Dummy also pins Attachable `v0.5.1` because that gem requires it.
 
+[0.27.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.27.0...v0.27.1
 [0.27.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.1...v0.27.0
 [0.26.1]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/bowerbird-app/RecordingStudio_Oauth/compare/v0.25.1...v0.26.0
