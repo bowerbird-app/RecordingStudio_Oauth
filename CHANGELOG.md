@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Dummy Brakeman is `8.1.1`. Dummy `net-ssh` is `7.3.10`. Dummy and
   development `puma` is `8.1.3`.
+- Dummy and root Ruby is `3.3.14` (CVE-2026-132825).
 
 ### Upgrade notes
 - No Oauth migration. Issued tokens, grants, and scopes stay the same.
